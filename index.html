@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>B-TECH HUB — Build • Learn • Create • Grow</title>
+  
+  <!-- PWA & Mobile Web App Meta Tags -->
+  <meta name="theme-color" content="#07142F">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="B-TECH HUB">
+  <link rel="manifest" href="data:application/json,{
+    \"name\": \"B-TECH HUB App\",
+    \"short_name\": \"B-TECH\",
+    \"start_url\": \"/\",
+    \"display\": \"standalone\",
+    \"background_color\": \"#07142F\",
+    \"theme_color\": \"#1238C7\",
+    \"icons\": [{
+      \"src\": \"https://img.icons8.com/fluency/512/developer-mode.png\",
+      \"sizes\": \"512x512\",
+      \"type\": \"image/png\"
+    }]
+  }">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { cobalt: '#1238C7', navy: '#07142F', 'light-bg': '#F8FAFC' }
+        }
+      }
+    }
+  </script>
+  <style>
+    .custom-scroll::-webkit-scrollbar { width: 4px; }
+    .custom-scroll::-webkit-scrollbar-track { background: #07142F; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 4px; }
+    .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); }
+  </style>
+</head>
+<body class="bg-light-bg text-navy font-sans min-h-screen flex flex-col justify-between">
+
+  <!-- Navigation Bar -->
+  <nav id="main-nav" class="bg-navy text-white sticky top-0 z-50 border-b border-slate-800 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <button onclick="navigate('home')" class="text-left flex items-center space-x-2">
+        <div class="w-8 h-8 rounded-lg bg-cobalt flex items-center justify-center font-black text-white text-base shadow-md">B</div>
+        <div>
+          <span class="text-[10px] font-bold text-blue-400 tracking-wider block">B-TECH HUB</span>
+          <span class="text-sm font-extrabold sm:text-base tracking-tight">BUILD & LEARN</span>
+        </div>
+      </button>
+      
+      <div class="hidden md:flex space-x-6 text-xs font-semibold">
+        <button onclick="navigate('home')" class="hover:text-blue-400 transition-colors">Home</button>
+        <button onclick="navigate('services')" class="hover:text-blue-400 transition-colors">Services</button>
+        <button onclick="navigate('courses')" class="hover:text-blue-400 transition-colors">Courses</button>
+        <button onclick="navigate('dashboard')" class="hover:text-blue-400 transition-colors">Client Portal</button>
+        <button onclick="navigate('admin')" class="text-blue-400 font-bold hover:underline flex items-center space-x-1">
+          <span>⚙️</span>
+          <span>Admin Panel</span>
+        </button>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <button id="pwa-install-btn" onclick="triggerPWAInstall()" class="hidden bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow transition-all">
+          📲 Install App
+        </button>
+        <button onclick="navigate('request')" class="bg-cobalt hover:bg-blue-700 px-4 py-2 rounded-lg text-xs font-semibold text-white shadow-md transition-all">
+          Start Project
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Bar -->
+    <div class="flex md:hidden justify-around py-2 border-t border-slate-800 text-[11px] bg-navy text-slate-300 font-medium">
+      <button onclick="navigate('home')" class="p-1 hover:text-blue-400">Home</button>
+      <button onclick="navigate('services')" class="p-1 hover:text-blue-400">Services</button>
+      <button onclick="navigate('courses')" class="p-1 hover:text-blue-400">Courses</button>
+      <button onclick="navigate('dashboard')" class="p-1 hover:text-blue-400">Client</button>
+      <button onclick="navigate('admin')" class="p-1 text-blue-400 font-bold">Admin</button>
+    </div>
+  </nav>
+
+  <!-- Dynamic Application Content Container -->
+  <main id="app-content" class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
+    <!-- Active view component mounts here dynamically -->
+  </main>
+
+  <!-- Footer -->
+  <footer id="main-footer" class="bg-navy text-slate-400 text-xs py-8 border-t border-slate-800 mt-12">
+    <div class="max-w-7xl mx-auto px-4 space-y-4">
+      <div class="flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-slate-800 pb-6 text-center sm:text-left">
+        <div>
+          <p class="font-bold text-white text-sm">B-TECH HUB — Build • Learn • Create • Grow</p>
+          <p class="text-slate-400 text-[11px]">Empowering businesses, schools, and creators through modern software solutions.</p>
+        </div>
+        <div class="flex space-x-4 font-medium text-slate-300">
+          <button onclick="navigate('privacy')" class="hover:text-blue-400">Privacy Policy</button>
+          <button onclick="navigate('services')" class="hover:text-blue-400">Services</button>
+          <button onclick="navigate('courses')" class="hover:text-blue-400">Academy</button>
+        </div>
+      </div>
+      <div class="text-center text-slate-500 text-[11px]">
+        © 2026 B-TECH HUB. All rights reserved. Powered by Supabase Engine.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // --- Supabase Configuration ---
+    const SUPABASE_URL = 'https://argvofusfdrwengshbqw.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZ3ZvZnVzZmRyd2VuZ3NoYnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjkxOTIsImV4cCI6MjEwMzg0NTE5Mn0.lS8P1NhaWVhyW3XMHz5ErC-aIXq-wsMrV8I9RFxtXIE';
+    const supabase = window.supabase.createClient(argvofusfdrwengshbqw, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZ3ZvZnVzZmRyd2VuZ3NoYnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjkxOTIsImV4cCI6MjEwMzg0NTE5Mn0.lS8P1NhaWVhyW3XMHz5ErC-aIXq-wsMrV8I9RFxtXIE);
+
+    // Global App State
+    let activeAdminTab = 'projects';
+    let deferredPWAInstallPrompt = null;
+
+    // PWA Prompt Handler
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPWAInstallPrompt = e;
+      const installBtn = document.getElementById('pwa-install-btn');
+      if (installBtn) installBtn.classList.remove('hidden');
+    });
+
+    function triggerPWAInstall() {
+      if (deferredPWAInstallPrompt) {
+        deferredPWAInstallPrompt.prompt();
+        deferredPWAInstallPrompt.userChoice.then(() => {
+          deferredPWAInstallPrompt = null;
+          document.getElementById('pwa-install-btn').classList.add('hidden');
+        });
+      } else {
+        alert('To install, tap "Add to Home Screen" in your mobile browser menu.');
+      }
+    }
+
+    // --- Navigation Router ---
+    function navigate(viewName) {
+      const app = document.getElementById('app-content');
+      const nav = document.getElementById('main-nav');
+      const footer = document.getElementById('main-footer');
+      window.scrollTo(0, 0);
+
+      nav.classList.remove('hidden');
+      footer.classList.remove('hidden');
+      app.className = "flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6";
+
+      if (viewName === 'home') renderHome(app);
+      else if (viewName === 'services') renderServices(app);
+      else if (viewName === 'courses') renderCourses(app);
+      else if (viewName === 'request') renderRequestForm(app);
+      else if (viewName === 'dashboard') renderDashboard(app);
+      else if (viewName === 'admin') renderAdmin(app);
+      else if (viewName === 'privacy') renderPrivacyPolicy(app);
+    }
+
+    // --- HOME VIEW ---
+    function renderHome(container) {
+      container.innerHTML = `
+        <section class="py-12 text-center max-w-3xl mx-auto space-y-6">
+          <span class="inline-block px-3 py-1 bg-blue-100 text-cobalt text-xs font-bold rounded-full uppercase tracking-wider">Software & Training Agency</span>
+          <h1 class="text-4xl sm:text-5xl font-extrabold text-navy leading-tight">Build Digital Products & Master Technology.</h1>
+          <p class="text-slate-600 text-base sm:text-lg">Custom web engineering, school management portals, mobile apps, and career-driven technical bootcamps.</p>
+          <div class="flex flex-col sm:flex-row justify-center gap-4 pt-4">
+            <button onclick="navigate('request')" class="px-6 py-3.5 bg-cobalt text-white font-semibold rounded-xl shadow-md hover:bg-blue-700 transition-all">Start a Project</button>
+            <button onclick="navigate('courses')" class="px-6 py-3.5 border border-slate-300 text-navy font-semibold rounded-xl hover:bg-white transition-all">Explore Courses</button>
+          </div>
+        </section>
+      `;
+    }
+
+    // --- SERVICES VIEW ---
+    function renderServices(container) {
+      const services = [
+        { title: 'Business Websites & Web Apps', desc: 'Custom high-converting portals, web applications, and API integrations.' },
+        { title: 'School Management Portals', desc: 'Student portals, gradebooks, result checkers, and online registration.' },
+        { title: 'Church & NGO Platforms', desc: 'Community hubs, live updates, sermon media archives, and donation portals.' },
+        { title: 'E-Commerce & Digital Stores', desc: 'Storefront applications featuring direct mobile money payment gateways.' }
+      ];
+      container.innerHTML = `
+        <div class="space-y-6">
+          <h2 class="text-2xl font-bold text-navy">Our Technical Services</h2>
+          <div class="grid sm:grid-cols-2 gap-4">
+            ${services.map(s => `
+              <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2 hover:border-cobalt transition-all">
+                <h3 class="font-bold text-lg text-cobalt">${s.title}</h3>
+                <p class="text-slate-600 text-xs sm:text-sm leading-relaxed">${s.desc}</p>
+                <button onclick="navigate('request')" class="text-xs font-bold text-cobalt hover:underline pt-2 block">Request Quote →</button>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // --- COURSES VIEW (Live Supabase Query) ---
+    async function renderCourses(container) {
+      container.innerHTML = `<p class="text-center py-12 text-slate-500">Loading catalog from database...</p>`;
+      const { data: products, error } = await supabase.from('products').select('*').eq('is_published', true).order('created_at', { ascending: false });
+
+      if (error) {
+        container.innerHTML = `<p class="text-center py-12 text-red-500">Failed to load courses: ${error.message}</p>`;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex justify-between items-center">
+            <h2 class="text-2xl font-bold text-navy">Practical Courses & Digital Assets</h2>
+          </div>
+          <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            ${(products && products.length ? products : []).map(c => `
+              <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between p-5 hover:shadow-md transition-all">
+                <div class="space-y-2">
+                  <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full uppercase">${c.type || 'COURSE'}</span>
+                  <h3 class="font-bold text-base text-navy">${c.title}</h3>
+                  <p class="text-xs text-slate-600 leading-relaxed">${c.description}</p>
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center">
+                  <span class="font-extrabold text-navy text-lg">$${c.price}</span>
+                  <button onclick="navigate('dashboard')" class="px-4 py-2 bg-cobalt hover:bg-blue-700 text-white text-xs rounded-xl font-semibold transition-all">Enroll Now</button>
+                </div>
+              </div>
+            `).join('')}
+            ${(!products || products.length === 0) ? '<p class="text-xs text-slate-500 col-span-full py-8 text-center bg-white rounded-2xl border">No published courses available currently.</p>' : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    // --- REQUEST FORM VIEW (Live Supabase Insert) ---
+    function renderRequestForm(container) {
+      container.innerHTML = `
+        <div class="max-w-2xl mx-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <h2 class="text-xl font-bold text-navy">Start a Software Project</h2>
+          <p class="text-xs text-slate-500">Submit your website or software requirements directly to the B-TECH HUB engineering database.</p>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Project Name / Business Name *</label>
+              <input id="proj-name" type="text" placeholder="e.g. Royal Academy Portal" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Project Details & Requirements *</label>
+              <textarea id="proj-desc" rows="4" placeholder="Describe the feature requirements, scope, and timeline..." class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none"></textarea>
+            </div>
+            <button onclick="handleRequestSubmit()" class="w-full py-3 bg-cobalt hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-md transition-all">
+              Submit Proposal
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    async function handleRequestSubmit() {
+      const name = document.getElementById('proj-name').value.trim();
+      const description = document.getElementById('proj-desc').value.trim();
+
+      if (!name || !description) {
+        alert('Please complete all required fields.');
+        return;
+      }
+
+      const { error } = await supabase.from('projects').insert([{ name, description, status: 'NEW_REQUEST' }]);
+
+      if (error) {
+        alert('Database Error: ' + error.message);
+      } else {
+        alert('Project proposal submitted successfully!');
+        navigate('admin');
+      }
+    }
+
+    // --- CLIENT DASHBOARD VIEW ---
+    async function renderDashboard(container) {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        container.innerHTML = `
+          <div class="max-w-md mx-auto bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm text-center space-y-4">
+            <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto text-cobalt font-bold text-xl">🔑</div>
+            <h2 class="text-xl font-bold text-navy">Client Portal Access</h2>
+            <p class="text-xs text-slate-500">Sign in to track your ongoing project milestones and access enrolled courses.</p>
+            <div class="space-y-3">
+              <input id="auth-email" type="email" placeholder="Email Address" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none"/>
+              <input id="auth-password" type="password" placeholder="Password" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none"/>
+              <button onclick="handleLogin()" class="w-full py-3 bg-cobalt text-white font-semibold rounded-xl text-xs shadow-md hover:bg-blue-700 transition-all">Login</button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="space-y-6">
+          <div class="flex justify-between items-center bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div>
+              <span class="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded uppercase">Authenticated</span>
+              <h2 class="font-bold text-lg text-navy mt-1">Client Portal</h2>
+              <p class="text-xs text-slate-500">${user.email}</p>
+            </div>
+            <button onclick="supabase.auth.signOut().then(() => navigate('dashboard'))" class="text-xs text-red-600 font-bold hover:underline bg-red-50 px-3 py-1.5 rounded-lg">Logout</button>
+          </div>
+          <h3 class="font-bold text-md text-navy">Active Submissions</h3>
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 text-xs text-slate-500 text-center py-8">
+            No active project orders linked to this account session yet. Submit your request using the project form.
+          </div>
+        </div>
+      `;
+    }
+
+    async function handleLogin() {
+      const email = document.getElementById('auth-email').value;
+      const password = document.getElementById('auth-password').value;
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) alert(error.message);
+      else navigate('dashboard');
+    }
+
+    // --- ADMIN DASHBOARD VIEW (Live Supabase Data Fetch & Inserts) ---
+    async function renderAdmin(container) {
+      container.innerHTML = `<p class="text-center py-12 text-slate-500">Connecting to Supabase Database...</p>`;
+
+      const [{ data: projects }, { data: products }, { data: userRoles }] = await Promise.all([
+        supabase.from('projects').select('*').order('created_at', { ascending: false }),
+        supabase.from('products').select('*').order('created_at', { ascending: false }),
+        supabase.from('user_roles').select('*').order('created_at', { ascending: false })
+      ]);
+
+      const pendingCount = projects ? projects.filter(p => p.status === 'NEW_REQUEST').length : 0;
+      const activeProjectsCount = projects ? projects.filter(p => p.status !== 'COMPLETED').length : 0;
+      const activeAdmins = userRoles || [];
+
+      container.innerHTML = `
+        <div class="space-y-6">
+          
+          <!-- Admin Header -->
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-navy text-white p-6 rounded-2xl shadow-xl">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Supabase Live Dashboard</span>
+              </div>
+              <h1 class="text-2xl font-bold mt-1">Management Portal</h1>
+            </div>
+            <button onclick="navigate('dashboard')" class="text-xs bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl text-slate-200 font-semibold border border-slate-700 transition-all">
+              Exit Admin
+            </button>
+          </div>
+
+          <!-- Real-Time Metrics -->
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+              <span class="text-[11px] text-slate-500 font-bold uppercase">Pending Proposals</span>
+              <p class="text-2xl font-black text-amber-600 mt-1">${pendingCount}</p>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+              <span class="text-[11px] text-slate-500 font-bold uppercase">Active Projects</span>
+              <p class="text-2xl font-black text-cobalt mt-1">${activeProjectsCount}</p>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm col-span-2 md:col-span-1">
+              <span class="text-[11px] text-slate-500 font-bold uppercase">Registered Admins</span>
+              <p class="text-2xl font-black text-emerald-600 mt-1">${activeAdmins.length}</p>
+            </div>
+          </div>
+
+          <!-- Admin Tabs -->
+          <div class="flex border-b border-slate-200 text-xs font-bold space-x-6">
+            <button onclick="switchAdminTab('projects')" class="pb-2.5 border-b-2 ${activeAdminTab === 'projects' ? 'border-cobalt text-cobalt' : 'border-transparent text-slate-500 hover:text-slate-800'}">
+              Project Requests Queue
+            </button>
+            <button onclick="switchAdminTab('courses')" class="pb-2.5 border-b-2 ${activeAdminTab === 'courses' ? 'border-cobalt text-cobalt' : 'border-transparent text-slate-500 hover:text-slate-800'}">
+              Publish Catalog Asset
+            </button>
+            <button onclick="switchAdminTab('team')" class="pb-2.5 border-b-2 ${activeAdminTab === 'team' ? 'border-cobalt text-cobalt' : 'border-transparent text-slate-500 hover:text-slate-800'}">
+              Admin Role Management
+            </button>
+          </div>
+
+          <!-- TAB 1: Projects Management -->
+          <div id="admin-tab-projects" class="${activeAdminTab === 'projects' ? '' : 'hidden'} space-y-4">
+            <h3 class="font-bold text-base text-navy">Submitted Client Proposals</h3>
+            <div class="space-y-3">
+              ${(projects && projects.length ? projects : []).map(p => `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded">${p.type || 'Custom Software'}</span>
+                      <h4 class="font-bold text-sm text-navy mt-1">${p.name}</h4>
+                    </div>
+                    <span class="text-[10px] font-bold uppercase px-2 py-1 rounded bg-amber-100 text-amber-800">${p.status}</span>
+                  </div>
+                  <p class="text-xs text-slate-600">${p.description || 'No detailed requirements specified.'}</p>
+                </div>
+              `).join('')}
+              ${(!projects || projects.length === 0) ? '<p class="text-xs text-slate-500 py-6 text-center bg-white rounded-2xl border">No project requests recorded in database.</p>' : ''}
+            </div>
+          </div>
+
+          <!-- TAB 2: Course Publishing -->
+          <div id="admin-tab-courses" class="${activeAdminTab === 'courses' ? '' : 'hidden'} space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <h3 class="font-bold text-base text-navy">Create & Publish New Course</h3>
+              <div class="space-y-3">
+                <input id="new-course-title" type="text" placeholder="Course Title" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none" />
+                <textarea id="new-course-desc" rows="3" placeholder="Description of modules and learnings..." class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none"></textarea>
+                <div class="grid grid-cols-2 gap-3">
+                  <select id="new-course-type" class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs bg-white">
+                    <option value="COURSE">Video Course</option>
+                    <option value="PDF">E-Book (PDF)</option>
+                    <option value="TEMPLATE">Code Template</option>
+                  </select>
+                  <input id="new-course-price" type="number" step="0.01" value="25.00" placeholder="Price ($ USD)" class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs" />
+                </div>
+                <button onclick="handleCreateCourse()" class="w-full py-3 bg-cobalt hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-md transition-all">
+                  Publish to Supabase Catalog
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: Admin Role Management (Live Insert into user_roles) -->
+          <div id="admin-tab-team" class="${activeAdminTab === 'team' ? '' : 'hidden'} space-y-6">
+            
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <div>
+                <h3 class="font-bold text-base text-navy">Grant System Privileges</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Add administrators directly to the `user_roles` database table.</p>
+              </div>
+
+              <div class="space-y-3 pt-2">
+                <div>
+                  <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">User Email Address *</label>
+                  <input id="new-admin-email" type="email" placeholder="e.g. admin@btechhub.com" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none" />
+                </div>
+
+                <div>
+                  <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Admin Privilege Level *</label>
+                  <select id="new-admin-role" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs bg-white focus:ring-2 focus:ring-cobalt focus:outline-none">
+                    <option value="Project Manager">Project Manager (Manage Requests)</option>
+                    <option value="Course Instructor">Course Instructor (Publish Content)</option>
+                    <option value="Super Admin">Super Admin (Full Access)</option>
+                  </select>
+                </div>
+
+                <button onclick="handleAddAdmin()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center space-x-1">
+                  <span>➕ Add Authorized Admin</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Existing Admins List from Database -->
+            <div class="space-y-3">
+              <h4 class="font-bold text-sm text-navy">Active Database Administrators (${activeAdmins.length})</h4>
+              <div class="space-y-2">
+                ${activeAdmins.map(admin => `
+                  <div class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center text-xs shadow-sm">
+                    <div class="flex items-center space-x-3">
+                      <div class="w-8 h-8 rounded-full bg-slate-100 font-bold text-slate-700 flex items-center justify-center">
+                        ${admin.email ? admin.email.charAt(0).toUpperCase() : 'A'}
+                      </div>
+                      <div>
+                        <p class="font-bold text-navy">${admin.email}</p>
+                        <p class="text-[10px] text-slate-500">Registered: ${new Date(admin.created_at).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <span class="px-2.5 py-1 bg-blue-50 text-cobalt font-bold rounded-lg text-[10px] uppercase tracking-wide">
+                      ${admin.role}
+                    </span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      `;
+    }
+
+    function switchAdminTab(tab) {
+      activeAdminTab = tab;
+      const app = document.getElementById('app-content');
+      renderAdmin(app);
+    }
+
+    async function handleAddAdmin() {
+      const email = document.getElementById('new-admin-email').value.trim();
+      const role = document.getElementById('new-admin-role').value;
+
+      if (!email || !email.includes('@')) {
+        alert('Please enter a valid email address.');
+        return;
+      }
+
+      const { error } = await supabase.from('user_roles').insert([{ email, role }]);
+
+      if (error) {
+        alert('Error adding admin: ' + error.message);
+      } else {
+        alert(`Success: ${email} added as ${role}.`);
+        switchAdminTab('team');
+      }
+    }
+
+    async function handleCreateCourse() {
+      const title = document.getElementById('new-course-title').value.trim();
+      const description = document.getElementById('new-course-desc').value.trim();
+      const type = document.getElementById('new-course-type').value;
+      const price = parseFloat(document.getElementById('new-course-price').value) || 0;
+
+      if (!title || !description) {
+        alert('Please provide a course title and description.');
+        return;
+      }
+
+      const { error } = await supabase.from('products').insert([{ title, description, type, price, is_published: true }]);
+
+      if (error) {
+        alert('Error publishing course: ' + error.message);
+      } else {
+        alert('Course successfully published to Supabase database!');
+        navigate('courses');
+      }
+    }
+
+    // --- PRIVACY POLICY VIEW ---
+    function renderPrivacyPolicy(container) {
+      container.innerHTML = `
+        <div class="max-w-4xl mx-auto bg-white p-6 sm:p-10 rounded-2xl border border-slate-200 shadow-sm space-y-6 text-navy">
+          <div class="border-b border-slate-100 pb-4">
+            <span class="text-[10px] font-bold text-cobalt bg-blue-50 px-2.5 py-1 rounded-full uppercase">Legal & Compliance</span>
+            <h1 class="text-2xl sm:text-3xl font-extrabold mt-2">Privacy Policy</h1>
+            <p class="text-xs text-slate-500 mt-1">Effective Date: September 1, 2026</p>
+          </div>
+
+          <div class="space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed">
+            <section class="space-y-2">
+              <h2 class="text-base font-bold text-navy">1. Information We Collect</h2>
+              <p>At B-TECH HUB, we collect only necessary project requirements, authentication data, and user profile information via Supabase services to deliver web design and training services.</p>
+            </section>
+
+            <section class="space-y-2">
+              <h2 class="text-base font-bold text-navy">2. How Data is Used</h2>
+              <p>Data submitted is strictly used to fulfill custom web project proposals, enable client login dashboards, and grant access to paid courses. We do not transfer or sell user data to external third parties.</p>
+            </section>
+
+            <section class="space-y-2">
+              <h2 class="text-base font-bold text-navy">3. Cloud Security</h2>
+              <p>Operational data is stored using Supabase PostgreSQL databases with Row-Level Security (RLS) policies enabled.</p>
+            </section>
+          </div>
+
+          <div class="pt-4 border-t border-slate-100 flex justify-between items-center">
+            <button onclick="navigate('home')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition-all">← Back to Home</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // Initialize Default App View
+    navigate('home');
+  </script>
+</body>
+</html>
