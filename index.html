@@ -2,8 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>B-TECH HUB — Build • Learn • Create • Grow</title>
+  
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#07142F">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="B-Tech Hub">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1006/1006771.png">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
@@ -15,14 +23,23 @@
       }
     }
   </script>
+  <style>
+    /* Smooth transitions & touch optimizations */
+    body { -webkit-tap-highlight-color: transparent; }
+    .toast-enter { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  </style>
 </head>
-<body class="bg-light-bg text-navy font-sans min-h-screen flex flex-col justify-between">
+<body class="bg-light-bg text-navy font-sans min-h-screen flex flex-col justify-between selection:bg-cobalt selection:text-white">
 
-  <!-- Top Navigation -->
-  <nav class="bg-navy text-white sticky top-0 z-50 border-b border-slate-800 shadow-lg">
+  <div id="offline-banner" class="hidden bg-amber-500 text-white text-[11px] font-bold text-center py-1 sticky top-0 z-[60]">
+    ⚠️ You are operating offline. Some features may be limited.
+  </div>
+
+  <nav class="bg-navy text-white sticky top-0 z-50 border-b border-slate-800 shadow-xl">
     <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-      <button onclick="navigate('home')" class="text-left flex items-center space-x-2">
-        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-black text-white text-sm">B</div>
+      <button onclick="navigate('home')" class="text-left flex items-center space-x-2 focus:outline-none">
+        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-black text-white text-sm shadow-md">B</div>
         <div>
           <span class="text-[10px] font-bold text-blue-400 tracking-wider block">B-TECH HUB</span>
           <span class="text-xs font-extrabold text-white">BUILD & LEARN</span>
@@ -30,23 +47,28 @@
       </button>
       
       <div class="hidden md:flex space-x-6 text-xs font-semibold">
-        <button onclick="navigate('home')" class="hover:text-blue-400">Home</button>
-        <button onclick="navigate('services')" class="hover:text-blue-400">Services</button>
-        <button onclick="navigate('courses')" class="hover:text-blue-400">Courses</button>
-        <button onclick="navigate('dashboard')" class="hover:text-blue-400">Client Portal</button>
+        <button onclick="navigate('home')" class="hover:text-blue-400 transition-colors">Home</button>
+        <button onclick="navigate('services')" class="hover:text-blue-400 transition-colors">Services</button>
+        <button onclick="navigate('courses')" class="hover:text-blue-400 transition-colors">Courses</button>
+        <button onclick="navigate('dashboard')" class="hover:text-blue-400 transition-colors">Client Portal</button>
         <button onclick="navigate('admin')" class="text-blue-400 font-bold hover:underline flex items-center space-x-1">
           <span>🔒</span>
           <span>Admin Portal</span>
         </button>
       </div>
 
-      <button onclick="navigate('request')" class="bg-cobalt hover:bg-blue-700 px-4 py-2 rounded-lg text-xs font-semibold text-white shadow-md">
-        Start Project
-      </button>
+      <div class="flex items-center space-x-2">
+        <button id="pwa-install-btn" onclick="triggerPwaInstall()" class="hidden bg-emerald-600 hover:bg-emerald-700 px-3 py-2 rounded-lg text-xs font-bold text-white shadow-md transition-all flex items-center space-x-1">
+          <span>📲</span>
+          <span>Install App</span>
+        </button>
+        <button onclick="navigate('request')" class="bg-cobalt hover:bg-blue-700 px-4 py-2 rounded-lg text-xs font-semibold text-white shadow-md transition-all">
+          Start Project
+        </button>
+      </div>
     </div>
 
-    <!-- Mobile Navigation Bar -->
-    <div class="flex md:hidden justify-around py-2 border-t border-slate-800 text-[11px] bg-navy text-slate-300 font-medium">
+    <div class="flex md:hidden justify-around py-2.5 border-t border-slate-800 text-[11px] bg-navy text-slate-300 font-medium">
       <button onclick="navigate('home')" class="p-1 hover:text-blue-400">Home</button>
       <button onclick="navigate('services')" class="p-1 hover:text-blue-400">Services</button>
       <button onclick="navigate('courses')" class="p-1 hover:text-blue-400">Courses</button>
@@ -55,26 +77,17 @@
     </div>
   </nav>
 
-  <!-- Dynamic Page Content (Renders Home by Default) -->
   <main id="app-content" class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
-    <section class="py-12 text-center max-w-3xl mx-auto space-y-6">
-      <span class="inline-block px-3 py-1 bg-blue-100 text-cobalt text-xs font-bold rounded-full uppercase tracking-wider">Software & Training Agency</span>
-      <h1 class="text-4xl sm:text-5xl font-extrabold text-navy leading-tight">Build Digital Products & Master Technology.</h1>
-      <p class="text-slate-600 text-base sm:text-lg">Custom web engineering, school management portals, mobile apps, and career-driven technical bootcamps.</p>
-      <div class="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-        <button onclick="navigate('request')" class="px-6 py-3.5 bg-cobalt text-white font-semibold rounded-xl shadow-md hover:bg-blue-700">Start a Project</button>
-        <button onclick="navigate('courses')" class="px-6 py-3.5 border border-slate-300 text-navy font-semibold rounded-xl hover:bg-white">Explore Courses</button>
-      </div>
-    </section>
-  </main>
+    </main>
 
-  <!-- Footer -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
   <footer class="bg-navy text-slate-400 text-xs py-6 border-t border-slate-800 mt-12 text-center">
-    <p>© 2026 B-TECH HUB. All rights reserved.</p>
+    <p>© 2026 B-TECH HUB. All rights reserved. PWA Ready.</p>
   </footer>
 
   <script>
-    // --- Safe Supabase Initialization ---
+    // --- Supabase Config ---
     const SUPABASE_URL = 'https://argvofusfdrwengshbqw.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZ3ZvZnVzZmRyd2VuZ3NoYnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjkxOTIsImV4cCI6MjEwMzg0NTE5Mn0.lS8P1NhaWVhyW3XMHz5ErC-aIXq-wsMrV8I9RFxtXIE';
     
@@ -83,13 +96,72 @@
       if (window.supabase && window.supabase.createClient) {
         db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       }
-    } catch (e) {
-      console.error('Supabase failed to initialize:', e);
+    } catch (e) { console.error('Supabase load error:', e); }
+
+    let activeAdminTab = 'proposals';
+    let deferredPrompt = null;
+
+    // --- PWA Service Worker & Install Logic ---
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(() => console.log('ServiceWorker registered'))
+          .catch(err => console.error('ServiceWorker error:', err));
+      });
     }
 
-    let activeAdminTab = 'projects';
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = document.getElementById('pwa-install-btn');
+      if (btn) btn.classList.remove('hidden');
+    });
 
-    // Global Router
+    async function triggerPwaInstall() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        showToast('App installed successfully!', 'success');
+      }
+      deferredPrompt = null;
+      document.getElementById('pwa-install-btn').classList.add('hidden');
+    }
+
+    // Network Status Listeners
+    window.addEventListener('online', () => {
+      document.getElementById('offline-banner').classList.add('hidden');
+      showToast('Back online!', 'success');
+    });
+    window.addEventListener('offline', () => {
+      document.getElementById('offline-banner').classList.remove('hidden');
+      showToast('Working offline', 'warning');
+    });
+
+    // --- Toast Alert Notification System ---
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      const colors = {
+        success: 'bg-emerald-600 text-white',
+        error: 'bg-red-600 text-white',
+        warning: 'bg-amber-500 text-white',
+        info: 'bg-navy text-white'
+      };
+
+      toast.className = `${colors[type]} toast-enter pointer-events-auto text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2 border border-white/10`;
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // --- Router ---
     function navigate(view) {
       const app = document.getElementById('app-content');
       if (!app) return;
@@ -103,7 +175,7 @@
       else if (view === 'admin') renderAdmin(app);
     }
 
-    // Views
+    // --- VIEWS ---
     function renderHome(container) {
       container.innerHTML = `
         <section class="py-12 text-center max-w-3xl mx-auto space-y-6">
@@ -111,8 +183,8 @@
           <h1 class="text-4xl sm:text-5xl font-extrabold text-navy leading-tight">Build Digital Products & Master Technology.</h1>
           <p class="text-slate-600 text-base sm:text-lg">Custom web engineering, school management portals, mobile apps, and career-driven technical bootcamps.</p>
           <div class="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-            <button onclick="navigate('request')" class="px-6 py-3.5 bg-cobalt text-white font-semibold rounded-xl shadow-md hover:bg-blue-700">Start a Project</button>
-            <button onclick="navigate('courses')" class="px-6 py-3.5 border border-slate-300 text-navy font-semibold rounded-xl hover:bg-white">Explore Courses</button>
+            <button onclick="navigate('request')" class="px-6 py-3.5 bg-cobalt text-white font-semibold rounded-xl shadow-md hover:bg-blue-700 transition-all">Start a Project</button>
+            <button onclick="navigate('courses')" class="px-6 py-3.5 border border-slate-300 text-navy font-semibold rounded-xl hover:bg-white transition-all">Explore Courses</button>
           </div>
         </section>
       `;
@@ -124,8 +196,8 @@
           <h2 class="text-2xl font-bold text-navy">Our Technical Services</h2>
           <div class="grid sm:grid-cols-2 gap-4">
             <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-              <h3 class="font-bold text-lg text-cobalt">Web Development</h3>
-              <p class="text-slate-600 text-xs">Custom business applications, responsive portals, and backend APIs.</p>
+              <h3 class="font-bold text-lg text-cobalt">Web & Mobile Development</h3>
+              <p class="text-slate-600 text-xs">Custom business applications, responsive portals, and backend APIs built for scale.</p>
             </div>
             <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
               <h3 class="font-bold text-lg text-cobalt">School Portals</h3>
@@ -137,36 +209,70 @@
     }
 
     async function renderCourses(container) {
-      container.innerHTML = `<div class="bg-white p-6 rounded-2xl border text-center space-y-2"><h3 class="font-bold text-lg text-navy">Modern Full-Stack Web Development</h3><p class="text-xs text-slate-500">HTML, Tailwind CSS, JavaScript, and Supabase integration.</p></div>`;
+      container.innerHTML = `<p class="text-center py-12 text-slate-500">Loading catalog from database...</p>`;
+      
+      let products = [];
+      if (db) {
+        const { data } = await db.from('products').select('*').eq('is_published', true).order('created_at', { ascending: false });
+        products = data || [];
+      }
+
+      container.innerHTML = `
+        <div class="space-y-6">
+          <h2 class="text-2xl font-bold text-navy">Academy Courses & Downloads</h2>
+          <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            ${products.map(c => `
+              <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3 flex flex-col justify-between hover:shadow-md transition-shadow">
+                <div>
+                  <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase">${c.type || 'COURSE'}</span>
+                  <h3 class="font-bold text-base text-navy mt-1">${c.title}</h3>
+                  <p class="text-xs text-slate-600 mt-1">${c.description}</p>
+                </div>
+                <div class="pt-4 border-t flex justify-between items-center">
+                  <span class="font-bold text-navy text-base">$${c.price}</span>
+                  <button onclick="showToast('Redirecting to checkout...', 'info')" class="px-3.5 py-1.5 bg-cobalt text-white text-xs rounded-xl font-bold">Enroll Now</button>
+                </div>
+              </div>
+            `).join('')}
+            ${products.length === 0 ? '<p class="text-xs text-slate-500 col-span-3">No courses published yet. Add courses from the Admin Panel.</p>' : ''}
+          </div>
+        </div>
+      `;
     }
 
     function renderRequestForm(container) {
       container.innerHTML = `
-        <div class="max-w-md mx-auto bg-white p-6 rounded-2xl border space-y-4">
+        <div class="max-w-md mx-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <h2 class="text-xl font-bold text-navy">Submit Project Proposal</h2>
-          <input id="p-name" type="text" placeholder="Project Name" class="w-full p-2.5 border rounded-xl text-xs" />
-          <textarea id="p-desc" placeholder="Project details..." class="w-full p-2.5 border rounded-xl text-xs"></textarea>
-          <button onclick="submitProject()" class="w-full py-2.5 bg-cobalt text-white font-bold text-xs rounded-xl">Submit</button>
+          <div class="space-y-3">
+            <input id="p-name" type="text" placeholder="Project / Company Name" class="w-full p-3 border rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none" />
+            <textarea id="p-desc" rows="4" placeholder="Briefly describe required features & goals..." class="w-full p-3 border rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none"></textarea>
+            <button onclick="submitProject()" class="w-full py-3 bg-cobalt text-white font-bold text-xs rounded-xl shadow-md hover:bg-blue-700 transition-all">Submit Proposal</button>
+          </div>
         </div>
       `;
     }
 
     async function submitProject() {
-      const name = document.getElementById('p-name').value;
-      const description = document.getElementById('p-desc').value;
-      if (!name) return alert('Enter project name');
-      if (db) await db.from('projects').insert([{ name, description }]);
-      alert('Proposal submitted!');
+      const name = document.getElementById('p-name').value.trim();
+      const description = document.getElementById('p-desc').value.trim();
+      if (!name || !description) return showToast('Please complete both fields.', 'error');
+
+      if (db) {
+        const { error } = await db.from('projects').insert([{ name, description, status: 'NEW_REQUEST' }]);
+        if (error) return showToast('Error submitting: ' + error.message, 'error');
+      }
+      showToast('Proposal submitted successfully!', 'success');
       navigate('home');
     }
 
     function renderDashboard(container) {
-      container.innerHTML = `<div class="bg-white p-6 rounded-2xl border text-center"><h2 class="font-bold text-lg">Client Portal</h2><p class="text-xs text-slate-500 mt-1">Please sign in as a client to track your project progress.</p></div>`;
+      container.innerHTML = `<div class="bg-white p-6 rounded-2xl border text-center"><h2 class="font-bold text-lg">Client Portal</h2><p class="text-xs text-slate-500 mt-1">Please sign in as a client to track project progress.</p></div>`;
     }
 
-    // --- ADMIN CONTROLLER & LOGIN SCREEN ---
+    // --- ADMIN PANEL ---
     async function renderAdmin(container) {
-      container.innerHTML = `<p class="text-center py-12 text-slate-500">Checking authentication...</p>`;
+      container.innerHTML = `<p class="text-center py-12 text-slate-500">Verifying security session...</p>`;
 
       let user = null;
       if (db) {
@@ -176,29 +282,28 @@
         } catch(e) { console.error(e); }
       }
 
-      // SHOW LOGIN SCREEN IF NOT AUTHENTICATED
       if (!user) {
         container.innerHTML = `
           <div class="max-w-md mx-auto bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xl space-y-5 text-center">
             <div class="w-12 h-12 bg-navy text-blue-400 rounded-2xl flex items-center justify-center mx-auto text-xl font-bold">🔒</div>
             <div>
               <h2 class="text-2xl font-black text-navy">Admin Portal Sign In</h2>
-              <p class="text-xs text-slate-500 mt-1">Sign in with your authorized admin account credentials.</p>
+              <p class="text-xs text-slate-500 mt-1">Access system controls and client database.</p>
             </div>
 
             <div class="space-y-3 text-left">
               <div>
                 <label class="block text-[10px] font-bold uppercase text-slate-600 mb-1">Email</label>
-                <input id="admin-email" type="email" placeholder="admin@btechhub.com" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none" />
+                <input id="admin-email" type="email" placeholder="admin@btechhub.com" class="w-full px-3.5 py-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none" />
               </div>
               <div>
                 <label class="block text-[10px] font-bold uppercase text-slate-600 mb-1">Password</label>
-                <input id="admin-password" type="password" placeholder="••••••••" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none" />
+                <input id="admin-password" type="password" placeholder="••••••••" class="w-full px-3.5 py-2.5 border rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none" />
               </div>
               
               <div class="grid grid-cols-2 gap-3 pt-2">
-                <button onclick="loginAdmin()" class="py-3 bg-navy hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-lg transition-all">Sign In</button>
-                <button onclick="signUpAdmin()" class="py-3 bg-cobalt hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-lg transition-all">Create Admin</button>
+                <button onclick="loginAdmin()" class="py-3 bg-navy hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-lg">Sign In</button>
+                <button onclick="signUpAdmin()" class="py-3 bg-cobalt hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-lg">Create Admin</button>
               </div>
             </div>
           </div>
@@ -206,61 +311,184 @@
         return;
       }
 
-      // SHOW DASHBOARD WHEN LOGGED IN
-      let projects = [];
+      let projects = [], products = [], userRoles = [];
       if (db) {
-        const { data } = await db.from('projects').select('*');
-        projects = data || [];
+        const [projRes, prodRes, roleRes] = await Promise.all([
+          db.from('projects').select('*').order('created_at', { ascending: false }),
+          db.from('products').select('*').order('created_at', { ascending: false }),
+          db.from('user_roles').select('*').order('created_at', { ascending: false })
+        ]);
+        projects = projRes.data || [];
+        products = prodRes.data || [];
+        userRoles = roleRes.data || [];
       }
 
       container.innerHTML = `
         <div class="space-y-6">
-          <div class="flex justify-between items-center bg-navy text-white p-6 rounded-2xl shadow-xl">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-navy text-white p-6 rounded-2xl shadow-xl">
             <div>
-              <span class="text-[10px] text-emerald-400 font-bold uppercase">Active Session</span>
-              <h1 class="text-xl font-bold">${user.email}</h1>
+              <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Active Admin Session</span>
+              </div>
+              <h1 class="text-xl font-bold mt-1">${user.email}</h1>
             </div>
-            <button onclick="logoutAdmin()" class="text-xs bg-red-600 hover:bg-red-700 px-4 py-2 rounded-xl text-white font-bold">Log Out</button>
+            <button onclick="logoutAdmin()" class="text-xs bg-red-600 hover:bg-red-700 px-4 py-2 rounded-xl text-white font-bold transition-all shadow">
+              🔒 Log Out
+            </button>
           </div>
 
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-            <h3 class="font-bold text-base text-navy">Submitted Client Proposals (${projects.length})</h3>
-            <div class="space-y-2">
-              ${projects.map(p => `
-                <div class="p-4 border rounded-xl space-y-1">
-                  <h4 class="font-bold text-sm text-navy">${p.name}</h4>
-                  <p class="text-xs text-slate-600">${p.description || 'No description provided.'}</p>
-                </div>
-              `).join('')}
-              ${projects.length === 0 ? '<p class="text-xs text-slate-400">No project proposals found in database.</p>' : ''}
+          <div class="grid grid-cols-3 gap-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+              <span class="text-[10px] text-slate-500 font-bold uppercase">Proposals</span>
+              <p class="text-2xl font-black text-amber-600 mt-1">${projects.length}</p>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+              <span class="text-[10px] text-slate-500 font-bold uppercase">Courses</span>
+              <p class="text-2xl font-black text-cobalt mt-1">${products.length}</p>
+            </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+              <span class="text-[10px] text-slate-500 font-bold uppercase">Team Members</span>
+              <p class="text-2xl font-black text-emerald-600 mt-1">${userRoles.length}</p>
             </div>
           </div>
+
+          <div class="flex border-b border-slate-200 text-xs font-bold space-x-6">
+            <button onclick="switchTab('proposals')" class="pb-2.5 border-b-2 ${activeAdminTab === 'proposals' ? 'border-cobalt text-cobalt' : 'border-transparent text-slate-500'}">
+              Client Proposals (${projects.length})
+            </button>
+            <button onclick="switchTab('add-course')" class="pb-2.5 border-b-2 ${activeAdminTab === 'add-course' ? 'border-cobalt text-cobalt' : 'border-transparent text-slate-500'}">
+              ➕ Add Course / Product
+            </button>
+            <button onclick="switchTab('team')" class="pb-2.5 border-b-2 ${activeAdminTab === 'team' ? 'border-cobalt text-cobalt' : 'border-transparent text-slate-500'}">
+              Admin Permissions
+            </button>
+          </div>
+
+          <div class="${activeAdminTab === 'proposals' ? '' : 'hidden'} space-y-3">
+            ${projects.map(p => `
+              <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                <div class="flex justify-between items-center">
+                  <h4 class="font-bold text-sm text-navy">${p.name}</h4>
+                  <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-800">${p.status || 'NEW'}</span>
+                </div>
+                <p class="text-xs text-slate-600">${p.description}</p>
+                <p class="text-[10px] text-slate-400">Received: ${new Date(p.created_at).toLocaleDateString()}</p>
+              </div>
+            `).join('')}
+            ${projects.length === 0 ? '<p class="text-xs text-slate-400 py-6 text-center bg-white rounded-2xl border">No proposals submitted yet.</p>' : ''}
+          </div>
+
+          <div class="${activeAdminTab === 'add-course' ? '' : 'hidden'}">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 max-w-xl">
+              <h3 class="font-bold text-base text-navy">Publish New Course or Digital Product</h3>
+              <div class="space-y-3">
+                <input id="c-title" type="text" placeholder="Course Title" class="w-full px-3.5 py-2.5 border rounded-xl text-xs" />
+                <textarea id="c-desc" rows="3" placeholder="Course description & syllabus details..." class="w-full px-3.5 py-2.5 border rounded-xl text-xs"></textarea>
+                <div class="grid grid-cols-2 gap-3">
+                  <select id="c-type" class="px-3.5 py-2.5 border rounded-xl text-xs bg-white">
+                    <option value="COURSE">Video Course</option>
+                    <option value="EBOOK">PDF / E-Book</option>
+                    <option value="TEMPLATE">Code Template</option>
+                  </select>
+                  <input id="c-price" type="number" step="0.01" value="30.00" class="px-3.5 py-2.5 border rounded-xl text-xs" />
+                </div>
+                <button onclick="handleAddCourse()" class="w-full py-3 bg-cobalt text-white font-bold text-xs rounded-xl shadow-md hover:bg-blue-700">Publish Product</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="${activeAdminTab === 'team' ? '' : 'hidden'} space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 max-w-xl">
+              <h3 class="font-bold text-base text-navy">Add Team Admin Role</h3>
+              <div class="space-y-3">
+                <input id="r-email" type="email" placeholder="Colleague Email" class="w-full px-3.5 py-2.5 border rounded-xl text-xs" />
+                <select id="r-role" class="w-full px-3.5 py-2.5 border rounded-xl text-xs bg-white">
+                  <option value="Project Manager">Project Manager</option>
+                  <option value="Course Instructor">Course Instructor</option>
+                  <option value="Super Admin">Super Admin</option>
+                </select>
+                <button onclick="handleAddRole()" class="w-full py-3 bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-emerald-700">Grant Permissions</button>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <h4 class="font-bold text-sm text-navy">Current Team Roles</h4>
+              ${userRoles.map(r => `
+                <div class="bg-white p-4 rounded-xl border flex justify-between items-center text-xs">
+                  <span class="font-bold text-navy">${r.email}</span>
+                  <span class="px-2.5 py-1 bg-blue-50 text-cobalt font-bold rounded-lg text-[10px] uppercase">${r.role}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
         </div>
       `;
+    }
+
+    function switchTab(tab) {
+      activeAdminTab = tab;
+      renderAdmin(document.getElementById('app-content'));
+    }
+
+    async function handleAddCourse() {
+      const title = document.getElementById('c-title').value.trim();
+      const description = document.getElementById('c-desc').value.trim();
+      const type = document.getElementById('c-type').value;
+      const price = parseFloat(document.getElementById('c-price').value) || 0;
+
+      if (!title || !description) return showToast('Enter title and description.', 'error');
+
+      if (db) {
+        const { error } = await db.from('products').insert([{ title, description, type, price, is_published: true }]);
+        if (error) return showToast('Error adding product: ' + error.message, 'error');
+      }
+
+      showToast('Course published successfully!', 'success');
+      navigate('courses');
+    }
+
+    async function handleAddRole() {
+      const email = document.getElementById('r-email').value.trim();
+      const role = document.getElementById('r-role').value;
+
+      if (!email) return showToast('Enter email address.', 'error');
+
+      if (db) {
+        const { error } = await db.from('user_roles').insert([{ email, role }]);
+        if (error) return showToast('Error granting role: ' + error.message, 'error');
+      }
+
+      showToast(`Permissions granted to ${email}`, 'success');
+      switchTab('team');
     }
 
     async function loginAdmin() {
       const email = document.getElementById('admin-email').value.trim();
       const password = document.getElementById('admin-password').value.trim();
-      if (!email || !password) return alert('Please enter email and password.');
+      if (!email || !password) return showToast('Please enter email and password.', 'warning');
 
       if (db) {
         const { error } = await db.auth.signInWithPassword({ email, password });
-        if (error) alert('Login failed: ' + error.message);
-        else navigate('admin');
+        if (error) showToast('Login failed: ' + error.message, 'error');
+        else {
+          showToast('Signed in successfully!', 'success');
+          navigate('admin');
+        }
       }
     }
 
     async function signUpAdmin() {
       const email = document.getElementById('admin-email').value.trim();
       const password = document.getElementById('admin-password').value.trim();
-      if (!email || !password) return alert('Please enter email and password.');
+      if (!email || !password) return showToast('Please enter email and password.', 'warning');
 
       if (db) {
         const { error } = await db.auth.signUp({ email, password });
-        if (error) alert('Account creation failed: ' + error.message);
+        if (error) showToast('Account creation failed: ' + error.message, 'error');
         else {
-          alert('Admin account created! Logging in...');
+          showToast('Admin account created!', 'success');
           navigate('admin');
         }
       }
@@ -269,11 +497,11 @@
     async function logoutAdmin() {
       if (db) {
         await db.auth.signOut();
+        showToast('Logged out.', 'info');
         navigate('admin');
       }
     }
 
-    // Default Load Action
     document.addEventListener('DOMContentLoaded', () => {
       navigate('home');
     });
