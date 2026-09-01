@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>B-TECH HUB — Build • Learn • Create • Grow</title>
   
-  <!-- PWA & Mobile Web App Meta Tags -->
   <meta name="theme-color" content="#07142F">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -39,7 +38,6 @@
     .custom-scroll::-webkit-scrollbar { width: 4px; }
     .custom-scroll::-webkit-scrollbar-track { background: #07142F; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 4px; }
-    .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); }
   </style>
 </head>
 <body class="bg-light-bg text-navy font-sans min-h-screen flex flex-col justify-between">
@@ -61,8 +59,8 @@
         <button onclick="navigate('courses')" class="hover:text-blue-400 transition-colors">Courses</button>
         <button onclick="navigate('dashboard')" class="hover:text-blue-400 transition-colors">Client Portal</button>
         <button onclick="navigate('admin')" class="text-blue-400 font-bold hover:underline flex items-center space-x-1">
-          <span>⚙️</span>
-          <span>Admin Panel</span>
+          <span>🔒</span>
+          <span>Admin Portal</span>
         </button>
       </div>
 
@@ -88,7 +86,7 @@
 
   <!-- Dynamic Application Content Container -->
   <main id="app-content" class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
-    <!-- Active view component mounts here dynamically -->
+    <!-- Views load dynamically -->
   </main>
 
   <!-- Footer -->
@@ -109,13 +107,13 @@
         </div>
       </div>
       <div class="text-center text-slate-500 text-[11px]">
-        © 2026 B-TECH HUB. All rights reserved. Connected to Supabase Engine.
+        © 2026 B-TECH HUB. All rights reserved. Powered by Supabase Authentication.
       </div>
     </div>
   </footer>
 
   <script>
-    // --- Live Supabase Configuration ---
+    // --- Supabase Configuration ---
     const SUPABASE_URL = 'https://argvofusfdrwengshbqw.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZ3ZvZnVzZmRyd2VuZ3NoYnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjkxOTIsImV4cCI6MjEwMzg0NTE5Mn0.lS8P1NhaWVhyW3XMHz5ErC-aIXq-wsMrV8I9RFxtXIE';
     
@@ -123,14 +121,12 @@
     try {
       supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     } catch (err) {
-      console.error('Supabase failed to initialize:', err);
+      console.error('Supabase initialization failed:', err);
     }
 
-    // Global State
     let activeAdminTab = 'projects';
     let deferredPWAInstallPrompt = null;
 
-    // PWA Prompt Handler
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPWAInstallPrompt = e;
@@ -150,7 +146,7 @@
       }
     }
 
-    // --- Navigation Router ---
+    // Router
     function navigate(viewName) {
       const app = document.getElementById('app-content');
       if (!app) return;
@@ -204,7 +200,7 @@
       `;
     }
 
-    // --- COURSES VIEW (Live Supabase Data) ---
+    // --- COURSES VIEW ---
     async function renderCourses(container) {
       container.innerHTML = `<p class="text-center py-12 text-slate-500">Loading catalog from database...</p>`;
       
@@ -241,7 +237,7 @@
       `;
     }
 
-    // --- REQUEST FORM VIEW (Inserts to Supabase) ---
+    // --- REQUEST FORM VIEW ---
     function renderRequestForm(container) {
       container.innerHTML = `
         <div class="max-w-2xl mx-auto bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
@@ -249,12 +245,12 @@
           <p class="text-xs text-slate-500">Submit your website or software requirements directly to the B-TECH HUB engineering database.</p>
           <div class="space-y-3">
             <div>
-              <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Project Name / Business Name *</label>
+              <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Project / Business Name *</label>
               <input id="proj-name" type="text" placeholder="e.g. Royal Academy School System" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none" />
             </div>
             <div>
               <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Project Requirements *</label>
-              <textarea id="proj-desc" rows="4" placeholder="Describe the feature requirements, timeline, and scope..." class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none"></textarea>
+              <textarea id="proj-desc" rows="4" placeholder="Describe scope, features, and timeline..." class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none"></textarea>
             </div>
             <button onclick="handleRequestSubmit()" class="w-full py-3 bg-cobalt hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-md transition-all">
               Submit Proposal
@@ -275,28 +271,28 @@
         if (error) return alert('Database Error: ' + error.message);
       }
       
-      alert('Proposal submitted successfully! Viewable in Admin Panel.');
-      navigate('admin');
+      alert('Proposal submitted successfully!');
+      navigate('home');
     }
 
     // --- CLIENT DASHBOARD VIEW ---
     async function renderDashboard(container) {
       let user = null;
       if (supabase) {
-        const authRes = await supabase.auth.getUser();
-        user = authRes.data ? authRes.data.user : null;
+        const { data } = await supabase.auth.getUser();
+        user = data ? data.user : null;
       }
-      
+
       if (!user) {
         container.innerHTML = `
           <div class="max-w-md mx-auto bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm text-center space-y-4">
             <img src="logo.jpg" alt="B-TECH" class="w-12 h-12 rounded-xl object-cover mx-auto shadow-md" onerror="this.style.display='none'" />
-            <h2 class="text-xl font-bold text-navy">Client Portal Access</h2>
-            <p class="text-xs text-slate-500">Sign in to track your ongoing project milestones and access enrolled courses.</p>
+            <h2 class="text-xl font-bold text-navy">Client Portal Login</h2>
+            <p class="text-xs text-slate-500">Sign in to view submitted proposals and course enrollments.</p>
             <div class="space-y-3">
-              <input id="auth-email" type="email" placeholder="Email Address" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none"/>
-              <input id="auth-password" type="password" placeholder="Password" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none"/>
-              <button onclick="handleLogin()" class="w-full py-3 bg-cobalt text-white font-semibold rounded-xl text-xs shadow-md hover:bg-blue-700 transition-all">Login</button>
+              <input id="client-email" type="email" placeholder="Email Address" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none"/>
+              <input id="client-password" type="password" placeholder="Password" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none"/>
+              <button onclick="handleClientLogin()" class="w-full py-3 bg-cobalt text-white font-semibold rounded-xl text-xs shadow-md hover:bg-blue-700 transition-all">Login to Portal</button>
             </div>
           </div>
         `;
@@ -307,34 +303,70 @@
         <div class="space-y-6">
           <div class="flex justify-between items-center bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
             <div>
-              <span class="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded uppercase">Authenticated</span>
+              <span class="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded uppercase">Logged In</span>
               <h2 class="font-bold text-lg text-navy mt-1">Client Dashboard</h2>
               <p class="text-xs text-slate-500">${user.email}</p>
             </div>
-            <button onclick="supabase.auth.signOut().then(() => navigate('dashboard'))" class="text-xs text-red-600 font-bold hover:underline bg-red-50 px-3 py-1.5 rounded-lg">Logout</button>
+            <button onclick="supabase.auth.signOut().then(() => navigate('dashboard'))" class="text-xs text-red-600 font-bold bg-red-50 px-3 py-1.5 rounded-lg">Logout</button>
           </div>
-          <h3 class="font-bold text-md text-navy">Submitted Requests</h3>
-          <div class="bg-white p-4 rounded-2xl border border-slate-200 text-xs text-slate-500 text-center py-8">
-            No active orders linked to this session. Click "Start Project" above to submit a proposal.
-          </div>
+          <p class="text-xs text-slate-500">Welcome to your client portal.</p>
         </div>
       `;
     }
 
-    async function handleLogin() {
-      const email = document.getElementById('auth-email').value;
-      const password = document.getElementById('auth-password').value;
-      if (!supabase) return alert('Supabase client not initialized.');
+    async function handleClientLogin() {
+      const email = document.getElementById('client-email').value;
+      const password = document.getElementById('client-password').value;
+      if (!supabase) return;
 
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) alert(error.message);
+      if (error) alert('Login failed: ' + error.message);
       else navigate('dashboard');
     }
 
-    // --- ADMIN DASHBOARD VIEW (With Role Management) ---
+    // --- SECURE ADMIN DASHBOARD & LOGIN GATE ---
     async function renderAdmin(container) {
-      container.innerHTML = `<p class="text-center py-12 text-slate-500">Connecting to Supabase Database...</p>`;
+      container.innerHTML = `<p class="text-center py-12 text-slate-500">Checking authorization...</p>`;
 
+      let user = null;
+      if (supabase) {
+        const { data } = await supabase.auth.getUser();
+        user = data ? data.user : null;
+      }
+
+      // ADMIN LOGIN GATE: Show login screen if unauthenticated
+      if (!user) {
+        container.innerHTML = `
+          <div class="max-w-md mx-auto bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xl space-y-5 text-center">
+            <div class="w-12 h-12 bg-navy text-blue-400 rounded-2xl flex items-center justify-center mx-auto text-xl shadow-inner font-bold">
+              🔒
+            </div>
+            <div>
+              <h2 class="text-2xl font-black text-navy">Admin Portal Sign In</h2>
+              <p class="text-xs text-slate-500 mt-1">Enter authorized Supabase credentials to access administrative controls.</p>
+            </div>
+
+            <div class="space-y-3 text-left">
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-600 mb-1">Admin Email</label>
+                <input id="admin-login-email" type="email" placeholder="admin@btechhub.com" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none" />
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold uppercase text-slate-600 mb-1">Password</label>
+                <input id="admin-login-password" type="password" placeholder="••••••••" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none" />
+              </div>
+              <button onclick="handleAdminLogin()" class="w-full py-3 bg-navy hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2">
+                <span>Unlock Admin Dashboard</span>
+              </button>
+            </div>
+
+            <p class="text-[11px] text-slate-400">Restricted system. Unauthorized access attempts are monitored.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // AUTHENTICATED ADMIN DASHBOARD
       let projects = [], products = [], userRoles = [];
 
       if (supabase) {
@@ -349,7 +381,6 @@
       }
 
       const pendingCount = projects.filter(p => p.status === 'NEW_REQUEST').length;
-      const activeProjectsCount = projects.filter(p => p.status !== 'COMPLETED').length;
 
       container.innerHTML = `
         <div class="space-y-6">
@@ -361,13 +392,13 @@
               <div>
                 <div class="flex items-center space-x-2">
                   <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                  <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Supabase Live Portal</span>
+                  <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Authenticated Session</span>
                 </div>
-                <h1 class="text-2xl font-bold mt-0.5">Management System</h1>
+                <h1 class="text-xl font-bold mt-0.5">${user.email}</h1>
               </div>
             </div>
-            <button onclick="navigate('home')" class="text-xs bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl text-slate-200 font-semibold border border-slate-700 transition-all">
-              Exit Admin
+            <button onclick="handleAdminLogout()" class="text-xs bg-red-600 hover:bg-red-700 px-4 py-2 rounded-xl text-white font-bold transition-all shadow">
+              🔒 Log Out Admin
             </button>
           </div>
 
@@ -378,11 +409,11 @@
               <p class="text-2xl font-black text-amber-600 mt-1">${pendingCount}</p>
             </div>
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-              <span class="text-[11px] text-slate-500 font-bold uppercase">Active Projects</span>
-              <p class="text-2xl font-black text-cobalt mt-1">${activeProjectsCount}</p>
+              <span class="text-[11px] text-slate-500 font-bold uppercase">Total Products</span>
+              <p class="text-2xl font-black text-cobalt mt-1">${products.length}</p>
             </div>
             <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm col-span-2 md:col-span-1">
-              <span class="text-[11px] text-slate-500 font-bold uppercase">Active System Admins</span>
+              <span class="text-[11px] text-slate-500 font-bold uppercase">System Admins</span>
               <p class="text-2xl font-black text-emerald-600 mt-1">${userRoles.length}</p>
             </div>
           </div>
@@ -390,115 +421,108 @@
           <!-- Navigation Tabs -->
           <div class="flex border-b border-slate-200 text-xs font-bold space-x-6">
             <button onclick="switchAdminTab('projects')" class="pb-2.5 border-b-2 ${activeAdminTab === 'projects' ? 'border-cobalt text-cobalt' : 'border-transparent text-slate-500 hover:text-slate-800'}">
-              Project Requests
+              Client Proposals (${projects.length})
             </button>
             <button onclick="switchAdminTab('courses')" class="pb-2.5 border-b-2 ${activeAdminTab === 'courses' ? 'border-cobalt text-cobalt' : 'border-transparent text-slate-500 hover:text-slate-800'}">
               Publish Catalog Asset
             </button>
             <button onclick="switchAdminTab('team')" class="pb-2.5 border-b-2 ${activeAdminTab === 'team' ? 'border-cobalt text-cobalt' : 'border-transparent text-slate-500 hover:text-slate-800'}">
-              Admin Role Management
+              Admin Access Management
             </button>
           </div>
 
-          <!-- TAB 1: Projects Queue -->
+          <!-- TAB 1: Proposals -->
           <div id="admin-tab-projects" class="${activeAdminTab === 'projects' ? '' : 'hidden'} space-y-4">
             <h3 class="font-bold text-base text-navy">Submitted Client Proposals</h3>
             <div class="space-y-3">
               ${projects.map(p => `
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
                   <div class="flex justify-between items-start">
-                    <div>
-                      <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded">${p.type || 'Custom Software'}</span>
-                      <h4 class="font-bold text-sm text-navy mt-1">${p.name}</h4>
-                    </div>
-                    <span class="text-[10px] font-bold uppercase px-2 py-1 rounded bg-amber-100 text-amber-800">${p.status}</span>
+                    <h4 class="font-bold text-sm text-navy">${p.name}</h4>
+                    <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-800">${p.status}</span>
                   </div>
-                  <p class="text-xs text-slate-600">${p.description || 'No detailed requirements specified.'}</p>
+                  <p class="text-xs text-slate-600">${p.description || 'No specific requirements submitted.'}</p>
+                  <p class="text-[10px] text-slate-400 pt-1">Submitted: ${new Date(p.created_at).toLocaleDateString()}</p>
                 </div>
               `).join('')}
-              ${projects.length === 0 ? '<p class="text-xs text-slate-500 py-6 text-center bg-white rounded-2xl border">No project proposals submitted yet.</p>' : ''}
+              ${projects.length === 0 ? '<p class="text-xs text-slate-500 py-6 text-center bg-white rounded-2xl border">No project proposals in database.</p>' : ''}
             </div>
           </div>
 
-          <!-- TAB 2: Course Publishing -->
+          <!-- TAB 2: Publish Course -->
           <div id="admin-tab-courses" class="${activeAdminTab === 'courses' ? '' : 'hidden'} space-y-6">
             <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-              <h3 class="font-bold text-base text-navy">Create & Publish Course / Product</h3>
+              <h3 class="font-bold text-base text-navy">Publish New Course or Product</h3>
               <div class="space-y-3">
                 <input id="new-course-title" type="text" placeholder="Course Title" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none" />
-                <textarea id="new-course-desc" rows="3" placeholder="Description of course modules..." class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none"></textarea>
+                <textarea id="new-course-desc" rows="3" placeholder="Course outline / description..." class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none"></textarea>
                 <div class="grid grid-cols-2 gap-3">
                   <select id="new-course-type" class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs bg-white">
                     <option value="COURSE">Video Course</option>
                     <option value="PDF">E-Book (PDF)</option>
                     <option value="TEMPLATE">Code Template</option>
                   </select>
-                  <input id="new-course-price" type="number" step="0.01" value="25.00" placeholder="Price ($ USD)" class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs" />
+                  <input id="new-course-price" type="number" step="0.01" value="25.00" class="px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs" />
                 </div>
-                <button onclick="handleCreateCourse()" class="w-full py-3 bg-cobalt hover:bg-blue-700 text-white font-semibold text-xs rounded-xl shadow-md transition-all">
-                  Publish to Catalog
-                </button>
+                <button onclick="handleCreateCourse()" class="w-full py-3 bg-cobalt text-white font-bold text-xs rounded-xl shadow-md">Publish Product</button>
               </div>
             </div>
           </div>
 
-          <!-- TAB 3: Admin Role Management -->
+          <!-- TAB 3: Team Admin Roles -->
           <div id="admin-tab-team" class="${activeAdminTab === 'team' ? '' : 'hidden'} space-y-6">
-            
             <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-              <div>
-                <h3 class="font-bold text-base text-navy">Grant Admin Access</h3>
-                <p class="text-xs text-slate-500 mt-0.5">Add team member emails directly to the Supabase `user_roles` database table.</p>
-              </div>
-
-              <div class="space-y-3 pt-2">
-                <div>
-                  <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">User Email Address *</label>
-                  <input id="new-admin-email" type="email" placeholder="e.g. colleague@btechhub.com" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none" />
-                </div>
-
-                <div>
-                  <label class="block text-[11px] font-bold uppercase text-slate-700 mb-1">Admin Role *</label>
-                  <select id="new-admin-role" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs bg-white focus:ring-2 focus:ring-cobalt focus:outline-none">
-                    <option value="Project Manager">Project Manager (Manage Client Requests)</option>
-                    <option value="Course Instructor">Course Instructor (Create & Publish Content)</option>
-                    <option value="Super Admin">Super Admin (Full Access)</option>
-                  </select>
-                </div>
-
-                <button onclick="handleAddAdmin()" class="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center space-x-1">
-                  <span>➕ Add Authorized Admin</span>
-                </button>
+              <h3 class="font-bold text-base text-navy">Grant System Admin Privileges</h3>
+              <div class="space-y-3">
+                <input id="new-admin-email" type="email" placeholder="Colleague Email Address" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs" />
+                <select id="new-admin-role" class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl text-xs bg-white">
+                  <option value="Project Manager">Project Manager</option>
+                  <option value="Course Instructor">Course Instructor</option>
+                  <option value="Super Admin">Super Admin</option>
+                </select>
+                <button onclick="handleAddAdmin()" class="w-full py-3 bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-md">➕ Save Authorized Admin</button>
               </div>
             </div>
 
-            <!-- Existing Admins List -->
-            <div class="space-y-3">
-              <h4 class="font-bold text-sm text-navy">Registered Database Admins (${userRoles.length})</h4>
-              <div class="space-y-2">
-                ${userRoles.map(admin => `
-                  <div class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center text-xs shadow-sm">
-                    <div class="flex items-center space-x-3">
-                      <div class="w-8 h-8 rounded-full bg-slate-100 font-bold text-slate-700 flex items-center justify-center">
-                        ${admin.email ? admin.email.charAt(0).toUpperCase() : 'A'}
-                      </div>
-                      <div>
-                        <p class="font-bold text-navy">${admin.email}</p>
-                        <p class="text-[10px] text-slate-500">Registered: ${new Date(admin.created_at).toLocaleDateString()}</p>
-                      </div>
-                    </div>
-                    <span class="px-2.5 py-1 bg-blue-50 text-cobalt font-bold rounded-lg text-[10px] uppercase tracking-wide">
-                      ${admin.role}
-                    </span>
+            <div class="space-y-2">
+              <h4 class="font-bold text-sm text-navy">Authorized System Roles (${userRoles.length})</h4>
+              ${userRoles.map(admin => `
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 flex justify-between items-center text-xs shadow-sm">
+                  <div>
+                    <p class="font-bold text-navy">${admin.email}</p>
+                    <p class="text-[10px] text-slate-500">Role: ${admin.role}</p>
                   </div>
-                `).join('')}
-              </div>
+                  <span class="px-2.5 py-1 bg-blue-50 text-cobalt font-bold rounded-lg text-[10px] uppercase">${admin.role}</span>
+                </div>
+              `).join('')}
             </div>
-
           </div>
 
         </div>
       `;
+    }
+
+    async function handleAdminLogin() {
+      const email = document.getElementById('admin-login-email').value.trim();
+      const password = document.getElementById('admin-login-password').value.trim();
+
+      if (!email || !password) return alert('Please provide both email and password.');
+
+      if (supabase) {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          alert('Admin Authentication Failed: ' + error.message);
+        } else {
+          navigate('admin');
+        }
+      }
+    }
+
+    async function handleAdminLogout() {
+      if (supabase) {
+        await supabase.auth.signOut();
+        navigate('admin');
+      }
     }
 
     function switchAdminTab(tab) {
@@ -511,14 +535,14 @@
       const email = document.getElementById('new-admin-email').value.trim();
       const role = document.getElementById('new-admin-role').value;
 
-      if (!email || !email.includes('@')) return alert('Please enter a valid email address.');
+      if (!email || !email.includes('@')) return alert('Valid email required.');
 
       if (supabase) {
         const { error } = await supabase.from('user_roles').insert([{ email, role }]);
         if (error) return alert('Error adding admin: ' + error.message);
       }
 
-      alert(`Success: ${email} added as ${role}.`);
+      alert(`Admin role created for ${email}.`);
       switchAdminTab('team');
     }
 
@@ -528,14 +552,14 @@
       const type = document.getElementById('new-course-type').value;
       const price = parseFloat(document.getElementById('new-course-price').value) || 0;
 
-      if (!title || !description) return alert('Please provide a course title and description.');
+      if (!title || !description) return alert('Please enter title and description.');
 
       if (supabase) {
         const { error } = await supabase.from('products').insert([{ title, description, type, price, is_published: true }]);
-        if (error) return alert('Error publishing course: ' + error.message);
+        if (error) return alert('Error creating product: ' + error.message);
       }
 
-      alert('Course published to database!');
+      alert('Product published!');
       navigate('courses');
     }
 
@@ -544,36 +568,16 @@
       container.innerHTML = `
         <div class="max-w-4xl mx-auto bg-white p-6 sm:p-10 rounded-2xl border border-slate-200 shadow-sm space-y-6 text-navy">
           <div class="border-b border-slate-100 pb-4">
-            <span class="text-[10px] font-bold text-cobalt bg-blue-50 px-2.5 py-1 rounded-full uppercase">Legal & Compliance</span>
+            <span class="text-[10px] font-bold text-cobalt bg-blue-50 px-2.5 py-1 rounded-full uppercase">Legal</span>
             <h1 class="text-2xl sm:text-3xl font-extrabold mt-2">Privacy Policy</h1>
-            <p class="text-xs text-slate-500 mt-1">Effective Date: September 1, 2026</p>
           </div>
-
-          <div class="space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed">
-            <section class="space-y-2">
-              <h2 class="text-base font-bold text-navy">1. Information We Collect</h2>
-              <p>At B-TECH HUB, we collect only necessary project requirements, authentication details, and user profile data via Supabase to deliver software engineering and training services.</p>
-            </section>
-
-            <section class="space-y-2">
-              <h2 class="text-base font-bold text-navy">2. How Data is Used</h2>
-              <p>Submitted data is strictly used to fulfill custom web proposals, enable client login dashboards, and grant access to paid courses. We do not sell user data to third parties.</p>
-            </section>
-
-            <section class="space-y-2">
-              <h2 class="text-base font-bold text-navy">3. Cloud Security</h2>
-              <p>Operational database records are stored using Supabase cloud infrastructure protected by Row-Level Security (RLS) policies.</p>
-            </section>
-          </div>
-
-          <div class="pt-4 border-t border-slate-100 flex justify-between items-center">
-            <button onclick="navigate('home')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs transition-all">← Back to Home</button>
-          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">B-TECH HUB uses Supabase Authentication and database services to process project proposals and account details securely.</p>
+          <button onclick="navigate('home')" class="px-4 py-2 bg-slate-100 text-slate-700 font-semibold rounded-xl text-xs">← Back to Home</button>
         </div>
       `;
     }
 
-    // Initialize Page Mount when DOM ready
+    // Mount page view on ready
     document.addEventListener('DOMContentLoaded', () => {
       navigate('home');
     });
