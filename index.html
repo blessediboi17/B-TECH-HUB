@@ -2,71 +2,56 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>B-TECH HUB — Enterprise Software & Technology Training</title>
-  
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#07142F">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="B-Tech Hub">
-  <link rel="apple-touch-icon" href="logo.png">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BLESSED STUDIOS — Engineering Team & Digital Solutions Agency</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          colors: { cobalt: '#1238C7', navy: '#07142F', 'light-bg': '#F8FAFC' }
+          colors: { cobalt: '#1238C7', navy: '#07142F', surface: '#0D1F42', lightBg: '#F8FAFC' }
         }
       }
     }
   </script>
   <style>
     body { -webkit-tap-highlight-color: transparent; }
-    .fade-in-popup {
-      animation: popupFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    @keyframes popupFadeIn {
-      from { opacity: 0; transform: translateY(16px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    .fade-in { animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
-<body class="bg-light-bg text-navy font-sans min-h-screen flex flex-col justify-between">
-
-  <!-- Offline Banner -->
-  <div id="offline-banner" class="hidden bg-amber-600 text-white text-[11px] font-bold text-center py-1 sticky top-0 z-[60]">
-    Notice: Connection lost. Reconnecting to servers...
-  </div>
+<body class="bg-lightBg text-navy min-h-screen flex flex-col justify-between font-sans selection:bg-cobalt selection:text-white">
 
   <!-- Header Navigation -->
-  <nav class="bg-navy text-white sticky top-0 z-50 border-b border-slate-800 shadow-lg">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+  <nav class="bg-navy text-white sticky top-0 z-50 border-b border-slate-800 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-3.5 flex justify-between items-center">
       
       <button onclick="navigate('home')" class="text-left flex items-center space-x-3 focus:outline-none">
-        <div class="w-9 h-9 relative flex items-center justify-center">
-          <img id="brand-logo" src="logo.png" alt="B-Tech Logo" class="w-full h-full object-contain rounded-lg" onerror="this.classList.add('hidden'); document.getElementById('logo-fallback').classList.remove('hidden');" />
-          <div id="logo-fallback" class="hidden w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center font-black text-white text-base">B</div>
+        <div class="w-9 h-9 bg-cobalt rounded-xl flex items-center justify-center font-black text-white text-sm shadow-inner">
+          BS
         </div>
         <div>
-          <span class="text-[10px] font-bold text-blue-400 tracking-wider block leading-none">B-TECH HUB</span>
-          <span class="text-xs font-extrabold text-white tracking-tight">BUILD & LEARN</span>
+          <span class="text-[10px] font-bold text-blue-400 tracking-widest block uppercase">BLESSED STUDIOS</span>
+          <span class="text-xs font-extrabold text-white tracking-tight">CUSTOM WEB ENGINEERING</span>
         </div>
       </button>
       
       <div class="hidden md:flex space-x-6 text-xs font-semibold">
         <button onclick="navigate('home')" class="hover:text-blue-400 transition-colors">Home</button>
-        <button onclick="navigate('services')" class="hover:text-blue-400 transition-colors">Services</button>
-        <button onclick="navigate('reviews')" class="hover:text-blue-400 transition-colors">Client Reviews</button>
-        <button onclick="navigate('courses')" class="hover:text-blue-400 transition-colors">Academy</button>
-        <button onclick="navigate('admin')" class="text-blue-400 font-bold hover:underline">Control Room</button>
+        <button onclick="navigate('portfolio')" class="hover:text-blue-400 transition-colors">Portfolio</button>
+        <button onclick="navigate('team')" class="hover:text-blue-400 transition-colors">Our Team</button>
+        <button onclick="navigate('updates')" class="hover:text-blue-400 transition-colors">Updates</button>
+        <button onclick="navigate('tracker')" class="hover:text-blue-400 transition-colors">Track Project</button>
+        <button onclick="navigate('hire')" class="hover:text-blue-400 transition-colors">Hire Us</button>
       </div>
 
       <div class="flex items-center space-x-3">
-        <button onclick="navigate('request')" class="bg-cobalt hover:bg-blue-700 px-4 py-2 rounded-xl text-xs font-bold text-white shadow transition-all">
-          Start Project
+        <button onclick="navigate('admin')" class="text-xs font-bold px-3 py-1.5 bg-slate-800 text-blue-300 rounded-lg hover:bg-slate-700">
+          Control Room
+        </button>
+        <button onclick="navigate('hire')" class="hidden sm:inline-block bg-cobalt hover:bg-blue-700 px-4 py-2 rounded-xl text-xs font-bold text-white shadow transition-all">
+          Request Quote
         </button>
       </div>
     </div>
@@ -74,44 +59,46 @@
     <!-- Mobile Navigation Bar -->
     <div class="flex md:hidden justify-around py-2.5 border-t border-slate-800 text-[11px] bg-navy text-slate-300 font-medium">
       <button onclick="navigate('home')" class="p-1 hover:text-blue-400">Home</button>
-      <button onclick="navigate('services')" class="p-1 hover:text-blue-400">Services</button>
-      <button onclick="navigate('reviews')" class="p-1 hover:text-blue-400">Reviews</button>
-      <button onclick="navigate('courses')" class="p-1 hover:text-blue-400">Academy</button>
-      <button onclick="navigate('admin')" class="p-1 text-blue-400 font-bold">Control Room</button>
+      <button onclick="navigate('portfolio')" class="p-1 hover:text-blue-400">Work</button>
+      <button onclick="navigate('team')" class="p-1 hover:text-blue-400">Team</button>
+      <button onclick="navigate('updates')" class="p-1 hover:text-blue-400">Updates</button>
+      <button onclick="navigate('hire')" class="p-1 hover:text-blue-400">Hire</button>
+      <button onclick="navigate('admin')" class="p-1 text-blue-400 font-bold">Admin</button>
     </div>
   </nav>
 
-  <!-- Main View Container -->
+  <!-- App Main Content Container -->
   <main id="app-content" class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
-    <!-- Dynamic Views Inject Here -->
+    <!-- Dynamic View Injected Here -->
   </main>
 
-  <!-- PWA Install Popup -->
-  <div id="pwa-install-popup" class="hidden fixed bottom-5 right-5 left-5 sm:left-auto sm:max-w-sm z-50 bg-navy text-white p-5 rounded-2xl shadow-2xl border border-slate-700 fade-in-popup space-y-3">
-    <div class="flex items-start justify-between">
-      <div>
-        <h4 class="font-bold text-sm text-white">Install Web App</h4>
-        <p class="text-[11px] text-slate-400">Install B-TECH HUB on your home screen for quick access.</p>
-      </div>
-      <button onclick="dismissPwaPopup()" class="text-slate-400 hover:text-white text-xs font-bold">X</button>
-    </div>
-    <div class="flex space-x-2 pt-1">
-      <button onclick="triggerPwaInstall()" class="flex-1 py-2 bg-blue-600 hover:bg-blue-700 font-bold text-xs text-white rounded-xl transition-all">Install</button>
-      <button onclick="dismissPwaPopup()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 rounded-xl">Dismiss</button>
+  <!-- Reusable Modal Window Host -->
+  <div id="app-modal" class="fixed inset-0 bg-navy/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div id="modal-card" class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <!-- Dynamic Modal Content -->
     </div>
   </div>
 
-  <!-- Toast Notification System -->
+  <!-- Toast Notification Bar -->
   <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
   <!-- Footer -->
-  <footer class="bg-navy text-slate-400 text-xs py-8 border-t border-slate-800 mt-12 text-center space-y-2">
-    <p>&copy; 2026 B-TECH HUB. Enterprise Software & Technical Education.</p>
-    <p class="text-[10px] text-slate-500">Trusted by businesses, institutions, and independent software developers.</p>
+  <footer class="bg-navy text-slate-400 text-xs py-10 border-t border-slate-800 mt-12">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="text-center sm:text-left space-y-1">
+        <p class="text-white font-bold">&copy; 2026 BLESSED STUDIOS. Custom Web Engineering & Digital Solutions.</p>
+        <p class="text-[11px] text-slate-500">Churches &bull; Schools &bull; Non-Profit Organizations &bull; Commercial Enterprises</p>
+      </div>
+      <div class="flex items-center space-x-6 text-[11px] font-semibold">
+        <button onclick="navigate('privacy')" class="hover:text-blue-400 transition-colors">Privacy Policy</button>
+        <button onclick="navigate('team')" class="hover:text-blue-400 transition-colors">Leadership & Team</button>
+        <button onclick="navigate('admin')" class="hover:text-blue-400 transition-colors">Admin Gateway</button>
+      </div>
+    </div>
   </footer>
 
   <script>
-    // --- SUPABASE CONFIG ---
+    // --- SUPABASE CONFIGURATION ---
     const SUPABASE_URL = 'https://argvofusfdrwengshbqw.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZ3ZvZnVzZmRyd2VuZ3NoYnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjkxOTIsImV4cCI6MjEwMzg0NTE5Mn0.lS8P1NhaWVhyW3XMHz5ErC-aIXq-wsMrV8I9RFxtXIE';
     
@@ -120,49 +107,24 @@
       if (window.supabase && window.supabase.createClient) {
         db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       }
-    } catch (e) { console.error('Supabase load error:', e); }
+    } catch (e) { console.error('Supabase initialization failed:', e); }
 
-    let deferredPrompt = null;
-
-    // --- PWA SERVICE WORKER ---
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.error(err));
-      });
-    }
-
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      setTimeout(() => {
-        const popup = document.getElementById('pwa-install-popup');
-        if (popup) popup.classList.remove('hidden');
-      }, 1500);
-    });
-
-    async function triggerPwaInstall() {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') showToast('App installation initiated.', 'success');
-      dismissPwaPopup();
-    }
-
-    function dismissPwaPopup() {
-      document.getElementById('pwa-install-popup').classList.add('hidden');
-    }
+    // --- APPLICATION STATE ---
+    let activeAdminUser = null;
+    let isCaptchaPassed = false;
+    let uploadedSelfieBase64 = '';
 
     // --- TOAST ALERTS ---
     function showToast(message, type = 'info') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
-      const colors = {
-        success: 'bg-emerald-700 text-white',
-        error: 'bg-red-700 text-white',
-        warning: 'bg-amber-600 text-white',
-        info: 'bg-navy text-white'
+      const styles = {
+        success: 'bg-emerald-900 text-white border-emerald-700',
+        error: 'bg-red-900 text-white border-red-700',
+        warning: 'bg-amber-800 text-white border-amber-600',
+        info: 'bg-navy text-white border-slate-700'
       };
-      toast.className = `${colors[type]} fade-in-popup pointer-events-auto text-xs px-4 py-3 rounded-xl shadow-xl border border-white/10`;
+      toast.className = `${styles[type]} fade-in pointer-events-auto text-xs px-4 py-3 rounded-xl shadow-2xl border font-medium`;
       toast.innerHTML = `<span>${message}</span>`;
       container.appendChild(toast);
       setTimeout(() => {
@@ -174,514 +136,1001 @@
 
     // --- ROUTER ---
     function navigate(view) {
-      const app = document.getElementById('app-content');
-      if (!app) return;
+      const container = document.getElementById('app-content');
+      if (!container) return;
+      closeModal();
       window.scrollTo(0, 0);
 
-      if (view === 'home') renderHome(app);
-      else if (view === 'services') renderServices(app);
-      else if (view === 'reviews') renderReviewsView(app);
-      else if (view === 'courses') renderCourses(app);
-      else if (view === 'request') renderRequestForm(app);
-      else if (view === 'admin') renderAdmin(app);
+      if (view === 'home') renderHome(container);
+      else if (view === 'portfolio') renderPortfolio(container);
+      else if (view === 'team') renderTeamSection(container);
+      else if (view === 'updates') renderUpdates(container);
+      else if (view === 'tracker') renderProjectTracker(container);
+      else if (view === 'hire') renderHireForm(container);
+      else if (view === 'privacy') renderPrivacyPolicy(container);
+      else if (view === 'admin') renderAdminGateway(container);
+    }
+
+    // --- MODAL SYSTEM ---
+    function openModal(contentHtml) {
+      const modal = document.getElementById('app-modal');
+      const card = document.getElementById('modal-card');
+      card.innerHTML = contentHtml;
+      modal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('app-modal');
+      if (modal) modal.classList.add('hidden');
     }
 
     // --- 1. HOME VIEW ---
-    async function renderHome(container) {
-      let reviews = [];
-      let projects = [];
-
-      if (db) {
-        const { data: revData } = await db.from('reviews').select('*').eq('is_approved', true).limit(3);
-        reviews = revData || [];
-
-        const { data: projData } = await db.from('portfolio_projects').select('*').order('created_at', { ascending: false }).limit(3);
-        projects = projData || [];
-      }
-
+    function renderHome(container) {
       container.innerHTML = `
-        <div class="space-y-16 py-4">
+        <div class="space-y-16 py-4 fade-in">
           
           <!-- Hero Section -->
           <section class="py-12 text-center max-w-4xl mx-auto space-y-6">
-            
-            <!-- Trust Badge Header -->
             <div class="inline-flex items-center space-x-2 px-4 py-1.5 bg-blue-50 border border-blue-200 text-cobalt rounded-full text-xs font-bold shadow-sm">
-              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Trusted by 180+ Enterprise Clients & Developers</span>
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Accepting New Web Engineering Contracts</span>
             </div>
 
             <h1 class="text-4xl sm:text-6xl font-black text-navy leading-tight tracking-tight">
-              Engineering High-Performance Software & Custom Portals.
+              We Build High-Impact Websites For Your Organization.
             </h1>
-            <p class="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto">
-              We deliver custom web platforms, school management portals, and career-driven software engineering bootcamps built for scaling organizations.
+            
+            <p class="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+              Our engineering team specializes in custom digital architecture for churches, school portals, non-profits, and growing business enterprises.
             </p>
             
             <div class="flex flex-col sm:flex-row justify-center gap-4 pt-2">
-              <button onclick="navigate('request')" class="px-8 py-3.5 bg-cobalt text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-all text-xs">
-                Start a Project
+              <button onclick="navigate('hire')" class="px-8 py-3.5 bg-cobalt text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-all text-xs">
+                Hire Our Team
               </button>
-              <button onclick="navigate('reviews')" class="px-8 py-3.5 bg-white border border-slate-300 text-navy font-bold rounded-xl hover:bg-slate-50 transition-all text-xs">
-                Read Verified Reviews
+              <button onclick="navigate('portfolio')" class="px-8 py-3.5 bg-white border border-slate-300 text-navy font-bold rounded-xl hover:bg-slate-50 transition-all text-xs">
+                View Published Portfolio
               </button>
             </div>
           </section>
 
-          <!-- Social Proof Bar -->
-          <section class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm text-center">
-            <div>
-              <p class="text-2xl font-black text-navy">99.8%</p>
-              <p class="text-[11px] text-slate-500 font-bold uppercase mt-0.5">Uptime & Reliability</p>
-            </div>
-            <div>
-              <p class="text-2xl font-black text-cobalt">180+</p>
-              <p class="text-[11px] text-slate-500 font-bold uppercase mt-0.5">Deployed Systems</p>
-            </div>
-            <div>
-              <p class="text-2xl font-black text-navy">4.9 / 5.0</p>
-              <p class="text-[11px] text-slate-500 font-bold uppercase mt-0.5">Average Client Rating</p>
-            </div>
-            <div>
-              <p class="text-2xl font-black text-emerald-600">24/7</p>
-              <p class="text-[11px] text-slate-500 font-bold uppercase mt-0.5">Technical Support</p>
-            </div>
-          </section>
-
-          <!-- Featured Projects Showcase -->
-          ${projects.length > 0 ? `
-            <section class="space-y-6">
-              <div class="border-b pb-3">
-                <h2 class="text-xl font-bold text-navy">Recent Published Projects</h2>
-                <p class="text-xs text-slate-500">Live platforms designed, developed, and deployed by B-TECH HUB.</p>
-              </div>
-              <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-                ${projects.map(p => `
-                  <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
-                    <img src="${p.image_url}" alt="${p.title}" class="w-full h-40 object-cover bg-slate-100" onerror="this.src='https://via.placeholder.com/400x200?text=Project+Image'" />
-                    <div class="p-5 space-y-2 flex-1 flex flex-col justify-between">
-                      <div>
-                        <span class="text-[10px] font-bold text-cobalt uppercase tracking-wider">${p.tech_stack || 'Software'}</span>
-                        <h3 class="font-bold text-sm text-navy mt-1">${p.title}</h3>
-                        <p class="text-xs text-slate-600 mt-1 line-clamp-3">${p.description}</p>
-                      </div>
-                      ${p.live_url ? `<a href="${p.live_url}" target="_blank" class="inline-block pt-3 text-xs font-bold text-cobalt hover:underline">View Live Demo -></a>` : ''}
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-            </section>
-          ` : ''}
-
-          <!-- Client Reviews Preview -->
+          <!-- Organization Sectors -->
           <section class="space-y-6">
-            <div class="flex justify-between items-end border-b pb-3">
-              <div>
-                <h2 class="text-xl font-bold text-navy">Client Testimonials & Ratings</h2>
-                <p class="text-xs text-slate-500">Verified feedback from business owners and developers using our services.</p>
-              </div>
-              <button onclick="navigate('reviews')" class="text-xs font-bold text-cobalt hover:underline">View All Reviews -></button>
+            <div class="text-center max-w-xl mx-auto">
+              <h2 class="text-2xl font-black text-navy">Specialized Institutional Systems</h2>
+              <p class="text-xs text-slate-500 mt-1">Built for high reliability, mobile usability, and speed.</p>
             </div>
 
-            <div class="grid md:grid-cols-3 gap-6">
-              ${reviews.length > 0 ? reviews.map(r => `
-                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 flex flex-col justify-between">
-                  <div class="space-y-2">
-                    <div class="text-amber-500 font-bold text-xs">Rating: ${r.rating || 5} / 5 Stars</div>
-                    <p class="text-xs text-slate-700 italic">"${r.comment}"</p>
-                  </div>
-                  <div class="pt-3 border-t">
-                    <p class="font-bold text-navy text-xs">${r.client_name}</p>
-                    <p class="text-[10px] text-slate-400">${r.company_title || 'Client'}</p>
-                  </div>
-                </div>
-              `).join('') : `
-                <div class="col-span-3 bg-white p-6 rounded-2xl border text-center space-y-2">
-                  <p class="text-xs text-slate-500">"B-TECH HUB built our school portal smoothly and on schedule. Highly recommended."</p>
-                  <p class="font-bold text-navy text-xs">-- Royal Academy Portal Administration</p>
-                </div>
-              `}
+            <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
+              <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                <span class="text-[10px] font-bold text-cobalt bg-blue-50 px-2.5 py-1 rounded-md uppercase">Churches</span>
+                <h3 class="font-bold text-sm text-navy">Church Websites</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">Sermon media archives, live event feeds, integrated online tithes, and community portals.</p>
+              </div>
+
+              <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                <span class="text-[10px] font-bold text-cobalt bg-blue-50 px-2.5 py-1 rounded-md uppercase">Education</span>
+                <h3 class="font-bold text-sm text-navy">School Landing Pages</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">Online admission forms, student portal redirects, result lookup engines, and grade entry tools.</p>
+              </div>
+
+              <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                <span class="text-[10px] font-bold text-cobalt bg-blue-50 px-2.5 py-1 rounded-md uppercase">Non-Profit</span>
+                <h3 class="font-bold text-sm text-navy">NGO & Foundation Sites</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">Campaign transparency logs, donor collection pathways, and volunteer signup channels.</p>
+              </div>
+
+              <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                <span class="text-[10px] font-bold text-cobalt bg-blue-50 px-2.5 py-1 rounded-md uppercase">Commercial</span>
+                <h3 class="font-bold text-sm text-navy">Small Business Sites</h3>
+                <p class="text-xs text-slate-500 leading-relaxed">E-commerce storefronts, automated consultation booking, service catalogs, and checkout flows.</p>
+              </div>
             </div>
           </section>
 
-          <!-- Email Subscription Card -->
-          <section class="bg-navy text-white p-8 rounded-3xl shadow-xl border border-slate-800 max-w-3xl mx-auto space-y-4 text-center">
-            <h3 class="text-2xl font-bold">Subscribe for Technical Updates & Release Notes</h3>
-            <p class="text-xs text-slate-300 max-w-lg mx-auto">
-              Get direct email notifications regarding upcoming software releases, system upgrades, and new technical bootcamps.
-            </p>
-            
-            <div class="flex flex-col sm:flex-row gap-2 max-w-md mx-auto pt-2">
-              <input id="sub-email" type="email" placeholder="Enter your business email address" class="flex-1 px-4 py-3 rounded-xl text-xs text-navy focus:outline-none" />
-              <button onclick="subscribeNewsletter()" class="px-6 py-3 bg-cobalt hover:bg-blue-600 font-bold text-xs text-white rounded-xl shadow transition-all">
-                Subscribe
-              </button>
+          <!-- Interactive Quick Estimate Banner -->
+          <section class="bg-navy text-white rounded-3xl p-8 border border-slate-800 shadow-2xl flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="space-y-2 text-center md:text-left">
+              <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Instant Project Estimator</span>
+              <h3 class="text-2xl font-black">Plan Your Digital Web Project Budget</h3>
+              <p class="text-xs text-slate-400 max-w-lg">Calculate real-time estimates tailored for school portals, church sites, or custom software projects.</p>
             </div>
+            <button onclick="navigate('hire')" class="px-6 py-3.5 bg-cobalt hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-lg transition-all whitespace-nowrap">
+              Launch Budget Calculator
+            </button>
           </section>
 
         </div>
       `;
     }
 
-    // --- 2. REVIEWS VIEW ---
-    async function renderReviewsView(container) {
-      container.innerHTML = `<p class="text-center py-12 text-slate-500">Loading client feedback...</p>`;
+    // --- 2. PORTFOLIO SHOWCASE VIEW ---
+    async function renderPortfolio(container) {
+      container.innerHTML = `<p class="text-center py-12 text-slate-500 text-xs">Loading portfolio database...</p>`;
 
-      let reviews = [];
+      let projects = [];
       if (db) {
-        const { data } = await db.from('reviews').select('*').order('created_at', { ascending: false });
-        reviews = data || [];
+        const { data } = await db.from('projects').select('*').order('created_at', { ascending: false });
+        projects = data || [];
       }
 
       container.innerHTML = `
-        <div class="space-y-8 max-w-4xl mx-auto">
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-4">
+        <div class="space-y-8 max-w-6xl mx-auto fade-in">
+          <div class="border-b pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h2 class="text-2xl font-black text-navy">Client & Student Reviews</h2>
-              <p class="text-xs text-slate-500">Authentic ratings from verified clients and academy students.</p>
+              <h1 class="text-2xl font-black text-navy">Engineering Portfolio</h1>
+              <p class="text-xs text-slate-500 mt-1">Verified custom web platforms built by our team for client organizations.</p>
             </div>
-            <button onclick="showReviewModal()" class="px-4 py-2.5 bg-cobalt text-white text-xs font-bold rounded-xl shadow">
-              Submit a Review
+            <button onclick="navigate('hire')" class="px-5 py-2.5 bg-cobalt text-white font-bold text-xs rounded-xl shadow">
+              Hire Us For Your Website
             </button>
           </div>
 
-          <div class="grid sm:grid-cols-2 gap-6">
-            ${reviews.map(r => `
-              <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                <div class="flex justify-between items-center">
-                  <span class="text-xs font-bold text-amber-500">Rating: ${r.rating || 5} / 5 Stars</span>
-                  <span class="text-[10px] text-slate-400">${new Date(r.created_at).toLocaleDateString()}</span>
-                </div>
-                <p class="text-xs text-slate-700 italic">"${r.comment}"</p>
-                <div class="pt-2 border-t">
-                  <p class="font-bold text-navy text-xs">${r.client_name}</p>
-                  <p class="text-[10px] text-slate-400">${r.company_title || 'Client'}</p>
+          <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+            ${projects.map(p => `
+              <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
+                <img src="${p.image_url}" alt="${p.title}" class="w-full h-44 object-cover bg-slate-100" onerror="this.src='https://via.placeholder.com/600x400?text=Project+Preview'" />
+                <div class="p-5 space-y-3 flex-1 flex flex-col justify-between">
+                  <div>
+                    <span class="text-[10px] font-black text-cobalt bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-md uppercase">${p.category}</span>
+                    <h3 class="font-bold text-sm text-navy mt-2.5">${p.title}</h3>
+                    <p class="text-xs text-slate-600 mt-1 line-clamp-3">${p.description}</p>
+                  </div>
+                  ${p.live_url ? `<a href="${p.live_url}" target="_blank" class="inline-block pt-3 text-xs font-bold text-cobalt hover:underline">Visit Published App &rarr;</a>` : ''}
                 </div>
               </div>
             `).join('')}
-            ${reviews.length === 0 ? '<p class="text-xs text-slate-400 col-span-2 py-8 text-center bg-white rounded-2xl border">No reviews published yet. Be the first to leave one!</p>' : ''}
-          </div>
-        </div>
-
-        <!-- Submit Review Modal -->
-        <div id="review-modal" class="hidden fixed inset-0 bg-navy/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div class="bg-white max-w-md w-full p-6 rounded-2xl shadow-2xl space-y-4 border">
-            <div class="flex justify-between items-center border-b pb-3">
-              <h3 class="font-bold text-base text-navy">Write a Review</h3>
-              <button onclick="hideReviewModal()" class="text-slate-400 hover:text-navy font-bold text-xs">X</button>
-            </div>
-            <div class="space-y-3">
-              <input id="rev-name" type="text" placeholder="Your Name or Organization" class="w-full p-2.5 border rounded-xl text-xs" />
-              <input id="rev-title" type="text" placeholder="Your Title (e.g. CEO, School Administrator)" class="w-full p-2.5 border rounded-xl text-xs" />
-              <select id="rev-rating" class="w-full p-2.5 border rounded-xl text-xs bg-white">
-                <option value="5">5 / 5 Stars -- Excellent Quality</option>
-                <option value="4">4 / 5 Stars -- Very Good</option>
-                <option value="3">3 / 5 Stars -- Satisfactory</option>
-              </select>
-              <textarea id="rev-comment" rows="4" placeholder="Write your honest review here..." class="w-full p-2.5 border rounded-xl text-xs"></textarea>
-              <button onclick="submitReview()" class="w-full py-3 bg-cobalt text-white font-bold text-xs rounded-xl shadow-md">Post Review</button>
-            </div>
+            ${projects.length === 0 ? '<p class="col-span-full py-12 text-center text-xs text-slate-400 bg-white border rounded-2xl">No portfolio projects published yet.</p>' : ''}
           </div>
         </div>
       `;
     }
 
-    function showReviewModal() { document.getElementById('review-modal').classList.remove('hidden'); }
-    function hideReviewModal() { document.getElementById('review-modal').classList.add('hidden'); }
+    // --- 3. TEAM DIRECTORY WITH READ-MORE MODAL ---
+    async function renderTeamSection(container) {
+      container.innerHTML = `<p class="text-center py-12 text-slate-500 text-xs">Loading team roster...</p>`;
 
-    async function submitReview() {
-      const client_name = document.getElementById('rev-name').value.trim();
-      const company_title = document.getElementById('rev-title').value.trim();
-      const rating = parseInt(document.getElementById('rev-rating').value) || 5;
-      const comment = document.getElementById('rev-comment').value.trim();
-
-      if (!client_name || !comment) return showToast('Please provide your name and review details.', 'warning');
-
+      let team = [];
       if (db) {
-        const { error } = await db.from('reviews').insert([{ client_name, company_title, rating, comment, is_approved: true }]);
-        if (error) return showToast('Error submitting review: ' + error.message, 'error');
+        const { data } = await db.from('team_members').select('*').order('display_order', { ascending: true });
+        team = data || [];
       }
 
-      showToast('Thank you for your feedback!', 'success');
-      hideReviewModal();
-      navigate('reviews');
-    }
-
-    // --- 3. NEWSLETTER SUBSCRIPTION ACTION ---
-    async function subscribeNewsletter() {
-      const emailInput = document.getElementById('sub-email');
-      const email = emailInput ? emailInput.value.trim() : '';
-
-      if (!email || !email.includes('@')) {
-        return showToast('Please enter a valid email address.', 'warning');
-      }
-
-      if (db) {
-        const { error } = await db.from('subscribers').insert([{ email }]);
-        if (error && !error.message.includes('unique')) {
-          return showToast('Error subscribing: ' + error.message, 'error');
-        }
-      }
-
-      showToast('Subscription confirmed! You will receive future updates via email.', 'success');
-      if (emailInput) emailInput.value = '';
-    }
-
-    // --- 4. ADMIN CONTROL ROOM VIEW ---
-    async function renderAdmin(container) {
       container.innerHTML = `
-        <div class="space-y-8 max-w-6xl mx-auto">
-          
-          <!-- Control Room Header -->
-          <div class="bg-navy text-white p-6 rounded-2xl border border-slate-800 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <span class="text-[10px] font-black text-blue-400 tracking-widest uppercase">System Operations</span>
-              <h1 class="text-2xl font-black tracking-tight">Admin Control Room</h1>
-              <p class="text-xs text-slate-400 mt-1">Manage system updates, project showcases, and team permissions.</p>
-            </div>
-            <div class="flex space-x-2">
-              <span class="px-3 py-1.5 bg-emerald-950 text-emerald-400 border border-emerald-800 rounded-lg text-xs font-bold">
-                System Online
-              </span>
-            </div>
+        <div class="space-y-8 max-w-6xl mx-auto fade-in">
+          <div class="border-b pb-4 text-center max-w-xl mx-auto">
+            <span class="text-[10px] font-bold text-cobalt bg-blue-50 px-2.5 py-1 rounded-md uppercase tracking-widest">Leadership & Developers</span>
+            <h1 class="text-2xl font-black text-navy mt-2">Meet Our Engineering Team</h1>
+            <p class="text-xs text-slate-500 mt-1">Dedicated software engineers, voice artists, and designers committed to your project.</p>
           </div>
 
-          <!-- Control Room Navigation Tabs -->
-          <div class="flex border-b border-slate-200 text-xs font-bold space-x-6">
-            <button onclick="switchControlTab('projects')" id="tab-btn-projects" class="pb-3 border-b-2 border-cobalt text-cobalt">Project Manager</button>
-            <button onclick="switchControlTab('updates')" id="tab-btn-updates" class="pb-3 border-b-2 border-transparent text-slate-500 hover:text-navy">Post Updates</button>
-            <button onclick="switchControlTab('admins')" id="tab-btn-admins" class="pb-3 border-b-2 border-transparent text-slate-500 hover:text-navy">Assign Admins</button>
-          </div>
-
-          <!-- TAB 1: PROJECT MANAGER -->
-          <div id="tab-projects" class="space-y-6">
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-              <h3 class="font-bold text-navy text-sm border-b pb-2">Publish Recent Project</h3>
-              <div class="grid md:grid-cols-2 gap-4">
-                <input id="proj-title" type="text" placeholder="Project Title (e.g. Enterprise Portal)" class="p-3 border rounded-xl text-xs" />
-                <input id="proj-image" type="url" placeholder="Direct Image URL (e.g. https://.../image.png)" class="p-3 border rounded-xl text-xs" />
-                <input id="proj-tech" type="text" placeholder="Tech Stack (e.g. Tailwind, Supabase, JS)" class="p-3 border rounded-xl text-xs" />
-                <input id="proj-link" type="url" placeholder="Live Demo Link (Optional)" class="p-3 border rounded-xl text-xs" />
-              </div>
-              <textarea id="proj-desc" rows="3" placeholder="Brief project overview and key deliverables..." class="w-full p-3 border rounded-xl text-xs"></textarea>
-              <button onclick="saveProject()" class="px-6 py-3 bg-cobalt text-white font-bold text-xs rounded-xl shadow hover:bg-blue-700">
-                Publish Project to Site
-              </button>
-            </div>
-
-            <div id="admin-projects-list" class="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
-              <!-- Live projects load dynamically -->
-            </div>
-          </div>
-
-          <!-- TAB 2: POST UPDATES -->
-          <div id="tab-updates" class="hidden space-y-6">
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-              <h3 class="font-bold text-navy text-sm border-b pb-2">Broadcast System Update / Announcement</h3>
-              <input id="update-subject" type="text" placeholder="Update Title / Announcement Subject" class="w-full p-3 border rounded-xl text-xs" />
-              <textarea id="update-body" rows="5" placeholder="Write full update details for subscribers and visitors..." class="w-full p-3 border rounded-xl text-xs"></textarea>
-              <button onclick="publishUpdate()" class="px-6 py-3 bg-navy text-white font-bold text-xs rounded-xl shadow hover:bg-slate-800">
-                Publish Announcement
-              </button>
-            </div>
-          </div>
-
-          <!-- TAB 3: ASSIGN ADMINS -->
-          <div id="tab-admins" class="hidden space-y-6">
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-              <h3 class="font-bold text-navy text-sm border-b pb-2">Assign New System Administrator</h3>
-              <div class="flex flex-col sm:flex-row gap-3">
-                <input id="admin-email" type="email" placeholder="Enter team member email address" class="flex-1 p-3 border rounded-xl text-xs" />
-                <select id="admin-role" class="p-3 border rounded-xl text-xs bg-white">
-                  <option value="admin">Administrator</option>
-                  <option value="super_admin">Super Administrator</option>
-                </select>
-                <button onclick="assignAdmin()" class="px-6 py-3 bg-cobalt text-white font-bold text-xs rounded-xl shadow hover:bg-blue-700">
-                  Grant Admin Access
+          <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+            ${team.map(m => `
+              <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm text-center flex flex-col items-center justify-between space-y-4">
+                <img src="${m.image_url}" alt="${m.full_name}" class="w-28 h-28 object-cover rounded-full border-4 border-slate-100 shadow-md" onerror="this.src='https://via.placeholder.com/150?text=Team+Member'" />
+                <div class="space-y-1">
+                  <h3 class="font-bold text-navy text-base">${m.full_name}</h3>
+                  <p class="text-xs font-semibold text-cobalt">${m.job_title}</p>
+                  <p class="text-xs text-slate-600 line-clamp-3 pt-2 text-left leading-relaxed">${m.short_bio}</p>
+                </div>
+                <button onclick="showTeamMemberModal('${m.id}')" class="w-full py-2 bg-slate-100 hover:bg-blue-50 text-navy font-bold text-xs rounded-xl transition-all">
+                  Read Full Bio & Profile
                 </button>
               </div>
-            </div>
+            `).join('')}
+            ${team.length === 0 ? '<p class="col-span-full py-12 text-center text-xs text-slate-400 bg-white border rounded-2xl">No team profiles added yet. Control Room admins can add team bios.</p>' : ''}
+          </div>
+        </div>
+      `;
+    }
 
-            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-              <div class="p-4 bg-slate-50 border-b font-bold text-xs text-navy">Active System Administrators</div>
-              <div id="admin-list-table" class="divide-y divide-slate-100 text-xs">
-                <!-- Active admins load dynamically -->
-              </div>
+    async function showTeamMemberModal(memberId) {
+      if (!db) return;
+      const { data: m } = await db.from('team_members').select('*').eq('id', memberId).single();
+      if (!m) return;
+
+      openModal(`
+        <div class="space-y-4 text-left">
+          <div class="flex items-center space-x-4 border-b pb-4">
+            <img src="${m.image_url}" alt="${m.full_name}" class="w-16 h-16 object-cover rounded-full border-2 border-cobalt shadow" />
+            <div>
+              <h2 class="text-lg font-black text-navy">${m.full_name}</h2>
+              <p class="text-xs font-bold text-cobalt">${m.job_title}</p>
             </div>
           </div>
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-navy uppercase tracking-wider">Biography & Experience</h4>
+            <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line">${m.full_bio || m.short_bio}</p>
+          </div>
+          <div class="pt-4 border-t text-right">
+            <button onclick="closeModal()" class="px-5 py-2 bg-navy text-white font-bold text-xs rounded-xl">Close</button>
+          </div>
+        </div>
+      `);
+    }
 
+    // --- 4. TEAM UPDATES WITH LIKES & COMMENTS ---
+    async function renderUpdates(container) {
+      container.innerHTML = `<p class="text-center py-12 text-slate-500 text-xs">Loading technical journal...</p>`;
+
+      let updates = [];
+      if (db) {
+        const { data } = await db.from('updates').select('*').order('created_at', { ascending: false });
+        updates = data || [];
+      }
+
+      container.innerHTML = `
+        <div class="space-y-8 max-w-4xl mx-auto fade-in">
+          <div class="border-b pb-4">
+            <h1 class="text-2xl font-black text-navy">Team Updates & Technical Journal</h1>
+            <p class="text-xs text-slate-500 mt-1">Official agency news, launch announcements, and system progress directly from our desk.</p>
+          </div>
+
+          <div class="space-y-6">
+            ${updates.map(u => `
+              <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex justify-between items-start border-b pb-3">
+                  <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Posted by ${u.author || 'Team'}</span>
+                    <h2 class="text-lg font-bold text-navy mt-0.5">${u.title}</h2>
+                  </div>
+                  <span class="text-[10px] text-slate-400 font-mono">${new Date(u.created_at).toLocaleDateString()}</span>
+                </div>
+
+                <p class="text-xs text-slate-700 leading-relaxed whitespace-pre-line">${u.content}</p>
+
+                <div class="flex items-center space-x-4 pt-3 border-t text-xs">
+                  <button onclick="likeUpdate('${u.id}', ${u.likes_count || 0})" class="flex items-center space-x-1.5 px-3 py-1.5 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-cobalt rounded-lg font-bold transition-all">
+                    <span>Like Update</span>
+                    <span id="likes-count-${u.id}" class="bg-white px-2 py-0.5 rounded text-[10px] border">${u.likes_count || 0}</span>
+                  </button>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-xl space-y-3 mt-4 border border-slate-100">
+                  <h4 class="text-xs font-bold text-navy uppercase tracking-wider">Comments</h4>
+                  <div id="comments-list-${u.id}" class="space-y-2 divide-y divide-slate-200 text-xs"></div>
+
+                  <div class="pt-2 flex flex-col sm:flex-row gap-2">
+                    <input id="comment-name-${u.id}" type="text" placeholder="Your Name" class="p-2.5 border rounded-xl text-xs sm:w-1/3 focus:ring-2 focus:ring-cobalt focus:outline-none" />
+                    <input id="comment-text-${u.id}" type="text" placeholder="Write a comment..." class="p-2.5 border rounded-xl text-xs flex-1 focus:ring-2 focus:ring-cobalt focus:outline-none" />
+                    <button onclick="postComment('${u.id}')" class="px-4 py-2.5 bg-navy text-white font-bold text-xs rounded-xl hover:bg-slate-800">
+                      Post
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            `).join('')}
+            ${updates.length === 0 ? '<p class="py-12 text-center text-xs text-slate-400 bg-white border rounded-2xl">No team updates published yet.</p>' : ''}
+          </div>
         </div>
       `;
 
-      loadAdminProjects();
-      loadAdminList();
+      updates.forEach(u => loadComments(u.id));
     }
 
-    // --- CONTROL ROOM TAB CONTROLLER ---
-    function switchControlTab(tabName) {
-      const tabs = ['projects', 'updates', 'admins'];
-      tabs.forEach(t => {
-        document.getElementById(`tab-${t}`).classList.add('hidden');
-        const btn = document.getElementById(`tab-btn-${t}`);
-        btn.classList.remove('border-cobalt', 'text-cobalt');
-        btn.classList.add('border-transparent', 'text-slate-500');
-      });
-
-      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-      const activeBtn = document.getElementById(`tab-btn-${tabName}`);
-      activeBtn.classList.remove('border-transparent', 'text-slate-500');
-      activeBtn.classList.add('border-cobalt', 'text-cobalt');
-    }
-
-    // --- PROJECT PUBLISHING LOGIC ---
-    async function saveProject() {
-      const title = document.getElementById('proj-title').value.trim();
-      const image_url = document.getElementById('proj-image').value.trim();
-      const tech_stack = document.getElementById('proj-tech').value.trim();
-      const live_url = document.getElementById('proj-link').value.trim();
-      const description = document.getElementById('proj-desc').value.trim();
-
-      if (!title || !image_url || !description) {
-        return showToast('Title, Image URL, and Description are required.', 'warning');
+    async function likeUpdate(id, currentLikes) {
+      if (!db) return;
+      const updatedCount = currentLikes + 1;
+      const { error } = await db.from('updates').update({ likes_count: updatedCount }).eq('id', id);
+      
+      if (!error) {
+        const badge = document.getElementById(`likes-count-${id}`);
+        if (badge) badge.innerText = updatedCount;
+        showToast('Update liked.', 'success');
       }
-
-      if (db) {
-        const { error } = await db.from('portfolio_projects').insert([{ title, image_url, tech_stack, live_url, description }]);
-        if (error) return showToast('Error saving project: ' + error.message, 'error');
-      }
-
-      showToast('Project successfully published!', 'success');
-      loadAdminProjects();
     }
 
-    async function loadAdminProjects() {
-      const container = document.getElementById('admin-projects-list');
+    async function loadComments(updateId) {
+      const container = document.getElementById(`comments-list-${updateId}`);
       if (!container || !db) return;
 
-      const { data } = await db.from('portfolio_projects').select('*').order('created_at', { ascending: false });
+      const { data } = await db.from('comments').select('*').eq('update_id', updateId).order('created_at', { ascending: true });
+      
       if (!data || data.length === 0) {
-        container.innerHTML = `<p class="col-span-full text-xs text-slate-400 text-center py-6 border rounded-xl bg-white">No portfolio projects published yet.</p>`;
+        container.innerHTML = `<p class="text-[11px] text-slate-400 italic py-1">No comments yet.</p>`;
         return;
       }
 
-      container.innerHTML = data.map(p => `
-        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between">
-          <img src="${p.image_url}" alt="${p.title}" class="w-full h-36 object-cover bg-slate-100" onerror="this.src='https://via.placeholder.com/400x200?text=Project+Image'" />
-          <div class="p-4 space-y-2 flex-1">
-            <span class="text-[10px] font-bold text-cobalt uppercase">${p.tech_stack || 'Software'}</span>
-            <h4 class="font-bold text-xs text-navy">${p.title}</h4>
-            <p class="text-[11px] text-slate-500 line-clamp-2">${p.description}</p>
+      container.innerHTML = data.map(c => `
+        <div class="pt-2 first:pt-0">
+          <div class="flex justify-between text-[10px] font-bold text-navy">
+            <span>${c.author_name}</span>
+            <span class="text-slate-400 font-mono">${new Date(c.created_at).toLocaleDateString()}</span>
           </div>
+          <p class="text-[11px] text-slate-600 mt-0.5">${c.comment_text}</p>
         </div>
       `).join('');
     }
 
-    // --- UPDATE BROADCAST LOGIC ---
-    async function publishUpdate() {
-      const subject = document.getElementById('update-subject').value.trim();
-      const body = document.getElementById('update-body').value.trim();
+    async function postComment(updateId) {
+      const nameInput = document.getElementById(`comment-name-${updateId}`);
+      const textInput = document.getElementById(`comment-text-${updateId}`);
+      const author_name = nameInput.value.trim();
+      const comment_text = textInput.value.trim();
 
-      if (!subject || !body) return showToast('Subject and Update Body are required.', 'warning');
-
-      if (db) {
-        const { error } = await db.from('updates').insert([{ subject, body, published_by: 'Super Admin' }]);
-        if (error) return showToast('Error publishing update: ' + error.message, 'error');
-      }
-
-      showToast('Announcement published successfully.', 'success');
-      document.getElementById('update-subject').value = '';
-      document.getElementById('update-body').value = '';
-    }
-
-    // --- ADMIN ASSIGNMENT LOGIC ---
-    async function assignAdmin() {
-      const email = document.getElementById('admin-email').value.trim();
-      const role = document.getElementById('admin-role').value;
-
-      if (!email || !email.includes('@')) return showToast('Enter a valid email address.', 'warning');
+      if (!author_name || !comment_text) return showToast('Name and comment text are required.', 'warning');
 
       if (db) {
-        const { error } = await db.from('admins').insert([{ email, role, assigned_by: 'Owner' }]);
-        if (error) return showToast('Error assigning admin: ' + error.message, 'error');
+        const { error } = await db.from('comments').insert([{ update_id: updateId, author_name, comment_text }]);
+        if (error) return showToast('Error posting comment: ' + error.message, 'error');
       }
 
-      showToast(`Admin access granted to ${email}`, 'success');
-      document.getElementById('admin-email').value = '';
-      loadAdminList();
+      showToast('Comment published.', 'success');
+      nameInput.value = '';
+      textInput.value = '';
+      loadComments(updateId);
     }
 
-    async function loadAdminList() {
-      const container = document.getElementById('admin-list-table');
+    // --- 5. PROJECT TRACKER VIEW ---
+    function renderProjectTracker(container) {
+      container.innerHTML = `
+        <div class="max-w-xl mx-auto bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6 fade-in">
+          <div class="border-b pb-4 text-center space-y-1">
+            <span class="text-[10px] font-bold text-cobalt bg-blue-50 px-2.5 py-1 rounded-md uppercase tracking-wider">Client Transparency</span>
+            <h1 class="text-2xl font-black text-navy mt-1">Live Project Status Tracker</h1>
+            <p class="text-xs text-slate-500">Enter your official project tracking code to view development progress in real time.</p>
+          </div>
+
+          <div class="flex gap-2">
+            <input id="tracker-input" type="text" placeholder="e.g. BS-8492" class="p-3 border rounded-xl text-xs flex-1 uppercase tracking-widest font-mono focus:ring-2 focus:ring-cobalt focus:outline-none" />
+            <button onclick="lookupProjectStatus()" class="px-6 py-3 bg-cobalt hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow">
+              Track Progress
+            </button>
+          </div>
+
+          <div id="tracker-result-box" class="hidden border rounded-2xl p-6 bg-slate-50 space-y-4">
+            <!-- Results injected here -->
+          </div>
+        </div>
+      `;
+    }
+
+    async function lookupProjectStatus() {
+      const code = document.getElementById('tracker-input').value.trim().toUpperCase();
+      const resultBox = document.getElementById('tracker-result-box');
+      if (!code) return showToast('Enter a valid tracking code.', 'warning');
+
+      resultBox.classList.remove('hidden');
+      resultBox.innerHTML = `<p class="text-xs text-slate-400 text-center">Searching registry...</p>`;
+
+      if (!db) return;
+      const { data: req } = await db.from('hire_requests').select('*').eq('tracking_code', code).maybeSingle();
+
+      if (!req) {
+        resultBox.innerHTML = `<p class="text-xs text-red-600 text-center font-bold">No project record found matching code "${code}".</p>`;
+        return;
+      }
+
+      const steps = ['IN_REVIEW', 'UI_DESIGN', 'DEVELOPMENT', 'TESTING', 'LAUNCHED'];
+      const currentIndex = steps.indexOf(req.status);
+
+      resultBox.innerHTML = `
+        <div class="space-y-4">
+          <div class="flex justify-between items-start border-b pb-3">
+            <div>
+              <h3 class="font-bold text-sm text-navy">${req.client_name}</h3>
+              <p class="text-[10px] text-slate-400 uppercase font-mono">${req.organization_type} &bull; CODE: ${req.tracking_code}</p>
+            </div>
+            <span class="px-3 py-1 bg-blue-100 text-cobalt font-bold rounded-lg text-xs uppercase">${req.status.replace('_', ' ')}</span>
+          </div>
+
+          <div class="space-y-2">
+            <p class="text-xs font-bold text-navy">Development Roadmap</p>
+            <div class="grid grid-cols-5 gap-1 text-center text-[9px] font-bold">
+              ${steps.map((step, idx) => `
+                <div class="p-2 rounded-lg ${idx <= currentIndex ? 'bg-cobalt text-white' : 'bg-slate-200 text-slate-400'}">
+                  ${step.replace('_', ' ')}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- 6. HIRE US & COST ESTIMATOR FORM ---
+    function renderHireForm(container) {
+      container.innerHTML = `
+        <div class="max-w-2xl mx-auto space-y-8 fade-in">
+          
+          <!-- Cost Calculator Widget -->
+          <div class="bg-navy text-white p-6 sm:p-8 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+            <div class="border-b border-slate-800 pb-3">
+              <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Interactive Calculator</span>
+              <h2 class="text-xl font-black">Estimate Your Project Cost</h2>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4 text-xs">
+              <div>
+                <label class="block text-slate-300 font-bold mb-1">Organization Category</label>
+                <select id="calc-cat" onchange="calculateEstimate()" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-white font-medium">
+                  <option value="250">Church Website</option>
+                  <option value="350">School Landing Page & Portal</option>
+                  <option value="300">NGO Platform</option>
+                  <option value="200">Small Business Site</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-slate-300 font-bold mb-1">Required Features</label>
+                <select id="calc-feat" onchange="calculateEstimate()" class="w-full p-3 bg-slate-900 border border-slate-700 rounded-xl text-white font-medium">
+                  <option value="50">Basic Custom Design</option>
+                  <option value="150">Online Payments & Tithes</option>
+                  <option value="250">Student Result Portal / Database</option>
+                  <option value="350">Full Custom Enterprise System</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+              <span class="text-xs text-slate-400 font-bold">Estimated Cost Range:</span>
+              <span id="calc-result" class="text-xl font-black text-blue-400 font-mono">$300 - $450 USD</span>
+            </div>
+          </div>
+
+          <!-- Official Form -->
+          <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+            <div class="border-b pb-4">
+              <h1 class="text-2xl font-black text-navy">Submit Project Requirements</h1>
+              <p class="text-xs text-slate-500 mt-1">Our engineering team will generate an official scope and timeline.</p>
+            </div>
+
+            <div class="space-y-4">
+              <div>
+                <label class="block text-xs font-bold text-navy mb-1">Client Name / Representative</label>
+                <input id="hire-name" type="text" placeholder="e.g. Executive Director John / Principal Mary" class="w-full p-3 border rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-navy mb-1">Official Email Address</label>
+                <input id="hire-email" type="email" placeholder="contact@organization.org" class="w-full p-3 border rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-navy mb-1">Organization Category</label>
+                <select id="hire-category" class="w-full p-3 border rounded-xl text-xs bg-white focus:ring-2 focus:ring-cobalt focus:outline-none">
+                  <option value="Church Website">Church / Ministry Website</option>
+                  <option value="School Landing Page">School Portal & Landing Page</option>
+                  <option value="NGO Platform">NGO / Non-Profit Platform</option>
+                  <option value="Small Business">Small Business Website</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-navy mb-1">Project Deliverables & Features Required</label>
+                <textarea id="hire-details" rows="4" placeholder="Describe specific needs (e.g. online tithes, mobile student results, event calendar)..." class="w-full p-3 border rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none"></textarea>
+              </div>
+
+              <button onclick="submitHireRequest()" class="w-full py-3.5 bg-cobalt hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                Submit Formal Inquiry
+              </button>
+            </div>
+          </div>
+
+        </div>
+      `;
+      calculateEstimate();
+    }
+
+    function calculateEstimate() {
+      const cat = parseInt(document.getElementById('calc-cat').value) || 0;
+      const feat = parseInt(document.getElementById('calc-feat').value) || 0;
+      const min = cat + feat;
+      const max = min + 150;
+      document.getElementById('calc-result').innerText = `$${min} - $${max} USD`;
+    }
+
+    async function submitHireRequest() {
+      const client_name = document.getElementById('hire-name').value.trim();
+      const email = document.getElementById('hire-email').value.trim();
+      const organization_type = document.getElementById('hire-category').value;
+      const project_details = document.getElementById('hire-details').value.trim();
+
+      if (!client_name || !email || !project_details) {
+        return showToast('Please complete all required fields.', 'warning');
+      }
+
+      const tracking_code = 'BS-' + Math.floor(1000 + Math.random() * 9000);
+
+      if (db) {
+        const { error } = await db.from('hire_requests').insert([{
+          tracking_code,
+          client_name,
+          email,
+          organization_type,
+          project_details,
+          status: 'IN_REVIEW'
+        }]);
+        if (error) return showToast('Submission error: ' + error.message, 'error');
+      }
+
+      openModal(`
+        <div class="text-center space-y-4">
+          <div class="w-12 h-12 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center font-black mx-auto text-sm">
+            OK
+          </div>
+          <h2 class="text-xl font-black text-navy">Inquiry Received</h2>
+          <p class="text-xs text-slate-600">Your unique project tracking code is:</p>
+          <div class="p-3 bg-slate-100 font-mono text-lg font-black text-cobalt tracking-widest rounded-xl border">
+            ${tracking_code}
+          </div>
+          <p class="text-[10px] text-slate-400">Save this code to check progress in the Project Tracker tab.</p>
+          <button onclick="closeModal(); navigate('home');" class="px-6 py-2.5 bg-navy text-white font-bold text-xs rounded-xl">Return Home</button>
+        </div>
+      `);
+    }
+
+    // --- 7. PRIVACY POLICY VIEW ---
+    function renderPrivacyPolicy(container) {
+      container.innerHTML = `
+        <div class="max-w-3xl mx-auto bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6 fade-in">
+          <div class="border-b pb-4">
+            <span class="text-[10px] font-bold text-cobalt bg-blue-50 px-2.5 py-1 rounded-md uppercase">Legal Framework</span>
+            <h1 class="text-2xl font-black text-navy mt-1">Privacy Policy & Security Standard</h1>
+            <p class="text-xs text-slate-500">Last Updated: September 2026</p>
+          </div>
+
+          <div class="space-y-4 text-xs text-slate-700 leading-relaxed">
+            <h3 class="font-bold text-navy text-sm">1. Information Collection</h3>
+            <p>BLESSED STUDIOS collects personal details strictly provided during project inquiries (such as representative name, organization type, and email) and identity data submitted during admin onboarding (including verification selfie images and email records).</p>
+
+            <h3 class="font-bold text-navy text-sm">2. Identity Selfie & CAPTCHA Processing</h3>
+            <p>Identity verification photos uploaded during team admin onboarding are utilized exclusively by the Super Admin to verify real human identity and prevent unauthorized access. Selfies are retained in encrypted storage records solely for active operational validation.</p>
+
+            <h3 class="font-bold text-navy text-sm">3. Client Project Data</h3>
+            <p>Project details, student portal specs, and organizational records transmitted to BLESSED STUDIOS are kept confidential and accessed exclusively by authorized engineering staff.</p>
+
+            <h3 class="font-bold text-navy text-sm">4. Data Protection</h3>
+            <p>We do not sell, license, or monetize client or team data. Row Level Security policies enforce strict boundaries across database tables.</p>
+          </div>
+
+          <div class="pt-4 border-t">
+            <button onclick="navigate('home')" class="px-6 py-2.5 bg-navy text-white font-bold text-xs rounded-xl">Back to Main Page</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- 8. ADMIN GATEWAY & CONTROL ROOM ---
+    function renderAdminGateway(container) {
+      if (activeAdminUser && activeAdminUser.status === 'APPROVED') {
+        renderControlRoom(container);
+      } else {
+        renderAdminAuthenticationScreen(container);
+      }
+    }
+
+    function renderAdminAuthenticationScreen(container) {
+      isCaptchaPassed = false;
+      uploadedSelfieBase64 = '';
+
+      container.innerHTML = `
+        <div class="max-w-md mx-auto bg-white p-8 rounded-2xl border border-slate-200 shadow-xl space-y-6 fade-in">
+          
+          <div class="border-b pb-4 text-center space-y-1">
+            <span class="text-[10px] font-black text-cobalt tracking-widest uppercase bg-blue-50 px-2.5 py-1 rounded">Security Protocol</span>
+            <h1 class="text-2xl font-black text-navy mt-2">Control Room Access</h1>
+            <p class="text-xs text-slate-500">Sign in with PIN or register new admin identity for Owner approval.</p>
+          </div>
+
+          <!-- Access Selector -->
+          <div class="flex border-b text-xs font-bold">
+            <button onclick="switchAuthTab('login')" id="auth-tab-login" class="flex-1 pb-3 border-b-2 border-cobalt text-cobalt">Existing Admin Login</button>
+            <button onclick="switchAuthTab('register')" id="auth-tab-register" class="flex-1 pb-3 border-b-2 border-transparent text-slate-400">Register New Admin</button>
+          </div>
+
+          <!-- LOGIN FORM -->
+          <form id="auth-form-login" onsubmit="event.preventDefault(); processAdminLogin();" class="space-y-4">
+            <div>
+              <label class="block text-[11px] font-bold text-navy mb-1 uppercase">Admin Email</label>
+              <input id="login-email" type="email" required placeholder="admin@blessedstudios.com" class="w-full p-3 border rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-navy mb-1 uppercase">6-Digit PIN</label>
+              <input id="login-pin" type="password" maxlength="6" required placeholder="******" class="w-full p-3 border rounded-xl text-xs font-mono tracking-widest focus:ring-2 focus:ring-cobalt focus:outline-none" />
+            </div>
+            <button type="submit" class="w-full py-3.5 bg-cobalt hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow">
+              Authenticate & Enter
+            </button>
+          </form>
+
+          <!-- STRICT REGISTRATION FORM -->
+          <form id="auth-form-register" onsubmit="event.preventDefault(); submitAdminApplication();" class="hidden space-y-4">
+            <div>
+              <label class="block text-[11px] font-bold text-navy mb-1 uppercase">Full Name</label>
+              <input id="reg-name" type="text" required placeholder="Official Name" class="w-full p-3 border rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none" />
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-navy mb-1 uppercase">Authorized Email</label>
+              <input id="reg-email" type="email" required placeholder="name@organization.com" class="w-full p-3 border rounded-xl text-xs focus:ring-2 focus:ring-cobalt focus:outline-none" />
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-navy mb-1 uppercase">Set Access PIN (6-Digits)</label>
+              <input id="reg-pin" type="password" maxlength="6" pattern="[0-9]{6}" required placeholder="849201" class="w-full p-3 border rounded-xl text-xs font-mono tracking-widest focus:ring-2 focus:ring-cobalt focus:outline-none" />
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-[11px] font-bold text-navy uppercase">Identity Verification Selfie Image</label>
+              <div class="border-2 border-dashed border-slate-300 p-4 rounded-xl text-center space-y-2 bg-slate-50">
+                <input id="selfie-file-input" type="file" accept="image/*" capture="user" onchange="processSelfieUpload(event)" class="hidden" />
+                <button type="button" onclick="document.getElementById('selfie-file-input').click()" class="px-4 py-2 bg-navy text-white text-xs font-bold rounded-lg shadow">
+                  Upload Live Selfie Image
+                </button>
+                <p id="selfie-filename" class="text-[10px] text-slate-400 italic">No file selected.</p>
+              </div>
+              <div id="selfie-preview-box" class="hidden text-center pt-1">
+                <img id="selfie-preview-img" src="" alt="Preview" class="w-20 h-20 object-cover rounded-full mx-auto border-2 border-cobalt shadow" />
+              </div>
+            </div>
+
+            <div class="bg-slate-100 p-4 rounded-xl border flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <input id="captcha-checkbox" type="checkbox" onchange="handleCaptchaToggle(this)" class="w-5 h-5 accent-cobalt cursor-pointer" />
+                <label for="captcha-checkbox" class="text-xs font-bold text-navy cursor-pointer">I am not a robot</label>
+              </div>
+              <span class="text-[9px] font-black text-slate-400 uppercase">SECURE GUARD</span>
+            </div>
+
+            <button type="submit" class="w-full py-3.5 bg-cobalt hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow">
+              Submit For Approval
+            </button>
+          </form>
+
+        </div>
+      `;
+    }
+
+    function switchAuthTab(tab) {
+      if (tab === 'login') {
+        document.getElementById('auth-form-login').classList.remove('hidden');
+        document.getElementById('auth-form-register').classList.add('hidden');
+        document.getElementById('auth-tab-login').className = 'flex-1 pb-3 border-b-2 border-cobalt text-cobalt';
+        document.getElementById('auth-tab-register').className = 'flex-1 pb-3 border-b-2 border-transparent text-slate-400';
+      } else {
+        document.getElementById('auth-form-login').classList.add('hidden');
+        document.getElementById('auth-form-register').classList.remove('hidden');
+        document.getElementById('auth-tab-register').className = 'flex-1 pb-3 border-b-2 border-cobalt text-cobalt';
+        document.getElementById('auth-tab-login').className = 'flex-1 pb-3 border-b-2 border-transparent text-slate-400';
+      }
+    }
+
+    function handleCaptchaToggle(checkbox) {
+      isCaptchaPassed = checkbox.checked;
+      if (isCaptchaPassed) showToast('Captcha verified.', 'success');
+    }
+
+    function processSelfieUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        uploadedSelfieBase64 = e.target.result;
+        document.getElementById('selfie-filename').innerText = file.name;
+        document.getElementById('selfie-preview-img').src = uploadedSelfieBase64;
+        document.getElementById('selfie-preview-box').classList.remove('hidden');
+        showToast('Selfie uploaded.', 'info');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function processAdminLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const pin = document.getElementById('login-pin').value.trim();
+
+      if (!db) return;
+      const { data: admin } = await db.from('admins').select('*').eq('email', email).maybeSingle();
+
+      if (!admin) {
+        return showToast('Account not found. Please register.', 'error');
+      }
+
+      if (admin.status === 'PENDING') {
+        return openModal(`
+          <div class="text-center space-y-3">
+            <h3 class="text-lg font-black text-navy">Application Pending Approval</h3>
+            <p class="text-xs text-slate-600">Your registration with selfie verification is currently awaiting Super Admin approval.</p>
+            <button onclick="closeModal()" class="px-5 py-2 bg-navy text-white text-xs font-bold rounded-xl">OK</button>
+          </div>
+        `);
+      }
+
+      if (admin.status === 'REJECTED') {
+        return showToast('This admin identity request was rejected by the Owner.', 'error');
+      }
+
+      if (admin.security_pin && admin.security_pin !== pin) {
+        return showToast('Incorrect Security PIN.', 'error');
+      }
+
+      activeAdminUser = admin;
+      showToast(`Authenticated as ${admin.full_name || admin.email}`, 'success');
+      renderControlRoom(document.getElementById('app-content'));
+    }
+
+    async function submitAdminApplication() {
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const pin = document.getElementById('reg-pin').value.trim();
+
+      if (!isCaptchaPassed) return showToast('Check "I am not a robot".', 'warning');
+      if (!uploadedSelfieBase64) return showToast('Upload verification selfie photo.', 'warning');
+
+      if (db) {
+        const { error } = await db.from('admins').insert([{
+          full_name: name,
+          email,
+          security_pin: pin,
+          selfie_url: uploadedSelfieBase64,
+          captcha_verified: true,
+          status: 'PENDING'
+        }]);
+        if (error) return showToast('Registration failed: ' + error.message, 'error');
+      }
+
+      showToast('Application sent for Owner review.', 'success');
+      switchAuthTab('login');
+    }
+
+    // --- CONTROL ROOM MAIN PANEL ---
+    function renderControlRoom(container) {
+      container.innerHTML = `
+        <div class="space-y-8 max-w-6xl mx-auto fade-in">
+          
+          <div class="bg-navy text-white p-6 rounded-2xl border border-slate-800 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <span class="text-[10px] font-black text-blue-400 tracking-widest uppercase">System Control Room</span>
+              <h1 class="text-2xl font-black">${activeAdminUser.full_name || 'Admin'}</h1>
+              <p class="text-xs text-slate-400 mt-1">Role: ${activeAdminUser.role || 'Admin'} &bull; ${activeAdminUser.email}</p>
+            </div>
+            <button onclick="activeAdminUser = null; navigate('admin');" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white rounded-xl">
+              Sign Out
+            </button>
+          </div>
+
+          <div class="flex border-b border-slate-200 text-xs font-bold space-x-6 overflow-x-auto pb-1">
+            <button onclick="switchAdminTab('inquiries')" id="admin-tab-inquiries" class="pb-3 border-b-2 border-cobalt text-cobalt whitespace-nowrap">Client Inquiries & Tracker</button>
+            <button onclick="switchAdminTab('approvals')" id="admin-tab-approvals" class="pb-3 border-b-2 border-transparent text-slate-500 whitespace-nowrap">Admin Approvals</button>
+            <button onclick="switchAdminTab('team')" id="admin-tab-team" class="pb-3 border-b-2 border-transparent text-slate-500 whitespace-nowrap">Manage Team Profiles</button>
+            <button onclick="switchAdminTab('portfolio')" id="admin-tab-portfolio" class="pb-3 border-b-2 border-transparent text-slate-500 whitespace-nowrap">Publish Portfolio</button>
+            <button onclick="switchAdminTab('updates')" id="admin-tab-updates" class="pb-3 border-b-2 border-transparent text-slate-500 whitespace-nowrap">Post Update</button>
+          </div>
+
+          <!-- TAB 1: INQUIRIES -->
+          <div id="panel-inquiries" class="space-y-4">
+            <h3 class="font-bold text-navy text-sm">Client Inquiries & Status Progress</h3>
+            <div id="admin-inquiries-list" class="space-y-3 text-xs"></div>
+          </div>
+
+          <!-- TAB 2: PENDING ADMIN APPROVALS -->
+          <div id="panel-approvals" class="hidden space-y-4">
+            <h3 class="font-bold text-navy text-sm">Pending Identity Approvals (Selfie & Captcha Verified)</h3>
+            <div id="admin-approvals-list" class="space-y-3 text-xs"></div>
+          </div>
+
+          <!-- TAB 3: TEAM MEMBERS MANAGER -->
+          <div id="panel-team" class="hidden space-y-6 bg-white p-6 rounded-2xl border">
+            <h3 class="font-bold text-navy text-sm border-b pb-2">Add / Update Team Profile (CEO, Devs, Designers)</h3>
+            <div class="grid md:grid-cols-2 gap-4 text-xs">
+              <input id="tm-name" type="text" placeholder="Full Name (e.g. CEO John Doe)" class="p-3 border rounded-xl" />
+              <input id="tm-title" type="text" placeholder="Job Title / Role" class="p-3 border rounded-xl" />
+              <input id="tm-photo" type="url" placeholder="Photo Direct Image URL" class="p-3 border rounded-xl" />
+              <input id="tm-order" type="number" placeholder="Display Order (1, 2, 3)" class="p-3 border rounded-xl" />
+            </div>
+            <textarea id="tm-short" rows="2" placeholder="Short Headline Bio..." class="w-full p-3 border rounded-xl text-xs"></textarea>
+            <textarea id="tm-full" rows="4" placeholder="Full Detailed Biography..." class="w-full p-3 border rounded-xl text-xs"></textarea>
+            <button onclick="saveTeamMemberProfile()" class="px-6 py-3 bg-cobalt text-white font-bold text-xs rounded-xl">Save Team Member</button>
+            
+            <div class="pt-4 border-t">
+              <h4 class="font-bold text-navy text-xs mb-2">Existing Team Profiles</h4>
+              <div id="admin-team-directory" class="space-y-2 text-xs"></div>
+            </div>
+          </div>
+
+          <!-- TAB 4: PORTFOLIO MANAGER -->
+          <div id="panel-portfolio" class="hidden space-y-4 bg-white p-6 rounded-2xl border">
+            <h3 class="font-bold text-navy text-sm border-b pb-2">Publish Project to Portfolio</h3>
+            <div class="grid md:grid-cols-2 gap-4 text-xs">
+              <input id="p-title" type="text" placeholder="Project Title" class="p-3 border rounded-xl" />
+              <select id="p-category" class="p-3 border rounded-xl bg-white">
+                <option value="Church">Church</option>
+                <option value="School">School</option>
+                <option value="NGO">NGO</option>
+                <option value="Small Business">Small Business</option>
+              </select>
+              <input id="p-image" type="url" placeholder="Image URL" class="p-3 border rounded-xl" />
+              <input id="p-link" type="url" placeholder="Live Site URL" class="p-3 border rounded-xl" />
+            </div>
+            <textarea id="p-desc" rows="3" placeholder="Project description..." class="w-full p-3 border rounded-xl text-xs"></textarea>
+            <button onclick="savePortfolioProject()" class="px-6 py-3 bg-cobalt text-white font-bold text-xs rounded-xl">Publish Project</button>
+          </div>
+
+          <!-- TAB 5: POST UPDATES -->
+          <div id="panel-updates" class="hidden space-y-4 bg-white p-6 rounded-2xl border">
+            <h3 class="font-bold text-navy text-sm border-b pb-2">Publish Technical Journal Update</h3>
+            <input id="u-title" type="text" placeholder="Update Title" class="w-full p-3 border rounded-xl text-xs" />
+            <textarea id="u-content" rows="5" placeholder="Update text..." class="w-full p-3 border rounded-xl text-xs"></textarea>
+            <button onclick="saveTeamUpdate()" class="px-6 py-3 bg-navy text-white font-bold text-xs rounded-xl">Broadcast Update</button>
+          </div>
+
+        </div>
+      `;
+
+      loadAdminInquiries();
+      loadAdminApprovals();
+      loadAdminTeamList();
+    }
+
+    function switchAdminTab(tab) {
+      ['inquiries', 'approvals', 'team', 'portfolio', 'updates'].forEach(t => {
+        document.getElementById(`panel-${t}`).classList.add('hidden');
+        const btn = document.getElementById(`admin-tab-${t}`);
+        if (btn) {
+          btn.classList.remove('border-cobalt', 'text-cobalt');
+          btn.classList.add('border-transparent', 'text-slate-500');
+        }
+      });
+
+      document.getElementById(`panel-${tab}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`admin-tab-${tab}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('border-transparent', 'text-slate-500');
+        activeBtn.classList.add('border-cobalt', 'text-cobalt');
+      }
+    }
+
+    async function loadAdminInquiries() {
+      const container = document.getElementById('admin-inquiries-list');
       if (!container || !db) return;
 
-      const { data } = await db.from('admins').select('*').order('created_at', { ascending: false });
+      const { data } = await db.from('hire_requests').select('*').order('created_at', { ascending: false });
       if (!data || data.length === 0) {
-        container.innerHTML = `<div class="p-4 text-slate-400 text-center">No additional admins assigned yet.</div>`;
+        container.innerHTML = `<p class="py-6 text-center text-slate-400 bg-white border rounded-xl">No pending client requests.</p>`;
+        return;
+      }
+
+      container.innerHTML = data.map(req => `
+        <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-2">
+          <div class="flex justify-between items-center font-bold">
+            <span class="text-navy">${req.client_name} (${req.email})</span>
+            <select onchange="updateProjectStatus('${req.id}', this.value)" class="p-1 border rounded text-[11px] bg-slate-50 font-bold">
+              <option value="IN_REVIEW" ${req.status === 'IN_REVIEW' ? 'selected' : ''}>IN_REVIEW</option>
+              <option value="UI_DESIGN" ${req.status === 'UI_DESIGN' ? 'selected' : ''}>UI_DESIGN</option>
+              <option value="DEVELOPMENT" ${req.status === 'DEVELOPMENT' ? 'selected' : ''}>DEVELOPMENT</option>
+              <option value="TESTING" ${req.status === 'TESTING' ? 'selected' : ''}>TESTING</option>
+              <option value="LAUNCHED" ${req.status === 'LAUNCHED' ? 'selected' : ''}>LAUNCHED</option>
+            </select>
+          </div>
+          <p class="text-slate-600">${req.project_details}</p>
+          <p class="text-[10px] text-slate-400 font-mono">TRACKING CODE: ${req.tracking_code}</p>
+        </div>
+      `).join('');
+    }
+
+    async function updateProjectStatus(id, newStatus) {
+      if (!db) return;
+      await db.from('hire_requests').update({ status: newStatus }).eq('id', id);
+      showToast('Status updated.', 'success');
+    }
+
+    async function loadAdminApprovals() {
+      const container = document.getElementById('admin-approvals-list');
+      if (!container || !db) return;
+
+      const { data } = await db.from('admins').select('*').eq('status', 'PENDING');
+      if (!data || data.length === 0) {
+        container.innerHTML = `<p class="py-6 text-center text-slate-400 bg-white border rounded-xl">No pending admin applications.</p>`;
         return;
       }
 
       container.innerHTML = data.map(a => `
-        <div class="p-4 flex justify-between items-center hover:bg-slate-50">
-          <div>
-            <p class="font-bold text-navy">${a.email}</p>
-            <p class="text-[10px] text-slate-400">Assigned: ${new Date(a.created_at).toLocaleDateString()}</p>
+        <div class="bg-white p-4 rounded-xl border flex justify-between items-center gap-4">
+          <div class="flex items-center space-x-3">
+            <img src="${a.selfie_url || 'https://via.placeholder.com/100'}" class="w-14 h-14 object-cover rounded-xl border" />
+            <div>
+              <h4 class="font-bold text-navy">${a.full_name || 'Applicant'}</h4>
+              <p class="text-slate-500">${a.email}</p>
+            </div>
           </div>
-          <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-cobalt border border-blue-200 uppercase">
-            ${a.role}
-          </span>
+          <div class="flex space-x-2">
+            <button onclick="approveAdmin('${a.id}', 'APPROVED')" class="px-3 py-1.5 bg-emerald-700 text-white font-bold rounded-lg">Approve</button>
+            <button onclick="approveAdmin('${a.id}', 'REJECTED')" class="px-3 py-1.5 bg-red-700 text-white font-bold rounded-lg">Reject</button>
+          </div>
         </div>
       `).join('');
     }
 
-    // --- OTHER VIEWS ---
-    function renderServices(container) {
-      container.innerHTML = `
-        <div class="space-y-6">
-          <h2 class="text-2xl font-bold text-navy">Engineering Services</h2>
-          <div class="grid sm:grid-cols-2 gap-6">
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-              <h3 class="font-bold text-lg text-cobalt">Web Platform Development</h3>
-              <p class="text-slate-600 text-xs">Custom business applications, APIs, and scalable infrastructure.</p>
-            </div>
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-2">
-              <h3 class="font-bold text-lg text-cobalt">Educational Management Systems</h3>
-              <p class="text-slate-600 text-xs">Student enrollment tools, grade management systems, and admin portals.</p>
-            </div>
+    async function approveAdmin(id, newStatus) {
+      if (!db) return;
+      await db.from('admins').update({ status: newStatus }).eq('id', id);
+      showToast(`Admin application set to ${newStatus}`, 'success');
+      loadAdminApprovals();
+    }
+
+    async function saveTeamMemberProfile() {
+      const full_name = document.getElementById('tm-name').value.trim();
+      const job_title = document.getElementById('tm-title').value.trim();
+      const image_url = document.getElementById('tm-photo').value.trim();
+      const display_order = parseInt(document.getElementById('tm-order').value) || 1;
+      const short_bio = document.getElementById('tm-short').value.trim();
+      const full_bio = document.getElementById('tm-full').value.trim();
+
+      if (!full_name || !job_title || !image_url || !short_bio) {
+        return showToast('Full name, title, photo URL, and short bio are required.', 'warning');
+      }
+
+      if (db) {
+        const { error } = await db.from('team_members').insert([{ full_name, job_title, image_url, display_order, short_bio, full_bio }]);
+        if (error) return showToast('Error saving team profile: ' + error.message, 'error');
+      }
+
+      showToast('Team member profile saved.', 'success');
+      loadAdminTeamList();
+    }
+
+    async function loadAdminTeamList() {
+      const container = document.getElementById('admin-team-directory');
+      if (!container || !db) return;
+
+      const { data } = await db.from('team_members').select('*').order('display_order', { ascending: true });
+      if (!data || data.length === 0) {
+        container.innerHTML = `<p class="text-slate-400">No team members added yet.</p>`;
+        return;
+      }
+
+      container.innerHTML = data.map(m => `
+        <div class="p-2 border rounded-lg flex justify-between items-center">
+          <div>
+            <span class="font-bold text-navy">${m.full_name}</span>
+            <span class="text-slate-400"> (${m.job_title})</span>
           </div>
+          <button onclick="deleteTeamMember('${m.id}')" class="text-red-600 font-bold">Remove</button>
         </div>
-      `;
+      `).join('');
     }
 
-    function renderCourses(container) {
-      container.innerHTML = `
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 text-center space-y-2">
-          <h2 class="font-bold text-lg text-navy">B-TECH HUB Coding Academy</h2>
-          <p class="text-xs text-slate-500">Live bootcamps and vibe coding modules will appear here.</p>
-        </div>
-      `;
+    async function deleteTeamMember(id) {
+      if (!db) return;
+      await db.from('team_members').delete().eq('id', id);
+      showToast('Team profile removed.', 'info');
+      loadAdminTeamList();
     }
 
-    function renderRequestForm(container) {
-      container.innerHTML = `
-        <div class="max-w-md mx-auto bg-white p-6 rounded-2xl border border-slate-200 space-y-4">
-          <h2 class="text-xl font-bold text-navy">Start a Project</h2>
-          <input id="p-name" type="text" placeholder="Organization / Project Name" class="w-full p-3 border rounded-xl text-xs" />
-          <textarea id="p-desc" rows="4" placeholder="Briefly describe required features..." class="w-full p-3 border rounded-xl text-xs"></textarea>
-          <button onclick="submitProject()" class="w-full py-3 bg-cobalt text-white font-bold text-xs rounded-xl shadow-md">Submit Proposal</button>
-        </div>
-      `;
-    }
-
-    async function submitProject() {
-      const name = document.getElementById('p-name').value.trim();
+    async function savePortfolioProject() {
+      const title = document.getElementById('p-title').value.trim();
+      const category = document.getElementById('p-category').value;
+      const image_url = document.getElementById('p-image').value.trim();
+      const live_url = document.getElementById('p-link').value.trim();
       const description = document.getElementById('p-desc').value.trim();
-      if (!name || !description) return showToast('Please complete all fields.', 'warning');
-      if (db) await db.from('projects').insert([{ name, description, status: 'NEW_REQUEST' }]);
-      showToast('Proposal submitted successfully!', 'success');
-      navigate('home');
+
+      if (!title || !image_url || !description) return showToast('Title, Image URL, and Description required.', 'warning');
+
+      if (db) {
+        await db.from('projects').insert([{ title, category, image_url, live_url, description }]);
+      }
+
+      showToast('Portfolio item published.', 'success');
+      navigate('portfolio');
     }
 
-    // Initialize Default View
+    async function saveTeamUpdate() {
+      const title = document.getElementById('u-title').value.trim();
+      const content = document.getElementById('u-content').value.trim();
+
+      if (!title || !content) return showToast('Title and content required.', 'warning');
+
+      if (db) {
+        await db.from('updates').insert([{ title, content, author: activeAdminUser.full_name || 'Team' }]);
+      }
+
+      showToast('Update broadcasted.', 'success');
+      navigate('updates');
+    }
+
+    // Default Initialization
     document.addEventListener('DOMContentLoaded', () => { navigate('home'); });
   </script>
 </body>
