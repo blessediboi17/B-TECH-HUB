@@ -1,10 +1,12 @@
 {
   "name": "B-TECH HUB",
   "short_name": "B-Tech Hub",
-  "start_url": "./index.html",
+  "description": "Tech • Learn • Build • Grow — Empowering people with technology skills and tools.",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#07142F",
-  "theme_color": "#07142F",
+  "background_color": "#0A1120",
+  "theme_color": "#0A1120",
+  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "logo.png",
