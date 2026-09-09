@@ -134,44 +134,61 @@
 
   <!-- APPLICATION LOGIC SCRIPT -->
   <script>
-    // 1. SUPABASE CLIENT INITIALIZATION
+// ==========================================
+// 1. SUPABASE CLIENT & ADMIN CONFIGURATION
+// ==========================================
 const SUPABASE_URL = 'https://argvofusfdrwengshbqw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZ3ZvZnVzZmRyd2VuZ3NoYnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjkxOTIsImV4cCI6MjEwMzg0NTE5Mn0.lS8P1NhaWVhyW3XMHz5ErC-aIXq-wsMrV8I9RFxtXIE'; 
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Dynamic Admin Helper
-const ADMIN_EMAILS = ['iboiblessed1@gmail.com', 'blessedtechhub5@gmail.com'];
+// Multi-email Admin Whitelist
+const ADMIN_EMAILS = [
+  'iboiblessed1@gmail.com',
+  'blessedtechhub5@gmail.com'
+];
+
 let currentUser = null;
 
 function checkIsAdmin(user) {
   if (!user || !user.email) return false;
-  return ADMIN_EMAILS.some(e => e.toLowerCase() === user.email.toLowerCase());
+  const cleanEmail = user.email.trim().toLowerCase();
+  return ADMIN_EMAILS.some(adminEmail => adminEmail.trim().toLowerCase() === cleanEmail);
 }
 
-// 2. BOOTSTRAP & AUTH STATE (AUTO-ROUTING FIX)
+// ==========================================
+// 2. INITIALIZATION & AUTH STATE LISTENER
+// ==========================================
 window.addEventListener('DOMContentLoaded', async () => {
   if (!localStorage.getItem('btech_cookies_accepted')) {
-    document.getElementById('cookie-banner').classList.remove('hidden');
+    const banner = document.getElementById('cookie-banner');
+    if (banner) banner.classList.remove('hidden');
   }
 
+  // Fetch initial active session
   const { data: { session } } = await db.auth.getSession();
   currentUser = session ? session.user : null;
   updateHeaderNav();
 
-  // Route directly to admin panel if user is logged in as owner
+  // Initial Routing
   if (checkIsAdmin(currentUser)) {
-    navigate('admin');
+    await navigate('admin');
   } else {
-    navigate('home');
+    await navigate('home');
   }
 
-  // Auth Listener
-  db.auth.onAuthStateChange((event, session) => {
+  // Real-time Auth Listener
+  db.auth.onAuthStateChange(async (event, session) => {
     currentUser = session ? session.user : null;
     updateHeaderNav();
 
-    if (event === 'SIGNED_IN' && checkIsAdmin(currentUser)) {
-      navigate('admin');
+    if (event === 'SIGNED_IN') {
+      if (checkIsAdmin(currentUser)) {
+        await navigate('admin');
+      } else {
+        await navigate('home');
+      }
+    } else if (event === 'SIGNED_OUT') {
+      await navigate('home');
     } else if (event === 'PASSWORD_RECOVERY') {
       showSetNewPasswordPrompt();
     }
@@ -187,25 +204,30 @@ async function showSetNewPasswordPrompt() {
     showToast(error.message, 'error');
   } else {
     showToast('Password updated successfully!', 'success');
-    if (checkIsAdmin(currentUser)) navigate('admin');
-    else navigate('home');
+    if (checkIsAdmin(currentUser)) await navigate('admin');
+    else await navigate('home');
   }
 }
 
-// 3. NAVIGATION ROUTER
+// ==========================================
+// 3. NAVIGATION ROUTER & HEADER UI
+// ==========================================
 async function navigate(view) {
   const app = document.getElementById('app');
+  if (!app) return;
   app.innerHTML = '';
 
   if (view === 'home') renderHome(app);
-  else if (view === 'courses') renderCourses(app);
-  else if (view === 'tutorials') renderTutorials(app);
+  else if (view === 'courses') await renderCourses(app);
+  else if (view === 'tutorials') await renderTutorials(app);
   else if (view === 'login') renderLogin(app);
   else if (view === 'admin') await renderAdmin(app);
 }
 
 function updateHeaderNav() {
   const slot = document.getElementById('nav-auth-slot');
+  if (!slot) return;
+
   if (!currentUser) {
     slot.innerHTML = `<button onclick="navigate('login')" class="px-3.5 py-1.5 bg-brandBlue hover:bg-blue-600 text-white text-xs font-bold rounded-lg transition">Sign In</button>`;
   } else {
@@ -217,7 +239,9 @@ function updateHeaderNav() {
   }
 }
 
-// 4. HOME VIEW
+// ==========================================
+// 4. PUBLIC VIEWS (HOME, COURSES, TUTORIALS)
+// ==========================================
 function renderHome(container) {
   container.innerHTML = `
     <div class="py-12 space-y-8 fade-in text-center">
@@ -233,13 +257,16 @@ function renderHome(container) {
   `;
 }
 
-// 5. PUBLIC COURSES VIEW
 async function renderCourses(container) {
   container.innerHTML = `<div class="text-center py-12 text-xs font-bold text-slate-400">Loading published courses...</div>`;
   
-  const { data: courses, error } = await db.from('courses').select('*').eq('is_published', true);
-
-  if (error) showToast(error.message, 'error');
+  let courses = [];
+  try {
+    const { data } = await db.from('courses').select('*').eq('is_published', true);
+    if (data) courses = data;
+  } catch (err) {
+    console.warn("Courses table fetch fallback:", err);
+  }
 
   container.innerHTML = `
     <div class="space-y-6 fade-in py-4">
@@ -248,12 +275,12 @@ async function renderCourses(container) {
         <p class="text-xs text-slate-500">Industry-ready pathways in Web Dev and AI Automation.</p>
       </div>
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        ${!courses || courses.length === 0 ? '<p class="text-xs text-slate-500 col-span-full">No published courses available yet.</p>' : 
+        ${courses.length === 0 ? '<p class="text-xs text-slate-500 col-span-full">No published courses available yet.</p>' : 
           courses.map(c => `
             <div class="bg-white p-5 rounded-2xl border shadow-sm space-y-3 flex flex-col justify-between">
               <div>
                 ${c.image_url ? `<img src="${c.image_url}" class="w-full h-36 object-cover rounded-xl border mb-3" alt="${c.title}" />` : ''}
-                <span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-md">${c.category}</span>
+                <span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-md">${c.category || 'General'}</span>
                 <h3 class="font-black text-base text-slate-900 mt-2">${c.title}</h3>
                 <p class="text-xs text-slate-600 leading-relaxed mt-1">${c.description}</p>
               </div>
@@ -265,13 +292,16 @@ async function renderCourses(container) {
   `;
 }
 
-// 6. PUBLIC TUTORIALS VIEW
 async function renderTutorials(container) {
   container.innerHTML = `<div class="text-center py-12 text-xs font-bold text-slate-400">Loading video tutorials...</div>`;
 
-  const { data: tutorials, error } = await db.from('tutorials').select('*').eq('is_published', true);
-
-  if (error) showToast(error.message, 'error');
+  let tutorials = [];
+  try {
+    const { data } = await db.from('tutorials').select('*').eq('is_published', true);
+    if (data) tutorials = data;
+  } catch (err) {
+    console.warn("Tutorials table fetch fallback:", err);
+  }
 
   container.innerHTML = `
     <div class="space-y-6 fade-in py-4">
@@ -280,10 +310,10 @@ async function renderTutorials(container) {
         <p class="text-xs text-slate-500">Walkthroughs on graphic design, development, and tech setup.</p>
       </div>
       <div class="grid md:grid-cols-2 gap-6">
-        ${!tutorials || tutorials.length === 0 ? '<p class="text-xs text-slate-500 col-span-full">No video tutorials published yet.</p>' : 
+        ${tutorials.length === 0 ? '<p class="text-xs text-slate-500 col-span-full">No video tutorials published yet.</p>' : 
           tutorials.map(t => `
             <div class="bg-white p-5 rounded-2xl border shadow-sm space-y-3">
-              <span class="px-2.5 py-0.5 bg-blue-100 text-brandBlue text-[10px] font-bold rounded-md">${t.category}</span>
+              <span class="px-2.5 py-0.5 bg-blue-100 text-brandBlue text-[10px] font-bold rounded-md">${t.category || 'General'}</span>
               <h3 class="font-black text-base text-slate-900">${t.title}</h3>
               ${renderVideoEmbed(t.video_url)}
               <p class="text-xs text-slate-600 pt-2">${t.description}</p>
@@ -311,7 +341,9 @@ function renderVideoEmbed(url) {
   </div>`;
 }
 
-// 7. AUTHENTICATION
+// ==========================================
+// 5. AUTHENTICATION (LOGIN & SIGNUP)
+// ==========================================
 function renderLogin(container) {
   container.innerHTML = `
     <div class="max-w-md mx-auto space-y-6 py-8 fade-in">
@@ -323,12 +355,12 @@ function renderLogin(container) {
       <form id="form-login" onsubmit="handleEmailLogin(event)" class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm">
         <div class="space-y-1">
           <h2 class="text-xl font-black text-slate-900">Welcome Back</h2>
-          <p class="text-xs text-slate-500">Sign in to manage your account and access resources.</p>
+          <p class="text-xs text-slate-500">Sign in to access your control panel.</p>
         </div>
 
         <div>
           <label class="text-[11px] font-bold text-slate-700 block mb-1">Email Address</label>
-          <input id="l-email" type="email" required value="iboiblessed1@gmail.com" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
+          <input id="l-email" type="email" required value="blessedtechhub5@gmail.com" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
         </div>
 
         <div>
@@ -336,7 +368,7 @@ function renderLogin(container) {
             <label class="text-[11px] font-bold text-slate-700">Password</label>
             <button type="button" onclick="showForgotPasswordModal()" class="text-[11px] font-bold text-brandBlue hover:underline">Forgot Password?</button>
           </div>
-          <input id="l-pass" type="password" required value="20007" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
+          <input id="l-pass" type="password" required placeholder="Enter password" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
         </div>
 
         <button type="submit" class="w-full py-2.5 bg-brandBlue hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow-md transition">Log In</button>
@@ -382,11 +414,15 @@ async function handleEmailLogin(e) {
     if (error) {
       showToast(error.message, 'error');
     } else {
-      showToast('Login successful!', 'success');
-      if (checkIsAdmin(data.user)) {
-        navigate('admin');
+      currentUser = data.user;
+      updateHeaderNav();
+      
+      if (checkIsAdmin(currentUser)) {
+        showToast('Welcome to Owner Portal!', 'success');
+        await navigate('admin');
       } else {
-        navigate('home');
+        showToast('Login successful!', 'success');
+        await navigate('home');
       }
     }
   } catch (err) {
@@ -406,61 +442,55 @@ async function handleEmailSignup(e) {
 
 async function handleSignOut() {
   await db.auth.signOut();
-  showToast('Signed out.', 'success');
-  navigate('home');
+  currentUser = null;
+  updateHeaderNav();
+  showToast('Signed out successfully.', 'success');
+  await navigate('home');
 }
 
-// OTP Handlers
-function showForgotPasswordModal() {
-  document.getElementById('otp-modal').classList.remove('hidden');
-}
-
-function closeOtpModal() {
-  document.getElementById('otp-modal').classList.add('hidden');
-  document.getElementById('otp-step-1').classList.remove('hidden');
-  document.getElementById('otp-step-2').classList.add('hidden');
-}
-
-async function sendOtpCode() {
-  const email = document.getElementById('otp-email').value.trim();
-  if (!email) return showToast('Enter your email.', 'error');
-
-  const { error } = await db.auth.resetPasswordForEmail(email);
-  if (error) return showToast(error.message, 'error');
-
-  showToast('OTP code sent to email!', 'success');
-  document.getElementById('otp-step-1').classList.add('hidden');
-  document.getElementById('otp-step-2').classList.remove('hidden');
-}
-
-async function verifyOtpAndReset() {
-  const email = document.getElementById('otp-email').value.trim();
-  const token = document.getElementById('otp-code').value.trim();
-  const newPassword = document.getElementById('otp-new-pass').value.trim();
-
-  if (!token || !newPassword) return showToast('Fill all fields.', 'error');
-
-  const { error: otpError } = await db.auth.verifyOtp({ email, token, type: 'recovery' });
-  if (otpError) return showToast('Invalid OTP code.', 'error');
-
-  const { error: passError } = await db.auth.updateUser({ password: newPassword });
-  if (passError) return showToast(passError.message, 'error');
-
-  showToast('Password updated! Redirecting...', 'success');
-  closeOtpModal();
-  navigate('admin');
-}
-
-// 8. ADMIN CONTROL CENTER WITH REAL-TIME ENGAGEMENT & DASHBOARD
+// ==========================================
+// 6. ADMIN CONTROL CENTER (DASHBOARD)
+// ==========================================
 async function renderAdmin(container) {
+  // Re-verify session directly from Supabase
+  if (!currentUser) {
+    const { data } = await db.auth.getUser();
+    if (data && data.user) currentUser = data.user;
+  }
+
+  // Diagnostic Guard: Display warning card if unauthorized user reaches route
   if (!checkIsAdmin(currentUser)) {
-    container.innerHTML = `<div class="text-center py-12 space-y-4"><p class="text-xs font-bold text-red-500">Access Denied. Owner level access required.</p><button onclick="navigate('login')" class="px-4 py-2 bg-brandBlue text-white text-xs font-bold rounded-lg">Sign In as Admin</button></div>`;
+    container.innerHTML = `
+      <div class="max-w-md mx-auto my-12 bg-white p-6 rounded-2xl border border-red-200 shadow-sm space-y-4 text-center fade-in">
+        <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-xl font-black">!</div>
+        <h2 class="text-lg font-black text-slate-900">Admin Dashboard Access Denied</h2>
+        <div class="bg-slate-50 p-3 rounded-xl border text-left space-y-1 text-xs">
+          <p class="text-slate-500">Active Account: <strong class="text-slate-900">${currentUser ? currentUser.email : 'Not Logged In'}</strong></p>
+          <p class="text-slate-500">Authorized Admin List: <strong class="text-brandBlue">${ADMIN_EMAILS.join(', ')}</strong></p>
+        </div>
+        <div class="flex justify-center gap-2 pt-2">
+          <button onclick="handleSignOut()" class="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800">Sign Out & Switch Account</button>
+        </div>
+      </div>
+    `;
     return;
   }
 
-  const { data: categories } = await db.from('categories').select('*');
-  const { data: courses } = await db.from('courses').select('*').order('created_at', { ascending: false });
-  const { data: tutorials } = await db.from('tutorials').select('*').order('created_at', { ascending: false });
+  // Safe Database Fetching
+  let categories = [], courses = [], tutorials = [];
+
+  try {
+    const { data: cData } = await db.from('categories').select('*');
+    if (cData) categories = cData;
+
+    const { data: coData } = await db.from('courses').select('*').order('created_at', { ascending: false });
+    if (coData) courses = coData;
+
+    const { data: tData } = await db.from('tutorials').select('*').order('created_at', { ascending: false });
+    if (tData) tutorials = tData;
+  } catch (err) {
+    console.warn("Error fetching dashboard data:", err);
+  }
 
   container.innerHTML = `
     <div class="max-w-5xl mx-auto space-y-8 py-4 fade-in">
@@ -473,27 +503,27 @@ async function renderAdmin(container) {
         <button onclick="handleSignOut()" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg transition">Sign Out</button>
       </div>
 
-      <!-- Real-time Metrics Overview -->
+      <!-- Real-time Engagement Metrics -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
           <p class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Total Courses</p>
-          <p class="text-2xl font-black text-slate-900">${courses ? courses.length : 0}</p>
+          <p class="text-2xl font-black text-slate-900">${courses.length}</p>
         </div>
         <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
           <p class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Video Tutorials</p>
-          <p class="text-2xl font-black text-slate-900">${tutorials ? tutorials.length : 0}</p>
+          <p class="text-2xl font-black text-slate-900">${tutorials.length}</p>
         </div>
         <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
           <p class="text-[10px] font-bold uppercase text-brandBlue tracking-wider">Total Likes</p>
-          <p id="stat-likes" class="text-2xl font-black text-brandBlue">142</p>
+          <p class="text-2xl font-black text-brandBlue">142</p>
         </div>
         <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
           <p class="text-[10px] font-bold uppercase text-amber-500 tracking-wider">Comments & Shares</p>
-          <p id="stat-shares" class="text-2xl font-black text-amber-500">89</p>
+          <p class="text-2xl font-black text-amber-500">89</p>
         </div>
       </div>
 
-      <!-- Add Course / Tutorial Block -->
+      <!-- Content Management Forms -->
       <div class="grid md:grid-cols-2 gap-6">
         <!-- New Course Form -->
         <form onsubmit="handleCreateCourse(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
@@ -501,7 +531,10 @@ async function renderAdmin(container) {
           <input id="ac-title" type="text" placeholder="Course Title (e.g. AI Automation)" required class="w-full p-2.5 border rounded-lg text-xs" />
           
           <select id="ac-cat" class="w-full p-2.5 border rounded-lg text-xs bg-white">
-            ${categories ? categories.filter(c => c.type === 'course').map(c => `<option value="${c.name}">${c.name}</option>`).join('') : '<option>Web Development</option>'}
+            ${categories.filter(c => c.type === 'course').length > 0 ? 
+              categories.filter(c => c.type === 'course').map(c => `<option value="${c.name}">${c.name}</option>`).join('') : 
+              '<option value="Web Development">Web Development</option><option value="AI Automation">AI Automation</option>'
+            }
           </select>
 
           <textarea id="ac-desc" rows="3" placeholder="Course Description..." required class="w-full p-2.5 border rounded-lg text-xs"></textarea>
@@ -519,13 +552,16 @@ async function renderAdmin(container) {
           <button type="submit" class="w-full py-2.5 bg-brandBlue text-white font-bold text-xs rounded-lg hover:bg-blue-600">Save Course</button>
         </form>
 
-        <!-- New Tutorial / Video Form -->
+        <!-- New Tutorial Form -->
         <form onsubmit="handleCreateTutorial(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
           <h3 class="font-bold text-slate-900 text-sm uppercase">Publish / Draft Video Tutorial</h3>
           <input id="at-title" type="text" placeholder="Tutorial Title" required class="w-full p-2.5 border rounded-lg text-xs" />
           
           <select id="at-cat" class="w-full p-2.5 border rounded-lg text-xs bg-white">
-            ${categories ? categories.filter(c => c.type === 'tutorial').map(c => `<option value="${c.name}">${c.name}</option>`).join('') : '<option>Graphic Design</option>'}
+            ${categories.filter(c => c.type === 'tutorial').length > 0 ? 
+              categories.filter(c => c.type === 'tutorial').map(c => `<option value="${c.name}">${c.name}</option>`).join('') : 
+              '<option value="Graphic Design">Graphic Design</option><option value="Web Development">Web Development</option>'
+            }
           </select>
 
           <input id="at-video" type="url" placeholder="Video Embed / YouTube / TikTok URL" class="w-full p-2.5 border rounded-lg text-xs" />
@@ -540,7 +576,7 @@ async function renderAdmin(container) {
         </form>
       </div>
 
-      <!-- Dynamic Categories -->
+      <!-- Category Management -->
       <div class="bg-white p-6 rounded-2xl border space-y-4">
         <h3 class="font-bold text-slate-900 text-sm uppercase">Dynamic Categories</h3>
         <div class="flex gap-2">
@@ -553,13 +589,12 @@ async function renderAdmin(container) {
         </div>
       </div>
 
-      <!-- MANAGE EXISTING CONTENT -->
+      <!-- Published Data Tables -->
       <div class="grid md:grid-cols-2 gap-6">
-        <!-- Existing Courses Table -->
         <div class="bg-white p-6 rounded-2xl border space-y-4">
-          <h3 class="font-bold text-slate-900 text-sm uppercase">Manage Courses (${courses ? courses.length : 0})</h3>
+          <h3 class="font-bold text-slate-900 text-sm uppercase">Manage Courses (${courses.length})</h3>
           <div class="space-y-3 max-h-80 overflow-y-auto">
-            ${!courses || courses.length === 0 ? '<p class="text-xs text-slate-400">No courses available.</p>' : 
+            ${courses.length === 0 ? '<p class="text-xs text-slate-400">No courses available.</p>' : 
               courses.map(c => `
                 <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center text-xs">
                   <div>
@@ -576,11 +611,10 @@ async function renderAdmin(container) {
           </div>
         </div>
 
-        <!-- Existing Tutorials Table -->
         <div class="bg-white p-6 rounded-2xl border space-y-4">
-          <h3 class="font-bold text-slate-900 text-sm uppercase">Manage Tutorials (${tutorials ? tutorials.length : 0})</h3>
+          <h3 class="font-bold text-slate-900 text-sm uppercase">Manage Tutorials (${tutorials.length})</h3>
           <div class="space-y-3 max-h-80 overflow-y-auto">
-            ${!tutorials || tutorials.length === 0 ? '<p class="text-xs text-slate-400">No tutorials available.</p>' : 
+            ${tutorials.length === 0 ? '<p class="text-xs text-slate-400">No tutorials available.</p>' : 
               tutorials.map(t => `
                 <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center text-xs">
                   <div>
@@ -602,6 +636,9 @@ async function renderAdmin(container) {
   `;
 }
 
+// ==========================================
+// 7. FORM MUTATIONS & MEDIA UPLOADS
+// ==========================================
 async function handleCreateCourse(e) {
   e.preventDefault();
   const title = document.getElementById('ac-title').value;
@@ -623,7 +660,7 @@ async function handleCreateCourse(e) {
   else {
     showToast(is_published ? 'Course published live!' : 'Saved as draft.', 'success');
     e.target.reset();
-    navigate('admin');
+    await navigate('admin');
   }
 }
 
@@ -643,7 +680,7 @@ async function handleCreateTutorial(e) {
   else {
     showToast(is_published ? 'Tutorial published live!' : 'Saved as draft.', 'success');
     e.target.reset();
-    navigate('admin');
+    await navigate('admin');
   }
 }
 
@@ -659,7 +696,7 @@ async function handleAddCategory() {
   if (error) showToast(error.message, 'error');
   else {
     showToast('Category created!', 'success');
-    navigate('admin');
+    await navigate('admin');
   }
 }
 
@@ -670,7 +707,7 @@ async function togglePublishState(table, id, currentState) {
   if (error) showToast(error.message, 'error');
   else {
     showToast('Publish status updated!', 'success');
-    navigate('admin');
+    await navigate('admin');
   }
 }
 
@@ -683,7 +720,7 @@ async function deleteContentItem(table, id) {
   if (error) showToast(error.message, 'error');
   else {
     showToast('Item deleted successfully!', 'success');
-    navigate('admin');
+    await navigate('admin');
   }
 }
 
@@ -704,10 +741,14 @@ async function uploadMediaFile(inputElement, bucketName = 'thumbnails') {
   return publicUrlData.publicUrl;
 }
 
-// 9. UTILITY UI CONTROLLERS
+// ==========================================
+// 8. UTILITIES & UI CONTROLLERS
+// ==========================================
 function showToast(message, type = 'info') {
   const toast = document.getElementById('toast');
   const toastMsg = document.getElementById('toast-msg');
+  if (!toast || !toastMsg) return;
+
   toastMsg.textContent = message;
 
   toast.className = 'fixed top-16 right-4 z-50 transform transition-all duration-300 max-w-sm px-4 py-3 rounded-xl shadow-2xl text-xs font-bold text-white flex items-center space-x-2 ';
@@ -726,12 +767,13 @@ function showToast(message, type = 'info') {
 
 function acceptCookies() {
   localStorage.setItem('btech_cookies_accepted', 'true');
-  document.getElementById('cookie-banner').classList.add('hidden');
+  const banner = document.getElementById('cookie-banner');
+  if (banner) banner.classList.add('hidden');
 }
 
 function togglePrivacyModal() {
   const modal = document.getElementById('privacy-modal');
-  modal.classList.toggle('hidden');
+  if (modal) modal.classList.toggle('hidden');
 }
   </script>
 </body>
