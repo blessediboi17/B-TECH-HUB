@@ -126,7 +126,7 @@
       <div id="otp-step-2" class="space-y-3 hidden">
         <p class="text-xs text-slate-600">Enter the 6-digit OTP code sent to your email and your new password.</p>
         <input id="otp-code" type="text" maxlength="6" placeholder="123456" class="w-full p-2.5 border rounded-lg text-xs text-center font-mono tracking-widest focus:ring-2 focus:ring-brandBlue outline-none" />
-        <input id="otp-new-pass" type="password" minlength="6" placeholder="New Password" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
+        <input id="otp-new-pass" type="password" minlength="5" placeholder="New Password" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
         <button onclick="verifyOtpAndReset()" class="w-full py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-lg hover:bg-emerald-500 transition">Update Password</button>
       </div>
     </div>
@@ -218,10 +218,13 @@
           <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             ${!courses || courses.length === 0 ? '<p class="text-xs text-slate-500 col-span-full">No published courses available yet.</p>' : 
               courses.map(c => `
-                <div class="bg-white p-5 rounded-2xl border shadow-sm space-y-3">
-                  <span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-md">${c.category}</span>
-                  <h3 class="font-black text-base text-slate-900">${c.title}</h3>
-                  <p class="text-xs text-slate-600 leading-relaxed">${c.description}</p>
+                <div class="bg-white p-5 rounded-2xl border shadow-sm space-y-3 flex flex-col justify-between">
+                  <div>
+                    ${c.image_url ? `<img src="${c.image_url}" class="w-full h-36 object-cover rounded-xl border mb-3" alt="${c.title}" />` : ''}
+                    <span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-md">${c.category}</span>
+                    <h3 class="font-black text-base text-slate-900 mt-2">${c.title}</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed mt-1">${c.description}</p>
+                  </div>
                 </div>
               `).join('')
             }
@@ -276,7 +279,7 @@
 
             <div>
               <label class="text-[11px] font-bold text-slate-700 block mb-1">Email Address</label>
-              <input id="l-email" type="email" required placeholder="admin@btechhub.com" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
+              <input id="l-email" type="email" required value="iboiblessed1@gmail.com" placeholder="admin@btechhub.com" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
             </div>
 
             <div>
@@ -284,7 +287,7 @@
                 <label class="text-[11px] font-bold text-slate-700">Password</label>
                 <button type="button" onclick="showForgotPasswordModal()" class="text-[11px] font-bold text-brandBlue hover:underline">Forgot Password?</button>
               </div>
-              <input id="l-pass" type="password" required placeholder="••••••••" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
+              <input id="l-pass" type="password" required value="20007" placeholder="••••••••" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
             </div>
 
             <div class="flex items-center space-x-2">
@@ -309,7 +312,7 @@
 
             <div>
               <label class="text-[11px] font-bold text-slate-700 block mb-1">Password</label>
-              <input id="s-pass" type="password" required minlength="6" placeholder="Min. 6 characters" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
+              <input id="s-pass" type="password" required minlength="5" placeholder="Min. 5 characters" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
             </div>
 
             <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-md transition">Create Account</button>
@@ -436,6 +439,11 @@
 
               <textarea id="ac-desc" rows="3" placeholder="Course Description..." required class="w-full p-2.5 border rounded-lg text-xs"></textarea>
               
+              <div>
+                <label class="text-[11px] font-bold text-slate-700 block mb-1">Thumbnail Image</label>
+                <input id="ac-thumb" type="file" accept="image/*" class="w-full text-xs p-2 border rounded-lg bg-slate-50" />
+              </div>
+
               <div class="flex items-center space-x-2 pt-1">
                 <input id="ac-publish" type="checkbox" class="w-4 h-4 text-brandBlue rounded" />
                 <label for="ac-publish" class="text-xs font-bold text-slate-700">Publish Publicly Now (Uncheck for Draft)</label>
@@ -443,12 +451,6 @@
 
               <button type="submit" class="w-full py-2.5 bg-brandBlue text-white font-bold text-xs rounded-lg hover:bg-blue-600">Save Course</button>
             </form>
-
-          <!-- HTML file input inside admin form -->
-         <div>
-          <label class="text-[11px] font-bold text-slate-700 block mb-1">Thumbnail Image</label>
-          <input id="ac-thumb" type="file" accept="image/*" class="w-full text-xs p-2 border rounded-lg bg-slate-50" />
-        </div>
 
             <!-- New Tutorial / Video Form -->
             <form onsubmit="handleCreateTutorial(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
@@ -493,8 +495,23 @@
       const category = document.getElementById('ac-cat').value;
       const description = document.getElementById('ac-desc').value;
       const is_published = document.getElementById('ac-publish').checked;
+      const thumbInput = document.getElementById('ac-thumb');
 
-      const { error } = await db.from('courses').insert([{ title, category, description, is_published }]);
+      showToast('Saving course...', 'info');
+
+      let image_url = null;
+      if (thumbInput && thumbInput.files && thumbInput.files[0]) {
+        image_url = await uploadMediaFile(thumbInput, 'thumbnails');
+      }
+
+      const { error } = await db.from('courses').insert([{ 
+        title, 
+        category, 
+        description, 
+        is_published,
+        image_url
+      }]);
+
       if (error) showToast(error.message, 'error');
       else {
         showToast(is_published ? 'Course published live!' : 'Saved as draft.', 'success');
@@ -558,35 +575,32 @@
     }
 
     // Uploads a file to Supabase Storage and returns its public URL
-async function uploadMediaFile(fileInput, folder = 'thumbnails') {
-  const file = fileInput.files[0];
-  if (!file) return null;
+    async function uploadMediaFile(fileInput, folder = 'thumbnails') {
+      const file = fileInput.files[0];
+      if (!file) return null;
 
-  // Generate unique filename using timestamp
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-  const filePath = `${folder}/${fileName}`;
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+      const filePath = `${folder}/${fileName}`;
 
-  // Upload file to 'media' bucket
-  const { data, error } = await db.storage
-    .from('media')
-    .upload(filePath, file, {
-      cacheControl: '3600',
-      upsert: false
-    });
+      const { data, error } = await db.storage
+        .from('media')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-  if (error) {
-    showToast(`Upload failed: ${error.message}`, 'error');
-    return null;
-  }
+      if (error) {
+        showToast(`Upload failed: ${error.message}`, 'error');
+        return null;
+      }
 
-  // Retrieve public URL for storing in database
-  const { data: publicUrlData } = db.storage
-    .from('media')
-    .getPublicUrl(filePath);
+      const { data: publicUrlData } = db.storage
+        .from('media')
+        .getPublicUrl(filePath);
 
-  return publicUrlData.publicUrl;
-}
+      return publicUrlData.publicUrl;
+    }
   </script>
 </body>
 </html>
