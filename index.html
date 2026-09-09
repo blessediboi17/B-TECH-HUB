@@ -550,6 +550,37 @@
       localStorage.setItem('btech_cookies_accepted', 'true');
       document.getElementById('cookie-banner').classList.add('hidden');
     }
+
+    // Uploads a file to Supabase Storage and returns its public URL
+async function uploadMediaFile(fileInput, folder = 'thumbnails') {
+  const file = fileInput.files[0];
+  if (!file) return null;
+
+  // Generate unique filename using timestamp
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+  const filePath = `${folder}/${fileName}`;
+
+  // Upload file to 'media' bucket
+  const { data, error } = await db.storage
+    .from('media')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: false
+    });
+
+  if (error) {
+    showToast(`Upload failed: ${error.message}`, 'error');
+    return null;
+  }
+
+  // Retrieve public URL for storing in database
+  const { data: publicUrlData } = db.storage
+    .from('media')
+    .getPublicUrl(filePath);
+
+  return publicUrlData.publicUrl;
+}
   </script>
 </body>
 </html>
