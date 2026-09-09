@@ -371,26 +371,28 @@
     }
 
     async function handleEmailLogin(e) {
-      e.preventDefault();
-      const email = document.getElementById('l-email').value.trim();
-      const password = document.getElementById('l-pass').value.trim();
-      const rememberMe = document.getElementById('l-remember').checked;
+  e.preventDefault();
+  const email = document.getElementById('l-email').value.trim();
+  const password = document.getElementById('l-pass').value.trim();
 
-      if (!rememberMe) {
-        db.auth.configure({ storage: window.sessionStorage });
-      } else {
-        db.auth.configure({ storage: window.localStorage });
-      }
+  showToast('Signing in...', 'info');
 
-      const { data, error } = await db.auth.signInWithPassword({ email, password });
-      if (error) {
-        showToast(error.message, 'error');
+  try {
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    if (error) {
+      showToast(error.message, 'error');
+    } else {
+      showToast('Login successful!', 'success');
+      if (ADMIN_EMAILS.includes(data.user.email)) {
+        navigate('admin');
       } else {
-        showToast('Login successful!', 'success');
-        if (ADMIN_EMAILS.includes(data.user.email)) navigate('admin');
-        else navigate('home');
+        navigate('home');
       }
     }
+  } catch (err) {
+    showToast(err.message || 'An unexpected error occurred', 'error');
+  }
+}
 
     async function handleEmailSignup(e) {
       e.preventDefault();
