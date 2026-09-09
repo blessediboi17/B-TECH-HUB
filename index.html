@@ -134,7 +134,7 @@
 
   <!-- APPLICATION LOGIC SCRIPT -->
   <script>
-  // ==========================================
+    // ==========================================
 // 1. SUPABASE CLIENT & ADMIN CONFIGURATION
 // ==========================================
 const SUPABASE_URL = 'https://argvofusfdrwengshbqw.supabase.co';
@@ -147,12 +147,7 @@ const ADMIN_EMAILS = [
 ];
 
 let currentUser = null;
-
-// Local store for interactive likes & comments session state
-const socialState = {
-  likes: {},
-  comments: {}
-};
+let currentView = 'home';
 
 function checkIsAdmin(user) {
   if (!user || !user.email) return false;
@@ -160,8 +155,19 @@ function checkIsAdmin(user) {
   return ADMIN_EMAILS.some(adminEmail => adminEmail.trim().toLowerCase() === cleanEmail);
 }
 
+// Persistent Unique Fingerprint for Non-Logged In Visitors
+function getVisitorKey() {
+  if (currentUser && currentUser.email) return currentUser.email.toLowerCase();
+  let vid = localStorage.getItem('btech_visitor_id');
+  if (!vid) {
+    vid = 'visitor_' + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
+    localStorage.setItem('btech_visitor_id', vid);
+  }
+  return vid;
+}
+
 // ==========================================
-// 2. INITIALIZATION & AUTH STATE LISTENER
+// 2. INITIALIZATION & AUTH LISTENER
 // ==========================================
 window.addEventListener('DOMContentLoaded', async () => {
   if (!localStorage.getItem('btech_cookies_accepted')) {
@@ -196,6 +202,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 // 3. NAVIGATION ROUTER & HEADER UI
 // ==========================================
 async function navigate(view) {
+  currentView = view;
   const app = document.getElementById('app');
   if (!app) return;
   app.innerHTML = '';
@@ -223,13 +230,13 @@ function updateHeaderNav() {
 }
 
 // ==========================================
-// 4. PUBLIC VIEWS WITH LIKE, COMMENT & SHARE
+// 4. PUBLIC VIEWS (COURSES & TUTORIALS)
 // ==========================================
 function renderHome(container) {
   container.innerHTML = `
     <div class="py-12 space-y-8 fade-in text-center">
       <span class="px-3 py-1 bg-blue-100 text-brandBlue text-xs font-bold rounded-full">Official Brand Hub</span>
-      <h1 class="text-3xl md:text-5xl font-black text-slate-900 leading-tight">Master Web Development, Graphic Design & AI Automation</h1>
+      <h1 class="text-3xl md:text-5xl font-black text-slate-900 leading-tight">Master Web Development, Graphic Design & Motion Graphics</h1>
       <p class="text-xs md:text-sm text-slate-600 max-w-xl mx-auto leading-relaxed">Access tutorials, structured courses, and automation utilities curated directly by Blessed Studios.</p>
       
       <div class="flex justify-center gap-4 pt-4">
@@ -243,23 +250,33 @@ function renderHome(container) {
 async function renderCourses(container) {
   container.innerHTML = `<div class="text-center py-12 text-xs font-bold text-slate-400">Loading published courses...</div>`;
   
-  let courses = [];
+  let courses = [], categories = [];
   try {
-    const { data } = await db.from('courses').select('*').eq('is_published', true);
-    if (data) courses = data;
+    const { data: cData } = await db.from('courses').select('*').eq('is_published', true).order('created_at', { ascending: false });
+    if (cData) courses = cData;
+
+    const { data: catData } = await db.from('categories').select('*');
+    if (catData) categories = catData;
   } catch (err) {
     console.warn("Courses fetch error:", err);
   }
 
+  // Fetch real social data from DB
+  const { likesMap, commentsMap } = await fetchRealSocialData('course');
+  const visitorKey = getVisitorKey();
+
   container.innerHTML = `
     <div class="space-y-6 fade-in py-4">
-      <div class="border-b pb-4">
-        <h2 class="text-2xl font-black text-slate-900">Featured Courses</h2>
-        <p class="text-xs text-slate-500">Industry-ready pathways in Web Dev and AI Automation.</p>
+      <div class="border-b pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-black text-slate-900">Featured Courses</h2>
+          <p class="text-xs text-slate-500">Explore YouTube Automation, Graphic Design, Web Dev and Motion Design.</p>
+        </div>
       </div>
+
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        ${courses.length === 0 ? '<p class="text-xs text-slate-500 col-span-full">No published courses available yet.</p>' : 
-          courses.map(c => renderCardItem(c, 'course')).join('')
+        ${courses.length === 0 ? '<p class="text-xs text-slate-500 col-span-full py-8 text-center">No published courses available yet.</p>' : 
+          courses.map(c => renderCardItem(c, 'course', likesMap[c.id] || [], commentsMap[c.id] || [], visitorKey)).join('')
         }
       </div>
     </div>
@@ -271,42 +288,67 @@ async function renderTutorials(container) {
 
   let tutorials = [];
   try {
-    const { data } = await db.from('tutorials').select('*').eq('is_published', true);
-    if (data) tutorials = data;
+    const { data: tData } = await db.from('tutorials').select('*').eq('is_published', true).order('created_at', { ascending: false });
+    if (tData) tutorials = tData;
   } catch (err) {
     console.warn("Tutorials fetch error:", err);
   }
+
+  const { likesMap, commentsMap } = await fetchRealSocialData('tutorial');
+  const visitorKey = getVisitorKey();
 
   container.innerHTML = `
     <div class="space-y-6 fade-in py-4">
       <div class="border-b pb-4">
         <h2 class="text-2xl font-black text-slate-900">Video Tutorials</h2>
-        <p class="text-xs text-slate-500">Walkthroughs on graphic design, development, and tech setup.</p>
+        <p class="text-xs text-slate-500">Step-by-step walkthroughs and design breakdowns.</p>
       </div>
       <div class="grid md:grid-cols-2 gap-6">
-        ${tutorials.length === 0 ? '<p class="text-xs text-slate-500 col-span-full">No video tutorials published yet.</p>' : 
-          tutorials.map(t => renderCardItem(t, 'tutorial')).join('')
+        ${tutorials.length === 0 ? '<p class="text-xs text-slate-500 col-span-full py-8 text-center">No video tutorials published yet.</p>' : 
+          tutorials.map(t => renderCardItem(t, 'tutorial', likesMap[t.id] || [], commentsMap[t.id] || [], visitorKey)).join('')
         }
       </div>
     </div>
   `;
 }
 
-// Unified Component Generator with Thumbnail Fallback and Social Bar
-function renderCardItem(item, type) {
-  const key = `${type}_${item.id}`;
-  const likeData = socialState.likes[key] || { count: Math.floor(Math.random() * 25) + 5, liked: false };
-  const commentsList = socialState.comments[key] || [];
+// Fetch real likes & comments from Supabase
+async function fetchRealSocialData(type) {
+  let likesMap = {}, commentsMap = {};
+  try {
+    const { data: likes } = await db.from('likes').select('*').eq('content_type', type);
+    if (likes) {
+      likes.forEach(l => {
+        if (!likesMap[l.content_id]) likesMap[l.content_id] = [];
+        likesMap[l.content_id].push(l.user_key);
+      });
+    }
 
-  // Thumbnail rendering logic
+    const { data: comments } = await db.from('comments').select('*').eq('content_type', type).order('created_at', { ascending: true });
+    if (comments) {
+      comments.forEach(c => {
+        if (!commentsMap[c.content_id]) commentsMap[c.content_id] = [];
+        commentsMap[c.content_id].push(c);
+      });
+    }
+  } catch (err) {
+    console.error("Social data fetch error:", err);
+  }
+  return { likesMap, commentsMap };
+}
+
+// Unified Public Card Component
+function renderCardItem(item, type, userLikes, comments, visitorKey) {
+  const isLiked = userLikes.includes(visitorKey);
+  const likeCount = userLikes.length;
+
   let mediaDisplay = '';
   if (type === 'tutorial' && item.video_url) {
     mediaDisplay = renderVideoEmbed(item.video_url);
   } else if (item.image_url) {
-    mediaDisplay = `<img src="${item.image_url}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&auto=format&fit=crop';" class="w-full h-44 object-cover rounded-xl border mb-3 shadow-sm" alt="${item.title}" />`;
+    mediaDisplay = `<img src="${item.image_url}" class="w-full h-44 object-cover rounded-xl border mb-3 shadow-sm" alt="${item.title}" />`;
   } else {
-    // Elegant fallback card gradient thumbnail
-    mediaDisplay = `<div class="w-full h-44 bg-gradient-to-br from-slate-800 to-brandBlue rounded-xl flex items-center justify-center text-white font-bold text-sm mb-3 shadow-sm px-4 text-center">
+    mediaDisplay = `<div class="w-full h-44 bg-gradient-to-br from-slate-900 to-brandBlue rounded-xl flex items-center justify-center text-white font-bold text-sm mb-3 shadow-sm px-4 text-center">
       ${item.title}
     </div>`;
   }
@@ -323,17 +365,17 @@ function renderCardItem(item, type) {
         <p class="text-xs text-slate-600 leading-relaxed mt-1">${item.description || ''}</p>
       </div>
 
-      <!-- INTERACTIVE SOCIAL BAR -->
+      <!-- PERSISTENT SOCIAL BAR -->
       <div class="border-t pt-3 space-y-3">
         <div class="flex items-center justify-between text-xs font-bold text-slate-600">
-          <button onclick="handleLikeToggle('${key}')" class="flex items-center space-x-1.5 hover:text-red-500 transition ${likeData.liked ? 'text-red-500' : ''}">
-            <svg class="w-4 h-4 ${likeData.liked ? 'fill-current' : 'none'}" stroke="currentColor" viewBox="0 0 24 24" fill="${likeData.liked ? 'currentColor' : 'none'}"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.684a4.5 4.5 0 00-7.682-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-            <span id="like-count-${key}">${likeData.count}</span>
+          <button onclick="handlePersistentLike('${type}', '${item.id}')" class="flex items-center space-x-1.5 hover:text-red-500 transition ${isLiked ? 'text-red-500' : ''}">
+            <svg class="w-4 h-4" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.684a4.5 4.5 0 00-7.682-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            <span>${likeCount}</span>
           </button>
 
-          <button onclick="toggleCommentDrawer('${key}')" class="flex items-center space-x-1.5 hover:text-brandBlue transition">
+          <button onclick="toggleCommentDrawer('${item.id}')" class="flex items-center space-x-1.5 hover:text-brandBlue transition">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-            <span>${commentsList.length} Comments</span>
+            <span>${comments.length} Comments</span>
           </button>
 
           <button onclick="handleShare('${item.title}')" class="flex items-center space-x-1.5 hover:text-amber-500 transition">
@@ -343,14 +385,22 @@ function renderCardItem(item, type) {
         </div>
 
         <!-- COMMENT DRAWER -->
-        <div id="drawer-${key}" class="hidden space-y-2 pt-2 bg-slate-50 p-3 rounded-xl border">
-          <div id="comments-list-${key}" class="space-y-1.5 max-h-32 overflow-y-auto text-xs">
-            ${commentsList.length === 0 ? '<p class="text-[11px] text-slate-400 italic">No comments yet. Be the first!</p>' : 
-              commentsList.map(c => `<div class="p-2 bg-white rounded border text-[11px]"><strong>${c.user}:</strong> ${c.text}</div>`).join('')
+        <div id="drawer-${item.id}" class="hidden space-y-2 pt-2 bg-slate-50 p-3 rounded-xl border">
+          <div class="space-y-1.5 max-h-36 overflow-y-auto text-xs">
+            ${comments.length === 0 ? '<p class="text-[11px] text-slate-400 italic">No comments yet. Leave a thought!</p>' : 
+              comments.map(c => `
+                <div class="p-2 bg-white rounded border text-[11px]">
+                  <div class="flex justify-between text-slate-400 text-[9px] mb-0.5">
+                    <strong>${c.user_name}</strong>
+                    <span>${new Date(c.created_at).toLocaleDateString()}</span>
+                  </div>
+                  <p class="text-slate-800">${c.comment_text}</p>
+                </div>
+              `).join('')
             }
           </div>
-          <form onsubmit="handleAddComment(event, '${key}')" class="flex gap-2 pt-1">
-            <input id="input-${key}" type="text" placeholder="Write a comment..." required class="flex-grow p-2 border rounded-lg text-xs bg-white focus:outline-none" />
+          <form onsubmit="handlePostComment(event, '${type}', '${item.id}')" class="flex gap-2 pt-1">
+            <input id="comment-input-${item.id}" type="text" placeholder="Write a comment..." required class="flex-grow p-2 border rounded-lg text-xs bg-white focus:outline-none" />
             <button type="submit" class="px-3 py-1 bg-brandBlue text-white font-bold text-xs rounded-lg hover:bg-blue-600">Post</button>
           </form>
         </div>
@@ -368,84 +418,411 @@ function renderVideoEmbed(url) {
     </div>`;
   }
   return `<div class="aspect-video bg-slate-100 rounded-xl flex items-center justify-center text-xs font-bold text-slate-400 border mb-3">
-    <a href="${url}" target="_blank" class="text-brandBlue underline">Watch External Media ↗</a>
+    <a href="${url}" target="_blank" class="text-brandBlue underline">Watch Video ↗</a>
   </div>`;
 }
 
 // ==========================================
-// 5. SOCIAL HANDLERS (LIKE, COMMENT, SHARE)
+// 5. DATABASE PERSISTENT ACTIONS
 // ==========================================
-function handleLikeToggle(key) {
-  if (!socialState.likes[key]) {
-    socialState.likes[key] = { count: 15, liked: false };
-  }
-  const item = socialState.likes[key];
-  item.liked = !item.liked;
-  item.count += item.liked ? 1 : -1;
+async function handlePersistentLike(contentType, contentId) {
+  const userKey = getVisitorKey();
 
-  showToast(item.liked ? 'Added to your likes!' : 'Removed like.', 'info');
-  
-  // Re-render active view to refresh button states
-  const activeView = checkIsAdmin(currentUser) ? 'admin' : (document.querySelector('h2')?.textContent.includes('Tutorials') ? 'tutorials' : 'courses');
-  if (activeView !== 'admin') navigate(activeView);
+  try {
+    // Check if like exists in Supabase
+    const { data: existing } = await db.from('likes')
+      .select('id')
+      .eq('content_type', contentType)
+      .eq('content_id', contentId)
+      .eq('user_key', userKey)
+      .maybeSingle();
+
+    if (existing) {
+      await db.from('likes').delete().eq('id', existing.id);
+      showToast('Like removed', 'info');
+    } else {
+      await db.from('likes').insert([{ content_type: contentType, content_id: contentId, user_key: userKey }]);
+      showToast('Liked!', 'success');
+    }
+    await navigate(currentView);
+  } catch (err) {
+    showToast('Unable to update like', 'error');
+  }
 }
 
-function toggleCommentDrawer(key) {
-  const drawer = document.getElementById(`drawer-${key}`);
+function toggleCommentDrawer(id) {
+  const drawer = document.getElementById(`drawer-${id}`);
   if (drawer) drawer.classList.toggle('hidden');
 }
 
-function handleAddComment(e, key) {
+async function handlePostComment(e, contentType, contentId) {
   e.preventDefault();
-  const input = document.getElementById(`input-${key}`);
+  const input = document.getElementById(`comment-input-${contentId}`);
   if (!input || !input.value.trim()) return;
 
-  if (!socialState.comments[key]) socialState.comments[key] = [];
+  const commentText = input.value.trim();
+  const userName = currentUser ? currentUser.email.split('@')[0] : 'Guest Visitor';
 
-  const userName = currentUser ? currentUser.email.split('@')[0] : 'Guest User';
-  socialState.comments[key].push({ user: userName, text: input.value.trim() });
+  showToast('Posting comment...', 'info');
 
-  input.value = '';
-  showToast('Comment posted!', 'success');
-  
-  const activeView = document.querySelector('h2')?.textContent.includes('Tutorials') ? 'tutorials' : 'courses';
-  navigate(activeView);
+  const { error } = await db.from('comments').insert([{
+    content_type: contentType,
+    content_id: contentId,
+    user_name: userName,
+    comment_text: commentText
+  }]);
+
+  if (error) {
+    showToast(error.message, 'error');
+  } else {
+    showToast('Comment saved!', 'success');
+    await navigate(currentView);
+  }
 }
 
 async function handleShare(title) {
-  const shareData = {
-    title: title,
-    text: `Check out "${title}" on B-Tech Hub!`,
-    url: window.location.href
-  };
-
+  const shareData = { title: title, text: `Check out "${title}" on B-Tech Hub!`, url: window.location.href };
   if (navigator.share) {
-    try {
-      await navigator.share(shareData);
-    } catch (err) {
-      console.log('Share canceled');
-    }
+    try { await navigator.share(shareData); } catch (err) {}
   } else {
     await navigator.clipboard.writeText(window.location.href);
-    showToast('Page URL copied to clipboard!', 'success');
+    showToast('URL copied to clipboard!', 'success');
   }
 }
 
 // ==========================================
-// 6. AUTHENTICATION & ADMIN CONTROLLER
+// 6. FEATURE-RICH ADMIN CONTROL CENTER
+// ==========================================
+async function renderAdmin(container) {
+  if (!checkIsAdmin(currentUser)) {
+    container.innerHTML = `<div class="p-8 text-center text-xs font-bold text-red-600">Access Denied. Admin account required.</div>`;
+    return;
+  }
+
+  // Real Database Queries
+  let courses = [], tutorials = [], categories = [], comments = [], likesCount = 0;
+
+  try {
+    const { data: coData } = await db.from('courses').select('*').order('created_at', { ascending: false });
+    if (coData) courses = coData;
+
+    const { data: tData } = await db.from('tutorials').select('*').order('created_at', { ascending: false });
+    if (tData) tutorials = tData;
+
+    const { data: catData } = await db.from('categories').select('*').order('name', { ascending: true });
+    if (catData) categories = catData;
+
+    const { data: commData } = await db.from('comments').select('*').order('created_at', { ascending: false }).limit(20);
+    if (commData) comments = commData;
+
+    const { count } = await db.from('likes').select('*', { count: 'exact', head: true });
+    likesCount = count || 0;
+  } catch (err) {
+    console.warn("Admin query error:", err);
+  }
+
+  container.innerHTML = `
+    <div class="max-w-5xl mx-auto space-y-8 py-4 fade-in">
+      <div class="bg-slate-900 text-white p-6 rounded-2xl flex justify-between items-center shadow-xl">
+        <div>
+          <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Owner Portal</span>
+          <h1 class="text-2xl font-black">B-Tech Hub Dashboard</h1>
+          <p class="text-xs text-slate-400">Authorized: <span class="text-slate-200">${currentUser.email}</span></p>
+        </div>
+        <button onclick="handleSignOut()" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg transition">Sign Out</button>
+      </div>
+
+      <!-- Real Database Stats -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
+          <p class="text-[10px] font-bold uppercase text-slate-400">Total Courses</p>
+          <p class="text-2xl font-black text-slate-900">${courses.length}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
+          <p class="text-[10px] font-bold uppercase text-slate-400">Video Tutorials</p>
+          <p class="text-2xl font-black text-slate-900">${tutorials.length}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
+          <p class="text-[10px] font-bold uppercase text-red-500">Real Likes Stored</p>
+          <p class="text-2xl font-black text-red-500">${likesCount}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
+          <p class="text-[10px] font-bold uppercase text-brandBlue">Dynamic Topics</p>
+          <p class="text-2xl font-black text-brandBlue">${categories.length}</p>
+        </div>
+      </div>
+
+      <!-- Dynamic Topic / Category Manager -->
+      <div class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm">
+        <div class="border-b pb-2">
+          <h3 class="font-bold text-slate-900 text-sm uppercase">Manage Course Topics & Categories</h3>
+          <p class="text-xs text-slate-500">Add custom topics like Graphic Design, YouTube Automation, Motion Design, etc.</p>
+        </div>
+
+        <form onsubmit="handleCreateCategory(event)" class="flex flex-col sm:flex-row gap-2">
+          <input id="new-cat-name" type="text" placeholder="e.g. YouTube Automation" required class="flex-grow p-2.5 border rounded-lg text-xs" />
+          <select id="new-cat-type" class="p-2.5 border rounded-lg text-xs bg-white">
+            <option value="course">Course Topic</option>
+            <option value="tutorial">Tutorial Topic</option>
+          </select>
+          <button type="submit" class="px-5 py-2.5 bg-brandBlue text-white font-bold text-xs rounded-lg hover:bg-blue-600 transition">+ Add Topic</button>
+        </form>
+
+        <div class="flex flex-wrap gap-2 pt-2">
+          ${categories.map(cat => `
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border text-slate-800 text-xs font-bold rounded-lg">
+              ${cat.name}
+              <button onclick="handleDeleteCategory('${cat.id}')" class="text-slate-400 hover:text-red-600 text-xs font-bold">×</button>
+            </span>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- Publish Content Forms -->
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- New Course -->
+        <form onsubmit="handleCreateCourse(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
+          <h3 class="font-bold text-slate-900 text-sm uppercase">Publish Course</h3>
+          <input id="ac-title" type="text" placeholder="Course Title" required class="w-full p-2.5 border rounded-lg text-xs" />
+          
+          <select id="ac-cat" class="w-full p-2.5 border rounded-lg text-xs bg-white">
+            ${categories.length > 0 ? 
+              categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('') :
+              '<option value="Web Development">Web Development</option><option value="YouTube Automation">YouTube Automation</option>'
+            }
+          </select>
+
+          <textarea id="ac-desc" rows="3" placeholder="Course Description..." class="w-full p-2.5 border rounded-lg text-xs"></textarea>
+          <div>
+            <label class="text-[11px] font-bold text-slate-700 block mb-1">Thumbnail Image</label>
+            <input id="ac-thumb" type="file" accept="image/*" class="w-full text-xs p-2 border rounded-lg bg-slate-50" />
+          </div>
+          <div class="flex items-center space-x-2">
+            <input id="ac-publish" type="checkbox" checked class="w-4 h-4 text-brandBlue rounded" />
+            <label for="ac-publish" class="text-xs font-bold text-slate-700">Publish Immediately</label>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-brandBlue text-white font-bold text-xs rounded-lg hover:bg-blue-600 transition">Save Course</button>
+        </form>
+
+        <!-- New Tutorial -->
+        <form onsubmit="handleCreateTutorial(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
+          <h3 class="font-bold text-slate-900 text-sm uppercase">Publish Video Tutorial</h3>
+          <input id="at-title" type="text" placeholder="Tutorial Title" required class="w-full p-2.5 border rounded-lg text-xs" />
+          
+          <select id="at-cat" class="w-full p-2.5 border rounded-lg text-xs bg-white">
+            ${categories.length > 0 ? 
+              categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('') :
+              '<option value="Graphic Design">Graphic Design</option><option value="Motion Design">Motion Design</option>'
+            }
+          </select>
+
+          <input id="at-video" type="url" placeholder="YouTube URL" class="w-full p-2.5 border rounded-lg text-xs" />
+          <textarea id="at-desc" rows="2" placeholder="Tutorial Description..." class="w-full p-2.5 border rounded-lg text-xs"></textarea>
+          <div class="flex items-center space-x-2">
+            <input id="at-publish" type="checkbox" checked class="w-4 h-4 text-brandBlue rounded" />
+            <label for="at-publish" class="text-xs font-bold text-slate-700">Publish Immediately</label>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-slate-900 text-white font-bold text-xs rounded-lg hover:bg-slate-800 transition">Save Tutorial</button>
+        </form>
+      </div>
+
+      <!-- Content Tables -->
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-2xl border space-y-4">
+          <h3 class="font-bold text-slate-900 text-sm uppercase">Manage Courses (${courses.length})</h3>
+          <div class="space-y-2 max-h-72 overflow-y-auto">
+            ${courses.length === 0 ? '<p class="text-xs text-slate-400">No courses found.</p>' : 
+              courses.map(c => `
+                <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center text-xs">
+                  <div>
+                    <p class="font-bold text-slate-900">${c.title}</p>
+                    <span class="text-[10px] text-slate-500 font-semibold">${c.category || 'General'} ● ${c.is_published ? 'Live' : 'Draft'}</span>
+                  </div>
+                  <div class="flex items-center space-x-1">
+                    <button onclick="togglePublish('courses', '${c.id}', ${c.is_published})" class="px-2 py-1 bg-slate-200 hover:bg-slate-300 text-[10px] font-bold rounded">Toggle</button>
+                    <button onclick="deleteItem('courses', '${c.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 text-[10px] font-bold rounded">Delete</button>
+                  </div>
+                </div>
+              `).join('')
+            }
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl border space-y-4">
+          <h3 class="font-bold text-slate-900 text-sm uppercase">Manage Tutorials (${tutorials.length})</h3>
+          <div class="space-y-2 max-h-72 overflow-y-auto">
+            ${tutorials.length === 0 ? '<p class="text-xs text-slate-400">No tutorials found.</p>' : 
+              tutorials.map(t => `
+                <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center text-xs">
+                  <div>
+                    <p class="font-bold text-slate-900">${t.title}</p>
+                    <span class="text-[10px] text-slate-500 font-semibold">${t.category || 'General'} ● ${t.is_published ? 'Live' : 'Draft'}</span>
+                  </div>
+                  <div class="flex items-center space-x-1">
+                    <button onclick="togglePublish('tutorials', '${t.id}', ${t.is_published})" class="px-2 py-1 bg-slate-200 hover:bg-slate-300 text-[10px] font-bold rounded">Toggle</button>
+                    <button onclick="deleteItem('tutorials', '${t.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 text-[10px] font-bold rounded">Delete</button>
+                  </div>
+                </div>
+              `).join('')
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Comment Moderation -->
+      <div class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm">
+        <h3 class="font-bold text-slate-900 text-sm uppercase">Recent Comments Moderation</h3>
+        <div class="space-y-2 max-h-60 overflow-y-auto">
+          ${comments.length === 0 ? '<p class="text-xs text-slate-400">No user comments recorded yet.</p>' : 
+            comments.map(c => `
+              <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center text-xs">
+                <div>
+                  <span class="font-bold text-slate-900">${c.user_name}:</span>
+                  <span class="text-slate-700 ml-1">${c.comment_text}</span>
+                </div>
+                <button onclick="handleDeleteComment('${c.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-[10px] rounded">Purge</button>
+              </div>
+            `).join('')
+          }
+        </div>
+      </div>
+
+    </div>
+  `;
+}
+
+// ==========================================
+// 7. ADMIN MUTATIONS (TOPICS, CONTENT, MEDIA)
+// ==========================================
+async function handleCreateCategory(e) {
+  e.preventDefault();
+  const nameInput = document.getElementById('new-cat-name');
+  const typeInput = document.getElementById('new-cat-type');
+  if (!nameInput || !nameInput.value.trim()) return;
+
+  const name = nameInput.value.trim();
+  const type = typeInput.value;
+
+  showToast('Creating topic...', 'info');
+  const { error } = await db.from('categories').insert([{ name, type }]);
+
+  if (error) showToast(error.message, 'error');
+  else {
+    showToast(`Topic "${name}" added!`, 'success');
+    await navigate('admin');
+  }
+}
+
+async function handleDeleteCategory(id) {
+  if (!confirm('Remove this topic?')) return;
+  const { error } = await db.from('categories').delete().eq('id', id);
+  if (error) showToast(error.message, 'error');
+  else {
+    showToast('Topic removed', 'success');
+    await navigate('admin');
+  }
+}
+
+async function handleCreateCourse(e) {
+  e.preventDefault();
+  const title = document.getElementById('ac-title').value.trim();
+  const category = document.getElementById('ac-cat').value;
+  const description = document.getElementById('ac-desc').value.trim();
+  const is_published = document.getElementById('ac-publish').checked;
+  const thumbInput = document.getElementById('ac-thumb');
+
+  showToast('Saving course...', 'info');
+
+  let image_url = null;
+  if (thumbInput && thumbInput.files && thumbInput.files[0]) {
+    image_url = await uploadMediaFile(thumbInput);
+  }
+
+  const { error } = await db.from('courses').insert([{ title, category, description, is_published, image_url }]);
+
+  if (error) showToast(error.message, 'error');
+  else {
+    showToast('Course published successfully!', 'success');
+    e.target.reset();
+    await navigate('admin');
+  }
+}
+
+async function handleCreateTutorial(e) {
+  e.preventDefault();
+  const title = document.getElementById('at-title').value.trim();
+  const category = document.getElementById('at-cat').value;
+  const video_url = document.getElementById('at-video').value.trim();
+  const description = document.getElementById('at-desc').value.trim();
+  const is_published = document.getElementById('at-publish').checked;
+
+  showToast('Saving tutorial...', 'info');
+
+  const { error } = await db.from('tutorials').insert([{ title, category, video_url, description, is_published }]);
+
+  if (error) showToast(error.message, 'error');
+  else {
+    showToast('Tutorial saved successfully!', 'success');
+    e.target.reset();
+    await navigate('admin');
+  }
+}
+
+async function togglePublish(table, id, currentState) {
+  const { error } = await db.from(table).update({ is_published: !currentState }).eq('id', id);
+  if (error) showToast(error.message, 'error');
+  else {
+    showToast('Status updated!', 'success');
+    await navigate('admin');
+  }
+}
+
+async function deleteItem(table, id) {
+  if (!confirm('Are you sure you want to delete this item?')) return;
+  const { error } = await db.from(table).delete().eq('id', id);
+  if (error) showToast(error.message, 'error');
+  else {
+    showToast('Item deleted!', 'success');
+    await navigate('admin');
+  }
+}
+
+async function handleDeleteComment(id) {
+  const { error } = await db.from('comments').delete().eq('id', id);
+  if (error) showToast(error.message, 'error');
+  else {
+    showToast('Comment purged!', 'success');
+    await navigate('admin');
+  }
+}
+
+async function uploadMediaFile(inputElement) {
+  const file = inputElement.files[0];
+  if (!file) return null;
+
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+
+  const { data, error } = await db.storage.from('thumbnails').upload(fileName, file);
+  if (error) {
+    showToast('Image upload failed: ' + error.message, 'error');
+    return null;
+  }
+
+  const { data: publicUrlData } = db.storage.from('thumbnails').getPublicUrl(fileName);
+  return publicUrlData.publicUrl;
+}
+
+// ==========================================
+// 8. AUTH & TOAST UTILITIES
 // ==========================================
 function renderLogin(container) {
   container.innerHTML = `
     <div class="max-w-md mx-auto space-y-6 py-8 fade-in">
-      <div class="flex border-b text-center font-bold text-xs">
-        <button id="tab-login-btn" onclick="switchAuthTab('login')" class="w-1/2 py-3 border-b-2 border-brandBlue text-brandBlue">Log In</button>
-        <button id="tab-signup-btn" onclick="switchAuthTab('signup')" class="w-1/2 py-3 text-slate-400">Create Account</button>
-      </div>
-
       <form id="form-login" onsubmit="handleEmailLogin(event)" class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm">
-        <h2 class="text-xl font-black text-slate-900">Welcome Back</h2>
+        <h2 class="text-xl font-black text-slate-900">Sign In</h2>
         <div>
-          <label class="text-[11px] font-bold text-slate-700 block mb-1">Email Address</label>
+          <label class="text-[11px] font-bold text-slate-700 block mb-1">Email</label>
           <input id="l-email" type="email" required value="blessedtechhub5@gmail.com" class="w-full p-2.5 border rounded-lg text-xs" />
         </div>
         <div>
@@ -480,129 +857,8 @@ async function handleSignOut() {
   await db.auth.signOut();
   currentUser = null;
   updateHeaderNav();
-  showToast('Signed out successfully.', 'success');
+  showToast('Signed out.', 'success');
   await navigate('home');
-}
-
-async function renderAdmin(container) {
-  if (!checkIsAdmin(currentUser)) {
-    container.innerHTML = `<div class="p-8 text-center text-xs font-bold text-red-600">Access Denied. Admin account required.</div>`;
-    return;
-  }
-
-  let courses = [], tutorials = [];
-  try {
-    const { data: coData } = await db.from('courses').select('*');
-    if (coData) courses = coData;
-    const { data: tData } = await db.from('tutorials').select('*');
-    if (tData) tutorials = tData;
-  } catch (err) {}
-
-  container.innerHTML = `
-    <div class="max-w-5xl mx-auto space-y-8 py-4 fade-in">
-      <div class="bg-slate-900 text-white p-6 rounded-2xl flex justify-between items-center shadow-xl">
-        <div>
-          <span class="text-[10px] font-bold text-amber-400 uppercase">Owner Control Center</span>
-          <h1 class="text-2xl font-black">B-Tech Hub Portal</h1>
-          <p class="text-xs text-slate-400">Logged in as: <span class="text-slate-200">${currentUser.email}</span></p>
-        </div>
-        <button onclick="handleSignOut()" class="px-3.5 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg">Sign Out</button>
-      </div>
-
-      <!-- Creation Forms -->
-      <div class="grid md:grid-cols-2 gap-6">
-        <form onsubmit="handleCreateCourse(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
-          <h3 class="font-bold text-slate-900 text-sm uppercase">Create Course</h3>
-          <input id="ac-title" type="text" placeholder="Course Title" required class="w-full p-2.5 border rounded-lg text-xs" />
-          <textarea id="ac-desc" rows="2" placeholder="Course Description" class="w-full p-2.5 border rounded-lg text-xs"></textarea>
-          <div>
-            <label class="text-[11px] font-bold block mb-1">Thumbnail Image</label>
-            <input id="ac-thumb" type="file" accept="image/*" class="w-full text-xs p-2 border rounded-lg bg-slate-50" />
-          </div>
-          <div class="flex items-center space-x-2">
-            <input id="ac-publish" type="checkbox" class="w-4 h-4 text-brandBlue rounded" />
-            <label for="ac-publish" class="text-xs font-bold">Publish Publicly Now</label>
-          </div>
-          <button type="submit" class="w-full py-2.5 bg-brandBlue text-white font-bold text-xs rounded-lg">Save Course</button>
-        </form>
-
-        <form onsubmit="handleCreateTutorial(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
-          <h3 class="font-bold text-slate-900 text-sm uppercase">Create Tutorial</h3>
-          <input id="at-title" type="text" placeholder="Tutorial Title" required class="w-full p-2.5 border rounded-lg text-xs" />
-          <input id="at-video" type="url" placeholder="YouTube Video URL" class="w-full p-2.5 border rounded-lg text-xs" />
-          <textarea id="at-desc" rows="2" placeholder="Tutorial Description" class="w-full p-2.5 border rounded-lg text-xs"></textarea>
-          <div class="flex items-center space-x-2">
-            <input id="at-publish" type="checkbox" class="w-4 h-4 text-brandBlue rounded" />
-            <label for="at-publish" class="text-xs font-bold">Publish Publicly Now</label>
-          </div>
-          <button type="submit" class="w-full py-2.5 bg-slate-900 text-white font-bold text-xs rounded-lg">Save Tutorial</button>
-        </form>
-      </div>
-    </div>
-  `;
-}
-
-// ==========================================
-// 7. MEDIA UPLOAD & UTILITIES
-// ==========================================
-async function uploadMediaFile(inputElement) {
-  const file = inputElement.files[0];
-  if (!file) return null;
-
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-
-  const { data, error } = await db.storage.from('thumbnails').upload(fileName, file);
-  if (error) {
-    showToast('Image upload failed: ' + error.message, 'error');
-    return null;
-  }
-
-  const { data: publicUrlData } = db.storage.from('thumbnails').getPublicUrl(fileName);
-  return publicUrlData.publicUrl;
-}
-
-async function handleCreateCourse(e) {
-  e.preventDefault();
-  const title = document.getElementById('ac-title').value;
-  const description = document.getElementById('ac-desc').value;
-  const is_published = document.getElementById('ac-publish').checked;
-  const thumbInput = document.getElementById('ac-thumb');
-
-  showToast('Saving course...', 'info');
-
-  let image_url = null;
-  if (thumbInput && thumbInput.files && thumbInput.files[0]) {
-    image_url = await uploadMediaFile(thumbInput);
-  }
-
-  const { error } = await db.from('courses').insert([{ title, description, is_published, image_url }]);
-
-  if (error) showToast(error.message, 'error');
-  else {
-    showToast('Course saved successfully!', 'success');
-    e.target.reset();
-    await navigate('admin');
-  }
-}
-
-async function handleCreateTutorial(e) {
-  e.preventDefault();
-  const title = document.getElementById('at-title').value;
-  const video_url = document.getElementById('at-video').value;
-  const description = document.getElementById('at-desc').value;
-  const is_published = document.getElementById('at-publish').checked;
-
-  showToast('Saving tutorial...', 'info');
-
-  const { error } = await db.from('tutorials').insert([{ title, video_url, description, is_published }]);
-
-  if (error) showToast(error.message, 'error');
-  else {
-    showToast('Tutorial saved successfully!', 'success');
-    e.target.reset();
-    await navigate('admin');
-  }
 }
 
 function showToast(message, type = 'info') {
