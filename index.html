@@ -136,8 +136,8 @@
   <script>
     // 1. SUPABASE CLIENT INITIALIZATION
     const SUPABASE_URL = 'https://argvofusfdrwengshbqw.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZ3ZvZnVzZmRyd2VuZ3NoYnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyODg5MzAsImV4cCI6MjA1Njg2NDkzMH0.placeholder'; 
-    const db = supabase.createClient(argvofusfdrwengshbqw, eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZ3ZvZnVzZmRyd2VuZ3NoYnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjkxOTIsImV4cCI6MjEwMzg0NTE5Mn0.lS8P1NhaWVhyW3XMHz5ErC-aIXq-wsMrV8I9RFxtXIE);
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZ3ZvZnVzZmRyd2VuZ3NoYnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjkxOTIsImV4cCI6MjEwMzg0NTE5Mn0.lS8P1NhaWVhyW3XMHz5ErC-aIXq-wsMrV8I9RFxtXIE'; 
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // Owner Accounts
     const ADMIN_EMAILS = ['iboiblessed1@gmail.com'];
@@ -145,12 +145,10 @@
 
     // 2. BOOTSTRAP & AUTH STATE
     window.addEventListener('DOMContentLoaded', async () => {
-      // Cookie banner check
       if (!localStorage.getItem('btech_cookies_accepted')) {
         document.getElementById('cookie-banner').classList.remove('hidden');
       }
 
-      // Check session
       const { data: { session } } = await db.auth.getSession();
       currentUser = session ? session.user : null;
       updateHeaderNav();
@@ -207,7 +205,11 @@
     async function renderCourses(container) {
       container.innerHTML = `<div class="text-center py-12 text-xs font-bold text-slate-400">Loading published courses...</div>`;
       
-      const { data: courses } = await db.from('courses').select('*').eq('is_published', true);
+      const { data: courses, error } = await db.from('courses').select('*').eq('is_published', true);
+
+      if (error) {
+        showToast(error.message, 'error');
+      }
 
       container.innerHTML = `
         <div class="space-y-6 fade-in py-4">
@@ -237,7 +239,11 @@
     async function renderTutorials(container) {
       container.innerHTML = `<div class="text-center py-12 text-xs font-bold text-slate-400">Loading video tutorials...</div>`;
 
-      const { data: tutorials } = await db.from('tutorials').select('*').eq('is_published', true);
+      const { data: tutorials, error } = await db.from('tutorials').select('*').eq('is_published', true);
+
+      if (error) {
+        showToast(error.message, 'error');
+      }
 
       container.innerHTML = `
         <div class="space-y-6 fade-in py-4">
@@ -321,7 +327,6 @@
       `;
     }
 
-    // Auth Switcher
     function switchAuthTab(tab) {
       const isLogin = tab === 'login';
       document.getElementById('form-login').classList.toggle('hidden', !isLogin);
@@ -574,7 +579,6 @@
       document.getElementById('cookie-banner').classList.add('hidden');
     }
 
-    // Uploads a file to Supabase Storage and returns its public URL
     async function uploadMediaFile(fileInput, folder = 'thumbnails') {
       const file = fileInput.files[0];
       if (!file) return null;
@@ -603,4 +607,4 @@
     }
   </script>
 </body>
-</html>
+</html> 
