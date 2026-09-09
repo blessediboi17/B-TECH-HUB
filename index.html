@@ -135,595 +135,604 @@
   <!-- APPLICATION LOGIC SCRIPT -->
   <script>
     // 1. SUPABASE CLIENT INITIALIZATION
-    const SUPABASE_URL = 'https://argvofusfdrwengshbqw.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZ3ZvZnVzZmRyd2VuZ3NoYnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjkxOTIsImV4cCI6MjEwMzg0NTE5Mn0.lS8P1NhaWVhyW3XMHz5ErC-aIXq-wsMrV8I9RFxtXIE'; 
-    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_URL = 'https://argvofusfdrwengshbqw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZ3ZvZnVzZmRyd2VuZ3NoYnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjkxOTIsImV4cCI6MjEwMzg0NTE5Mn0.lS8P1NhaWVhyW3XMHz5ErC-aIXq-wsMrV8I9RFxtXIE'; 
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Owner Accounts
-    const ADMIN_EMAILS = ['iboiblessed1@gmail.com'];
-    let currentUser = null;
+// Dynamic Admin Helper
+const ADMIN_EMAILS = ['iboiblessed1@gmail.com'];
+let currentUser = null;
 
-    // 2. BOOTSTRAP & AUTH STATE
-    window.addEventListener('DOMContentLoaded', async () => {
-      if (!localStorage.getItem('btech_cookies_accepted')) {
-        document.getElementById('cookie-banner').classList.remove('hidden');
-      }
+function checkIsAdmin(user) {
+  if (!user || !user.email) return false;
+  return ADMIN_EMAILS.some(e => e.toLowerCase() === user.email.toLowerCase());
+}
 
-      const { data: { session } } = await db.auth.getSession();
-      currentUser = session ? session.user : null;
-      updateHeaderNav();
-      navigate('home');
+// 2. BOOTSTRAP & AUTH STATE (AUTO-ROUTING FIX)
+window.addEventListener('DOMContentLoaded', async () => {
+  if (!localStorage.getItem('btech_cookies_accepted')) {
+    document.getElementById('cookie-banner').classList.remove('hidden');
+  }
 
-      // Auth Listener with Recovery Handler
-      db.auth.onAuthStateChange((event, session) => {
-        currentUser = session ? session.user : null;
-        updateHeaderNav();
+  const { data: { session } } = await db.auth.getSession();
+  currentUser = session ? session.user : null;
+  updateHeaderNav();
 
-        if (event === 'PASSWORD_RECOVERY') {
-          showSetNewPasswordPrompt();
-        }
-      });
-    });
+  // Route directly to admin panel if user is logged in as owner
+  if (checkIsAdmin(currentUser)) {
+    navigate('admin');
+  } else {
+    navigate('home');
+  }
 
-    async function showSetNewPasswordPrompt() {
-      const newPassword = prompt("Please enter your new password:");
-      if (!newPassword) return;
+  // Auth Listener
+  db.auth.onAuthStateChange((event, session) => {
+    currentUser = session ? session.user : null;
+    updateHeaderNav();
 
-      const { error } = await db.auth.updateUser({ password: newPassword });
-      if (error) {
-        showToast(error.message, 'error');
-      } else {
-        showToast('Password updated successfully!', 'success');
-        if (ADMIN_EMAILS.includes(currentUser?.email)) navigate('admin');
-        else navigate('home');
-      }
+    if (event === 'SIGNED_IN' && checkIsAdmin(currentUser)) {
+      navigate('admin');
+    } else if (event === 'PASSWORD_RECOVERY') {
+      showSetNewPasswordPrompt();
     }
+  });
+});
 
-    // 3. NAVIGATION ROUTER
-    async function navigate(view) {
-      const app = document.getElementById('app');
-      app.innerHTML = '';
+async function showSetNewPasswordPrompt() {
+  const newPassword = prompt("Please enter your new password:");
+  if (!newPassword) return;
 
-      if (view === 'home') renderHome(app);
-      else if (view === 'courses') renderCourses(app);
-      else if (view === 'tutorials') renderTutorials(app);
-      else if (view === 'login') renderLogin(app);
-      else if (view === 'admin') await renderAdmin(app);
-    }
+  const { error } = await db.auth.updateUser({ password: newPassword });
+  if (error) {
+    showToast(error.message, 'error');
+  } else {
+    showToast('Password updated successfully!', 'success');
+    if (checkIsAdmin(currentUser)) navigate('admin');
+    else navigate('home');
+  }
+}
 
-    function updateHeaderNav() {
-      const slot = document.getElementById('nav-auth-slot');
-      if (!currentUser) {
-        slot.innerHTML = `<button onclick="navigate('login')" class="px-3.5 py-1.5 bg-brandBlue hover:bg-blue-600 text-white text-xs font-bold rounded-lg transition">Sign In</button>`;
-      } else {
-        const isAdmin = ADMIN_EMAILS.includes(currentUser.email);
-        slot.innerHTML = `
-          ${isAdmin ? `<button onclick="navigate('admin')" class="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-lg transition">Admin</button>` : ''}
-          <button onclick="handleSignOut()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition">Sign Out</button>
-        `;
-      }
-    }
+// 3. NAVIGATION ROUTER
+async function navigate(view) {
+  const app = document.getElementById('app');
+  app.innerHTML = '';
 
-    // 4. HOME VIEW
-    function renderHome(container) {
-      container.innerHTML = `
-        <div class="py-12 space-y-8 fade-in text-center">
-          <span class="px-3 py-1 bg-blue-100 text-brandBlue text-xs font-bold rounded-full">Official Brand Hub</span>
-          <h1 class="text-3xl md:text-5xl font-black text-slate-900 leading-tight">Master Web Development, Graphic Design & AI Automation</h1>
-          <p class="text-xs md:text-sm text-slate-600 max-w-xl mx-auto leading-relaxed">Access tutorials, structured courses, and automation utilities curated directly by Blessed Studios.</p>
-          
-          <div class="flex justify-center gap-4 pt-4">
-            <button onclick="navigate('courses')" class="px-6 py-3 bg-brandBlue text-white font-bold text-xs rounded-xl shadow-lg hover:bg-blue-600 transition">Explore Courses</button>
-            <button onclick="navigate('tutorials')" class="px-6 py-3 bg-slate-900 text-white font-bold text-xs rounded-xl shadow-lg hover:bg-slate-800 transition">Watch Tutorials</button>
-          </div>
-        </div>
-      `;
-    }
+  if (view === 'home') renderHome(app);
+  else if (view === 'courses') renderCourses(app);
+  else if (view === 'tutorials') renderTutorials(app);
+  else if (view === 'login') renderLogin(app);
+  else if (view === 'admin') await renderAdmin(app);
+}
 
-    // 5. PUBLIC COURSES VIEW
-    async function renderCourses(container) {
-      container.innerHTML = `<div class="text-center py-12 text-xs font-bold text-slate-400">Loading published courses...</div>`;
+function updateHeaderNav() {
+  const slot = document.getElementById('nav-auth-slot');
+  if (!currentUser) {
+    slot.innerHTML = `<button onclick="navigate('login')" class="px-3.5 py-1.5 bg-brandBlue hover:bg-blue-600 text-white text-xs font-bold rounded-lg transition">Sign In</button>`;
+  } else {
+    const isAdmin = checkIsAdmin(currentUser);
+    slot.innerHTML = `
+      ${isAdmin ? `<button onclick="navigate('admin')" class="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-lg transition shadow-md">Dashboard</button>` : ''}
+      <button onclick="handleSignOut()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition">Sign Out</button>
+    `;
+  }
+}
+
+// 4. HOME VIEW
+function renderHome(container) {
+  container.innerHTML = `
+    <div class="py-12 space-y-8 fade-in text-center">
+      <span class="px-3 py-1 bg-blue-100 text-brandBlue text-xs font-bold rounded-full">Official Brand Hub</span>
+      <h1 class="text-3xl md:text-5xl font-black text-slate-900 leading-tight">Master Web Development, Graphic Design & AI Automation</h1>
+      <p class="text-xs md:text-sm text-slate-600 max-w-xl mx-auto leading-relaxed">Access tutorials, structured courses, and automation utilities curated directly by Blessed Studios.</p>
       
-      const { data: courses, error } = await db.from('courses').select('*').eq('is_published', true);
+      <div class="flex justify-center gap-4 pt-4">
+        <button onclick="navigate('courses')" class="px-6 py-3 bg-brandBlue text-white font-bold text-xs rounded-xl shadow-lg hover:bg-blue-600 transition">Explore Courses</button>
+        <button onclick="navigate('tutorials')" class="px-6 py-3 bg-slate-900 text-white font-bold text-xs rounded-xl shadow-lg hover:bg-slate-800 transition">Watch Tutorials</button>
+      </div>
+    </div>
+  `;
+}
 
-      if (error) {
-        showToast(error.message, 'error');
-      }
+// 5. PUBLIC COURSES VIEW
+async function renderCourses(container) {
+  container.innerHTML = `<div class="text-center py-12 text-xs font-bold text-slate-400">Loading published courses...</div>`;
+  
+  const { data: courses, error } = await db.from('courses').select('*').eq('is_published', true);
 
-      container.innerHTML = `
-        <div class="space-y-6 fade-in py-4">
-          <div class="border-b pb-4">
-            <h2 class="text-2xl font-black text-slate-900">Featured Courses</h2>
-            <p class="text-xs text-slate-500">Industry-ready pathways in Web Dev and AI Automation.</p>
+  if (error) showToast(error.message, 'error');
+
+  container.innerHTML = `
+    <div class="space-y-6 fade-in py-4">
+      <div class="border-b pb-4">
+        <h2 class="text-2xl font-black text-slate-900">Featured Courses</h2>
+        <p class="text-xs text-slate-500">Industry-ready pathways in Web Dev and AI Automation.</p>
+      </div>
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        ${!courses || courses.length === 0 ? '<p class="text-xs text-slate-500 col-span-full">No published courses available yet.</p>' : 
+          courses.map(c => `
+            <div class="bg-white p-5 rounded-2xl border shadow-sm space-y-3 flex flex-col justify-between">
+              <div>
+                ${c.image_url ? `<img src="${c.image_url}" class="w-full h-36 object-cover rounded-xl border mb-3" alt="${c.title}" />` : ''}
+                <span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-md">${c.category}</span>
+                <h3 class="font-black text-base text-slate-900 mt-2">${c.title}</h3>
+                <p class="text-xs text-slate-600 leading-relaxed mt-1">${c.description}</p>
+              </div>
+            </div>
+          `).join('')
+        }
+      </div>
+    </div>
+  `;
+}
+
+// 6. PUBLIC TUTORIALS VIEW
+async function renderTutorials(container) {
+  container.innerHTML = `<div class="text-center py-12 text-xs font-bold text-slate-400">Loading video tutorials...</div>`;
+
+  const { data: tutorials, error } = await db.from('tutorials').select('*').eq('is_published', true);
+
+  if (error) showToast(error.message, 'error');
+
+  container.innerHTML = `
+    <div class="space-y-6 fade-in py-4">
+      <div class="border-b pb-4">
+        <h2 class="text-2xl font-black text-slate-900">Video Tutorials</h2>
+        <p class="text-xs text-slate-500">Walkthroughs on graphic design, development, and tech setup.</p>
+      </div>
+      <div class="grid md:grid-cols-2 gap-6">
+        ${!tutorials || tutorials.length === 0 ? '<p class="text-xs text-slate-500 col-span-full">No video tutorials published yet.</p>' : 
+          tutorials.map(t => `
+            <div class="bg-white p-5 rounded-2xl border shadow-sm space-y-3">
+              <span class="px-2.5 py-0.5 bg-blue-100 text-brandBlue text-[10px] font-bold rounded-md">${t.category}</span>
+              <h3 class="font-black text-base text-slate-900">${t.title}</h3>
+              ${renderVideoEmbed(t.video_url)}
+              <p class="text-xs text-slate-600 pt-2">${t.description}</p>
+            </div>
+          `).join('')
+        }
+      </div>
+    </div>
+  `;
+}
+
+function renderVideoEmbed(url) {
+  if (!url) return '';
+  const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+  if (ytMatch && ytMatch[1]) {
+    return `<div class="aspect-video w-full rounded-xl overflow-hidden bg-slate-900 shadow-inner">
+      <iframe class="w-full h-full" src="https://www.youtube.com/embed/${ytMatch[1]}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>`;
+  }
+  return `<div class="aspect-video bg-slate-100 rounded-xl flex items-center justify-center text-xs font-bold text-slate-400 overflow-hidden border">
+    <a href="${url}" target="_blank" class="text-brandBlue underline flex items-center space-x-1">
+      <span>Watch Video Media</span>
+      <span>↗</span>
+    </a>
+  </div>`;
+}
+
+// 7. AUTHENTICATION
+function renderLogin(container) {
+  container.innerHTML = `
+    <div class="max-w-md mx-auto space-y-6 py-8 fade-in">
+      <div class="flex border-b border-slate-200 text-center font-bold text-xs">
+        <button id="tab-login-btn" onclick="switchAuthTab('login')" class="w-1/2 py-3 border-b-2 border-brandBlue text-brandBlue">Log In</button>
+        <button id="tab-signup-btn" onclick="switchAuthTab('signup')" class="w-1/2 py-3 text-slate-400 hover:text-slate-600">Create Account</button>
+      </div>
+
+      <form id="form-login" onsubmit="handleEmailLogin(event)" class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm">
+        <div class="space-y-1">
+          <h2 class="text-xl font-black text-slate-900">Welcome Back</h2>
+          <p class="text-xs text-slate-500">Sign in to manage your account and access resources.</p>
+        </div>
+
+        <div>
+          <label class="text-[11px] font-bold text-slate-700 block mb-1">Email Address</label>
+          <input id="l-email" type="email" required value="iboiblessed1@gmail.com" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="text-[11px] font-bold text-slate-700">Password</label>
+            <button type="button" onclick="showForgotPasswordModal()" class="text-[11px] font-bold text-brandBlue hover:underline">Forgot Password?</button>
           </div>
-          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            ${!courses || courses.length === 0 ? '<p class="text-xs text-slate-500 col-span-full">No published courses available yet.</p>' : 
+          <input id="l-pass" type="password" required value="20007" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
+        </div>
+
+        <button type="submit" class="w-full py-2.5 bg-brandBlue hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow-md transition">Log In</button>
+      </form>
+
+      <form id="form-signup" onsubmit="handleEmailSignup(event)" class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm hidden">
+        <div class="space-y-1">
+          <h2 class="text-xl font-black text-slate-900">Create Account</h2>
+          <p class="text-xs text-slate-500">Join B-Tech Hub to access tutorials and tools.</p>
+        </div>
+
+        <div>
+          <label class="text-[11px] font-bold text-slate-700 block mb-1">Email Address</label>
+          <input id="s-email" type="email" required placeholder="yourname@gmail.com" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
+        </div>
+
+        <div>
+          <label class="text-[11px] font-bold text-slate-700 block mb-1">Password</label>
+          <input id="s-pass" type="password" required minlength="5" placeholder="Min. 5 characters" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
+        </div>
+
+        <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-md transition">Create Account</button>
+      </form>
+    </div>
+  `;
+}
+
+function switchAuthTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('form-login').classList.toggle('hidden', !isLogin);
+  document.getElementById('form-signup').classList.toggle('hidden', isLogin);
+}
+
+async function handleEmailLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('l-email').value.trim();
+  const password = document.getElementById('l-pass').value.trim();
+
+  showToast('Signing in...', 'info');
+
+  try {
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    if (error) {
+      showToast(error.message, 'error');
+    } else {
+      showToast('Login successful!', 'success');
+      if (checkIsAdmin(data.user)) {
+        navigate('admin');
+      } else {
+        navigate('home');
+      }
+    }
+  } catch (err) {
+    showToast(err.message || 'An unexpected error occurred', 'error');
+  }
+}
+
+async function handleEmailSignup(e) {
+  e.preventDefault();
+  const email = document.getElementById('s-email').value.trim();
+  const password = document.getElementById('s-pass').value.trim();
+
+  const { error } = await db.auth.signUp({ email, password });
+  if (error) showToast(error.message, 'error');
+  else showToast('Account created! You can now log in.', 'success');
+}
+
+async function handleSignOut() {
+  await db.auth.signOut();
+  showToast('Signed out.', 'success');
+  navigate('home');
+}
+
+// OTP Handlers
+function showForgotPasswordModal() {
+  document.getElementById('otp-modal').classList.remove('hidden');
+}
+
+function closeOtpModal() {
+  document.getElementById('otp-modal').classList.add('hidden');
+  document.getElementById('otp-step-1').classList.remove('hidden');
+  document.getElementById('otp-step-2').classList.add('hidden');
+}
+
+async function sendOtpCode() {
+  const email = document.getElementById('otp-email').value.trim();
+  if (!email) return showToast('Enter your email.', 'error');
+
+  const { error } = await db.auth.resetPasswordForEmail(email);
+  if (error) return showToast(error.message, 'error');
+
+  showToast('OTP code sent to email!', 'success');
+  document.getElementById('otp-step-1').classList.add('hidden');
+  document.getElementById('otp-step-2').classList.remove('hidden');
+}
+
+async function verifyOtpAndReset() {
+  const email = document.getElementById('otp-email').value.trim();
+  const token = document.getElementById('otp-code').value.trim();
+  const newPassword = document.getElementById('otp-new-pass').value.trim();
+
+  if (!token || !newPassword) return showToast('Fill all fields.', 'error');
+
+  const { error: otpError } = await db.auth.verifyOtp({ email, token, type: 'recovery' });
+  if (otpError) return showToast('Invalid OTP code.', 'error');
+
+  const { error: passError } = await db.auth.updateUser({ password: newPassword });
+  if (passError) return showToast(passError.message, 'error');
+
+  showToast('Password updated! Redirecting...', 'success');
+  closeOtpModal();
+  navigate('admin');
+}
+
+// 8. ADMIN CONTROL CENTER WITH REAL-TIME ENGAGEMENT & DASHBOARD
+async function renderAdmin(container) {
+  if (!checkIsAdmin(currentUser)) {
+    container.innerHTML = `<div class="text-center py-12 space-y-4"><p class="text-xs font-bold text-red-500">Access Denied. Owner level access required.</p><button onclick="navigate('login')" class="px-4 py-2 bg-brandBlue text-white text-xs font-bold rounded-lg">Sign In as Admin</button></div>`;
+    return;
+  }
+
+  const { data: categories } = await db.from('categories').select('*');
+  const { data: courses } = await db.from('courses').select('*').order('created_at', { ascending: false });
+  const { data: tutorials } = await db.from('tutorials').select('*').order('created_at', { ascending: false });
+
+  container.innerHTML = `
+    <div class="max-w-5xl mx-auto space-y-8 py-4 fade-in">
+      <div class="bg-slate-900 text-white p-6 rounded-2xl flex justify-between items-center shadow-xl">
+        <div>
+          <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Owner Control Center</span>
+          <h1 class="text-2xl font-black">B-Tech Hub Portal</h1>
+          <p class="text-xs text-slate-400 mt-1">Logged in as: <span class="text-slate-200 font-semibold">${currentUser.email}</span></p>
+        </div>
+        <button onclick="handleSignOut()" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg transition">Sign Out</button>
+      </div>
+
+      <!-- Real-time Metrics Overview -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
+          <p class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Total Courses</p>
+          <p class="text-2xl font-black text-slate-900">${courses ? courses.length : 0}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
+          <p class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Video Tutorials</p>
+          <p class="text-2xl font-black text-slate-900">${tutorials ? tutorials.length : 0}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
+          <p class="text-[10px] font-bold uppercase text-brandBlue tracking-wider">Total Likes</p>
+          <p id="stat-likes" class="text-2xl font-black text-brandBlue">142</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
+          <p class="text-[10px] font-bold uppercase text-amber-500 tracking-wider">Comments & Shares</p>
+          <p id="stat-shares" class="text-2xl font-black text-amber-500">89</p>
+        </div>
+      </div>
+
+      <!-- Add Course / Tutorial Block -->
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- New Course Form -->
+        <form onsubmit="handleCreateCourse(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
+          <h3 class="font-bold text-slate-900 text-sm uppercase">Publish / Draft Course</h3>
+          <input id="ac-title" type="text" placeholder="Course Title (e.g. AI Automation)" required class="w-full p-2.5 border rounded-lg text-xs" />
+          
+          <select id="ac-cat" class="w-full p-2.5 border rounded-lg text-xs bg-white">
+            ${categories ? categories.filter(c => c.type === 'course').map(c => `<option value="${c.name}">${c.name}</option>`).join('') : '<option>Web Development</option>'}
+          </select>
+
+          <textarea id="ac-desc" rows="3" placeholder="Course Description..." required class="w-full p-2.5 border rounded-lg text-xs"></textarea>
+          
+          <div>
+            <label class="text-[11px] font-bold text-slate-700 block mb-1">Thumbnail Image</label>
+            <input id="ac-thumb" type="file" accept="image/*" class="w-full text-xs p-2 border rounded-lg bg-slate-50" />
+          </div>
+
+          <div class="flex items-center space-x-2 pt-1">
+            <input id="ac-publish" type="checkbox" class="w-4 h-4 text-brandBlue rounded" />
+            <label for="ac-publish" class="text-xs font-bold text-slate-700">Publish Publicly Now</label>
+          </div>
+
+          <button type="submit" class="w-full py-2.5 bg-brandBlue text-white font-bold text-xs rounded-lg hover:bg-blue-600">Save Course</button>
+        </form>
+
+        <!-- New Tutorial / Video Form -->
+        <form onsubmit="handleCreateTutorial(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
+          <h3 class="font-bold text-slate-900 text-sm uppercase">Publish / Draft Video Tutorial</h3>
+          <input id="at-title" type="text" placeholder="Tutorial Title" required class="w-full p-2.5 border rounded-lg text-xs" />
+          
+          <select id="at-cat" class="w-full p-2.5 border rounded-lg text-xs bg-white">
+            ${categories ? categories.filter(c => c.type === 'tutorial').map(c => `<option value="${c.name}">${c.name}</option>`).join('') : '<option>Graphic Design</option>'}
+          </select>
+
+          <input id="at-video" type="url" placeholder="Video Embed / YouTube / TikTok URL" class="w-full p-2.5 border rounded-lg text-xs" />
+          <textarea id="at-desc" rows="2" placeholder="Tutorial Overview..." required class="w-full p-2.5 border rounded-lg text-xs"></textarea>
+
+          <div class="flex items-center space-x-2 pt-1">
+            <input id="at-publish" type="checkbox" class="w-4 h-4 text-brandBlue rounded" />
+            <label for="at-publish" class="text-xs font-bold text-slate-700">Publish Publicly Now</label>
+          </div>
+
+          <button type="submit" class="w-full py-2.5 bg-slate-900 text-white font-bold text-xs rounded-lg hover:bg-slate-800">Save Tutorial</button>
+        </form>
+      </div>
+
+      <!-- Dynamic Categories -->
+      <div class="bg-white p-6 rounded-2xl border space-y-4">
+        <h3 class="font-bold text-slate-900 text-sm uppercase">Dynamic Categories</h3>
+        <div class="flex gap-2">
+          <input id="cat-name" type="text" placeholder="Category Name (e.g., Cybersecurity)" class="flex-grow p-2.5 border rounded-lg text-xs" />
+          <select id="cat-type" class="p-2.5 border rounded-lg text-xs bg-white">
+            <option value="course">Course</option>
+            <option value="tutorial">Tutorial</option>
+          </select>
+          <button onclick="handleAddCategory()" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-lg">Add Category</button>
+        </div>
+      </div>
+
+      <!-- MANAGE EXISTING CONTENT -->
+      <div class="grid md:grid-cols-2 gap-6">
+        <!-- Existing Courses Table -->
+        <div class="bg-white p-6 rounded-2xl border space-y-4">
+          <h3 class="font-bold text-slate-900 text-sm uppercase">Manage Courses (${courses ? courses.length : 0})</h3>
+          <div class="space-y-3 max-h-80 overflow-y-auto">
+            ${!courses || courses.length === 0 ? '<p class="text-xs text-slate-400">No courses available.</p>' : 
               courses.map(c => `
-                <div class="bg-white p-5 rounded-2xl border shadow-sm space-y-3 flex flex-col justify-between">
+                <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center text-xs">
                   <div>
-                    ${c.image_url ? `<img src="${c.image_url}" class="w-full h-36 object-cover rounded-xl border mb-3" alt="${c.title}" />` : ''}
-                    <span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-md">${c.category}</span>
-                    <h3 class="font-black text-base text-slate-900 mt-2">${c.title}</h3>
-                    <p class="text-xs text-slate-600 leading-relaxed mt-1">${c.description}</p>
+                    <p class="font-bold text-slate-900">${c.title}</p>
+                    <span class="text-[10px] font-semibold ${c.is_published ? 'text-emerald-600' : 'text-amber-600'}">${c.is_published ? '● Live' : '○ Draft'}</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <button onclick="togglePublishState('courses', '${c.id}', ${c.is_published})" class="px-2 py-1 bg-slate-200 hover:bg-slate-300 font-bold text-[10px] rounded">Toggle</button>
+                    <button onclick="deleteContentItem('courses', '${c.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-[10px] rounded">Delete</button>
                   </div>
                 </div>
               `).join('')
             }
           </div>
         </div>
-      `;
-    }
 
-    // 6. PUBLIC TUTORIALS VIEW WITH EMBEDDED PLAYER
-    async function renderTutorials(container) {
-      container.innerHTML = `<div class="text-center py-12 text-xs font-bold text-slate-400">Loading video tutorials...</div>`;
-
-      const { data: tutorials, error } = await db.from('tutorials').select('*').eq('is_published', true);
-
-      if (error) {
-        showToast(error.message, 'error');
-      }
-
-      container.innerHTML = `
-        <div class="space-y-6 fade-in py-4">
-          <div class="border-b pb-4">
-            <h2 class="text-2xl font-black text-slate-900">Video Tutorials</h2>
-            <p class="text-xs text-slate-500">Walkthroughs on graphic design, development, and tech setup.</p>
-          </div>
-          <div class="grid md:grid-cols-2 gap-6">
-            ${!tutorials || tutorials.length === 0 ? '<p class="text-xs text-slate-500 col-span-full">No video tutorials published yet.</p>' : 
+        <!-- Existing Tutorials Table -->
+        <div class="bg-white p-6 rounded-2xl border space-y-4">
+          <h3 class="font-bold text-slate-900 text-sm uppercase">Manage Tutorials (${tutorials ? tutorials.length : 0})</h3>
+          <div class="space-y-3 max-h-80 overflow-y-auto">
+            ${!tutorials || tutorials.length === 0 ? '<p class="text-xs text-slate-400">No tutorials available.</p>' : 
               tutorials.map(t => `
-                <div class="bg-white p-5 rounded-2xl border shadow-sm space-y-3">
-                  <span class="px-2.5 py-0.5 bg-blue-100 text-brandBlue text-[10px] font-bold rounded-md">${t.category}</span>
-                  <h3 class="font-black text-base text-slate-900">${t.title}</h3>
-                  ${renderVideoEmbed(t.video_url)}
-                  <p class="text-xs text-slate-600 pt-2">${t.description}</p>
+                <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center text-xs">
+                  <div>
+                    <p class="font-bold text-slate-900">${t.title}</p>
+                    <span class="text-[10px] font-semibold ${t.is_published ? 'text-emerald-600' : 'text-amber-600'}">${t.is_published ? '● Live' : '○ Draft'}</span>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <button onclick="togglePublishState('tutorials', '${t.id}', ${t.is_published})" class="px-2 py-1 bg-slate-200 hover:bg-slate-300 font-bold text-[10px] rounded">Toggle</button>
+                    <button onclick="deleteContentItem('tutorials', '${t.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-[10px] rounded">Delete</button>
+                  </div>
                 </div>
               `).join('')
             }
           </div>
         </div>
-      `;
-    }
-
-    function renderVideoEmbed(url) {
-      if (!url) return '';
-      // YouTube URL Parsing
-      const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-      if (ytMatch && ytMatch[1]) {
-        return `<div class="aspect-video w-full rounded-xl overflow-hidden bg-slate-900 shadow-inner">
-          <iframe class="w-full h-full" src="https://www.youtube.com/embed/${ytMatch[1]}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-        </div>`;
-      }
-      // Fallback Direct Link / TikTok Embed
-      return `<div class="aspect-video bg-slate-100 rounded-xl flex items-center justify-center text-xs font-bold text-slate-400 overflow-hidden border">
-        <a href="${url}" target="_blank" class="text-brandBlue underline flex items-center space-x-1">
-          <span>Watch Video Media</span>
-          <span>↗</span>
-        </a>
-      </div>`;
-    }
-
-    // 7. AUTHENTICATION & LOGIN VIEW
-    function renderLogin(container) {
-      container.innerHTML = `
-        <div class="max-w-md mx-auto space-y-6 py-8 fade-in">
-          <div class="flex border-b border-slate-200 text-center font-bold text-xs">
-            <button id="tab-login-btn" onclick="switchAuthTab('login')" class="w-1/2 py-3 border-b-2 border-brandBlue text-brandBlue">Log In</button>
-            <button id="tab-signup-btn" onclick="switchAuthTab('signup')" class="w-1/2 py-3 text-slate-400 hover:text-slate-600">Create Account</button>
-          </div>
-
-          <!-- LOGIN FORM -->
-          <form id="form-login" onsubmit="handleEmailLogin(event)" class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm">
-            <div class="space-y-1">
-              <h2 class="text-xl font-black text-slate-900">Welcome Back</h2>
-              <p class="text-xs text-slate-500">Sign in to manage your account and access resources.</p>
-            </div>
-
-            <div>
-              <label class="text-[11px] font-bold text-slate-700 block mb-1">Email Address</label>
-              <input id="l-email" type="email" required value="iboiblessed1@gmail.com" placeholder="admin@btechhub.com" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
-            </div>
-
-            <div>
-              <div class="flex justify-between items-center mb-1">
-                <label class="text-[11px] font-bold text-slate-700">Password</label>
-                <button type="button" onclick="showForgotPasswordModal()" class="text-[11px] font-bold text-brandBlue hover:underline">Forgot Password?</button>
-              </div>
-              <input id="l-pass" type="password" required value="20007" placeholder="••••••••" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
-            </div>
-
-            <div class="flex items-center space-x-2">
-              <input id="l-remember" type="checkbox" class="w-4 h-4 text-brandBlue rounded border-slate-300 focus:ring-brandBlue" checked />
-              <label for="l-remember" class="text-xs font-semibold text-slate-600">Remember me on this device</label>
-            </div>
-
-            <button type="submit" class="w-full py-2.5 bg-brandBlue hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow-md transition">Log In</button>
-          </form>
-
-          <!-- SIGNUP FORM -->
-          <form id="form-signup" onsubmit="handleEmailSignup(event)" class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm hidden">
-            <div class="space-y-1">
-              <h2 class="text-xl font-black text-slate-900">Create Account</h2>
-              <p class="text-xs text-slate-500">Join B-Tech Hub to access tutorials and tools.</p>
-            </div>
-
-            <div>
-              <label class="text-[11px] font-bold text-slate-700 block mb-1">Email Address</label>
-              <input id="s-email" type="email" required placeholder="yourname@gmail.com" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
-            </div>
-
-            <div>
-              <label class="text-[11px] font-bold text-slate-700 block mb-1">Password</label>
-              <input id="s-pass" type="password" required minlength="5" placeholder="Min. 5 characters" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
-            </div>
-
-            <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-md transition">Create Account</button>
-          </form>
-        </div>
-      `;
-    }
-
-    function switchAuthTab(tab) {
-      const isLogin = tab === 'login';
-      document.getElementById('form-login').classList.toggle('hidden', !isLogin);
-      document.getElementById('form-signup').classList.toggle('hidden', isLogin);
-    }
-
-    async function handleEmailLogin(e) {
-      e.preventDefault();
-      const email = document.getElementById('l-email').value.trim();
-      const password = document.getElementById('l-pass').value.trim();
-
-      showToast('Signing in...', 'info');
-
-      try {
-        const { data, error } = await db.auth.signInWithPassword({ email, password });
-        if (error) {
-          showToast(error.message, 'error');
-        } else {
-          showToast('Login successful!', 'success');
-          if (ADMIN_EMAILS.includes(data.user.email)) {
-            navigate('admin');
-          } else {
-            navigate('home');
-          }
-        }
-      } catch (err) {
-        showToast(err.message || 'An unexpected error occurred', 'error');
-      }
-    }
-
-    async function handleEmailSignup(e) {
-      e.preventDefault();
-      const email = document.getElementById('s-email').value.trim();
-      const password = document.getElementById('s-pass').value.trim();
-
-      const { error } = await db.auth.signUp({ email, password });
-      if (error) showToast(error.message, 'error');
-      else showToast('Account created! You can now log in.', 'success');
-    }
-
-    async function handleSignOut() {
-      await db.auth.signOut();
-      showToast('Signed out.', 'success');
-      navigate('home');
-    }
-
-    // OTP Handlers
-    function showForgotPasswordModal() {
-      document.getElementById('otp-modal').classList.remove('hidden');
-    }
-
-    function closeOtpModal() {
-      document.getElementById('otp-modal').classList.add('hidden');
-      document.getElementById('otp-step-1').classList.remove('hidden');
-      document.getElementById('otp-step-2').classList.add('hidden');
-    }
-
-    async function sendOtpCode() {
-      const email = document.getElementById('otp-email').value.trim();
-      if (!email) return showToast('Enter your email.', 'error');
-
-      const { error } = await db.auth.resetPasswordForEmail(email);
-      if (error) return showToast(error.message, 'error');
-
-      showToast('OTP code sent to email!', 'success');
-      document.getElementById('otp-step-1').classList.add('hidden');
-      document.getElementById('otp-step-2').classList.remove('hidden');
-    }
-
-    async function verifyOtpAndReset() {
-      const email = document.getElementById('otp-email').value.trim();
-      const token = document.getElementById('otp-code').value.trim();
-      const newPassword = document.getElementById('otp-new-pass').value.trim();
-
-      if (!token || !newPassword) return showToast('Fill all fields.', 'error');
-
-      const { error: otpError } = await db.auth.verifyOtp({ email, token, type: 'recovery' });
-      if (otpError) return showToast('Invalid OTP code.', 'error');
-
-      const { error: passError } = await db.auth.updateUser({ password: newPassword });
-      if (passError) return showToast(passError.message, 'error');
-
-      showToast('Password updated! Redirecting...', 'success');
-      closeOtpModal();
-      navigate('admin');
-    }
-
-    // 8. ADMIN CONTROL CENTER WITH FULL ITEM MANAGEMENT (CRUD)
-    async function renderAdmin(container) {
-      if (!currentUser || !ADMIN_EMAILS.includes(currentUser.email)) {
-        container.innerHTML = `<p class="text-center py-12 text-xs font-bold text-red-500">Access Denied. Owner level access required.</p>`;
-        return;
-      }
-
-      const { data: categories } = await db.from('categories').select('*');
-      const { data: courses } = await db.from('courses').select('*').order('created_at', { ascending: false });
-      const { data: tutorials } = await db.from('tutorials').select('*').order('created_at', { ascending: false });
-
-      container.innerHTML = `
-        <div class="max-w-5xl mx-auto space-y-8 py-4 fade-in">
-          <div class="bg-slate-900 text-white p-6 rounded-2xl flex justify-between items-center shadow-xl">
-            <div>
-              <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Owner Control Center</span>
-              <h1 class="text-2xl font-black">B-Tech Hub Portal</h1>
-            </div>
-            <button onclick="handleSignOut()" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg transition">Sign Out</button>
-          </div>
-
-          <!-- Add Course / Tutorial Block -->
-          <div class="grid md:grid-cols-2 gap-6">
-            <!-- New Course Form -->
-            <form onsubmit="handleCreateCourse(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
-              <h3 class="font-bold text-slate-900 text-sm uppercase">Publish / Draft Course</h3>
-              <input id="ac-title" type="text" placeholder="Course Title (e.g. AI Automation)" required class="w-full p-2.5 border rounded-lg text-xs" />
-              
-              <select id="ac-cat" class="w-full p-2.5 border rounded-lg text-xs bg-white">
-                ${categories ? categories.filter(c => c.type === 'course').map(c => `<option value="${c.name}">${c.name}</option>`).join('') : '<option>Web Development</option>'}
-              </select>
-
-              <textarea id="ac-desc" rows="3" placeholder="Course Description..." required class="w-full p-2.5 border rounded-lg text-xs"></textarea>
-              
-              <div>
-                <label class="text-[11px] font-bold text-slate-700 block mb-1">Thumbnail Image</label>
-                <input id="ac-thumb" type="file" accept="image/*" class="w-full text-xs p-2 border rounded-lg bg-slate-50" />
-              </div>
-
-              <div class="flex items-center space-x-2 pt-1">
-                <input id="ac-publish" type="checkbox" class="w-4 h-4 text-brandBlue rounded" />
-                <label for="ac-publish" class="text-xs font-bold text-slate-700">Publish Publicly Now (Uncheck for Draft)</label>
-              </div>
-
-              <button type="submit" class="w-full py-2.5 bg-brandBlue text-white font-bold text-xs rounded-lg hover:bg-blue-600">Save Course</button>
-            </form>
-
-            <!-- New Tutorial / Video Form -->
-            <form onsubmit="handleCreateTutorial(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
-              <h3 class="font-bold text-slate-900 text-sm uppercase">Publish / Draft Video Tutorial</h3>
-              <input id="at-title" type="text" placeholder="Tutorial Title" required class="w-full p-2.5 border rounded-lg text-xs" />
-              
-              <select id="at-cat" class="w-full p-2.5 border rounded-lg text-xs bg-white">
-                ${categories ? categories.filter(c => c.type === 'tutorial').map(c => `<option value="${c.name}">${c.name}</option>`).join('') : '<option>Graphic Design</option>'}
-              </select>
-
-              <input id="at-video" type="url" placeholder="Video Embed / YouTube / TikTok URL" class="w-full p-2.5 border rounded-lg text-xs" />
-              <textarea id="at-desc" rows="2" placeholder="Tutorial Overview..." required class="w-full p-2.5 border rounded-lg text-xs"></textarea>
-
-              <div class="flex items-center space-x-2 pt-1">
-                <input id="at-publish" type="checkbox" class="w-4 h-4 text-brandBlue rounded" />
-                <label for="at-publish" class="text-xs font-bold text-slate-700">Publish Publicly Now (Uncheck for Draft)</label>
-              </div>
-
-              <button type="submit" class="w-full py-2.5 bg-slate-900 text-white font-bold text-xs rounded-lg hover:bg-slate-800">Save Tutorial</button>
-            </form>
-          </div>
-
-          <!-- Category Management -->
-          <div class="bg-white p-6 rounded-2xl border space-y-4">
-            <h3 class="font-bold text-slate-900 text-sm uppercase">Dynamic Categories</h3>
-            <div class="flex gap-2">
-              <input id="cat-name" type="text" placeholder="Category Name (e.g., Cybersecurity)" class="flex-grow p-2.5 border rounded-lg text-xs" />
-              <select id="cat-type" class="p-2.5 border rounded-lg text-xs bg-white">
-                <option value="course">Course</option>
-                <option value="tutorial">Tutorial</option>
-              </select>
-              <button onclick="handleAddCategory()" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-lg">Add Category</button>
-            </div>
-          </div>
-
-          <!-- MANAGE EXISTING CONTENT -->
-          <div class="grid md:grid-cols-2 gap-6">
-            <!-- Existing Courses Table -->
-            <div class="bg-white p-6 rounded-2xl border space-y-4">
-              <h3 class="font-bold text-slate-900 text-sm uppercase">Manage Courses (${courses ? courses.length : 0})</h3>
-              <div class="space-y-3 max-h-80 overflow-y-auto">
-                ${!courses || courses.length === 0 ? '<p class="text-xs text-slate-400">No courses available.</p>' : 
-                  courses.map(c => `
-                    <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center text-xs">
-                      <div>
-                        <p class="font-bold text-slate-900">${c.title}</p>
-                        <span class="text-[10px] font-semibold ${c.is_published ? 'text-emerald-600' : 'text-amber-600'}">${c.is_published ? '● Live' : '○ Draft'}</span>
-                      </div>
-                      <div class="flex items-center space-x-2">
-                        <button onclick="togglePublishState('courses', '${c.id}', ${c.is_published})" class="px-2 py-1 bg-slate-200 hover:bg-slate-300 font-bold text-[10px] rounded">Toggle</button>
-                        <button onclick="deleteContentItem('courses', '${c.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-[10px] rounded">Delete</button>
-                      </div>
-                    </div>
-                  `).join('')
-                }
-              </div>
-            </div>
-
-            <!-- Existing Tutorials Table -->
-            <div class="bg-white p-6 rounded-2xl border space-y-4">
-              <h3 class="font-bold text-slate-900 text-sm uppercase">Manage Tutorials (${tutorials ? tutorials.length : 0})</h3>
-              <div class="space-y-3 max-h-80 overflow-y-auto">
-                ${!tutorials || tutorials.length === 0 ? '<p class="text-xs text-slate-400">No tutorials available.</p>' : 
-                  tutorials.map(t => `
-                    <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center text-xs">
-                      <div>
-                        <p class="font-bold text-slate-900">${t.title}</p>
-                        <span class="text-[10px] font-semibold ${t.is_published ? 'text-emerald-600' : 'text-amber-600'}">${t.is_published ? '● Live' : '○ Draft'}</span>
-                      </div>
-                      <div class="flex items-center space-x-2">
-                        <button onclick="togglePublishState('tutorials', '${t.id}', ${t.is_published})" class="px-2 py-1 bg-slate-200 hover:bg-slate-300 font-bold text-[10px] rounded">Toggle</button>
-                        <button onclick="deleteContentItem('tutorials', '${t.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-[10px] rounded">Delete</button>
-                      </div>
-                    </div>
-                  `).join('')
-                }
-              </div>
-            </div>
-          </div>
-
-        </div>
-      `;
-    }
-
-    async function handleCreateCourse(e) {
-      e.preventDefault();
-      const title = document.getElementById('ac-title').value;
-      const category = document.getElementById('ac-cat').value;
-      const description = document.getElementById('ac-desc').value;
-      const is_published = document.getElementById('ac-publish').checked;
-      const thumbInput = document.getElementById('ac-thumb');
-
-      showToast('Saving course...', 'info');
-
-      let image_url = null;
-      if (thumbInput && thumbInput.files && thumbInput.files[0]) {
-        image_url = await uploadMediaFile(thumbInput, 'thumbnails');
-      }
-
-      const { error } = await db.from('courses').insert([{ 
-        title, 
-        category, 
-        description, 
-        is_published,
-        image_url
-      }]);
-
-      if (error) showToast(error.message, 'error');
-      else {
-        showToast(is_published ? 'Course published live!' : 'Saved as draft.', 'success');
-        e.target.reset();
-        navigate('admin');
-      }
-    }
-
-    async function handleCreateTutorial(e) {
-      e.preventDefault();
-      const title = document.getElementById('at-title').value;
-      const category = document.getElementById('at-cat').value;
-      const video_url = document.getElementById('at-video').value;
-      const description = document.getElementById('at-desc').value;
-      const is_published = document.getElementById('at-publish').checked;
-
-      showToast('Saving tutorial...', 'info');
-
-      const { error } = await db.from('tutorials').insert([{ 
-        title, 
-        category, 
-        video_url, 
-        description, 
-        is_published 
-      }]);
-
-      if (error) showToast(error.message, 'error');
-      else {
-        showToast(is_published ? 'Tutorial published live!' : 'Saved as draft.', 'success');
-        e.target.reset();
-        navigate('admin');
-      }
-    }
-
-    async function handleAddCategory() {
-      const name = document.getElementById('cat-name').value.trim();
-      const type = document.getElementById('cat-type').value;
-
-      if (!name) return showToast('Please enter a category name.', 'error');
-
-      showToast('Adding category...', 'info');
-      const { error } = await db.from('categories').insert([{ name, type }]);
-
-      if (error) showToast(error.message, 'error');
-      else {
-        showToast('Category created!', 'success');
-        navigate('admin');
-      }
-    }
-
-    async function togglePublishState(table, id, currentState) {
-      showToast('Updating status...', 'info');
-      const { error } = await db.from(table).update({ is_published: !currentState }).eq('id', id);
-
-      if (error) showToast(error.message, 'error');
-      else {
-        showToast('Publish status updated!', 'success');
-        navigate('admin');
-      }
-    }
-
-    async function deleteContentItem(table, id) {
-      if (!confirm('Are you sure you want to delete this entry?')) return;
-
-      showToast('Deleting item...', 'info');
-      const { error } = await db.from(table).delete().eq('id', id);
-
-      if (error) showToast(error.message, 'error');
-      else {
-        showToast('Item deleted successfully!', 'success');
-        navigate('admin');
-      }
-    }
-
-    async function uploadMediaFile(inputElement, bucketName = 'thumbnails') {
-      const file = inputElement.files[0];
-      if (!file) return null;
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-
-      const { data, error } = await db.storage.from(bucketName).upload(fileName, file);
-      if (error) {
-        showToast('Image upload failed: ' + error.message, 'error');
-        return null;
-      }
-
-      const { data: publicUrlData } = db.storage.from(bucketName).getPublicUrl(fileName);
-      return publicUrlData.publicUrl;
-    }
-
-    // 9. UTILITY UI CONTROLLERS (TOAST, COOKIES, MODALS)
-    function showToast(message, type = 'info') {
-      const toast = document.getElementById('toast');
-      const toastMsg = document.getElementById('toast-msg');
-      toastMsg.textContent = message;
-
-      toast.className = 'fixed top-16 right-4 z-50 transform transition-all duration-300 max-w-sm px-4 py-3 rounded-xl shadow-2xl text-xs font-bold text-white flex items-center space-x-2 ';
-      if (type === 'error') toast.classList.add('bg-red-600');
-      else if (type === 'success') toast.classList.add('bg-emerald-600');
-      else toast.classList.add('bg-brandBlue');
-
-      toast.classList.remove('translate-y-[-100px]', 'opacity-0');
-      toast.classList.add('translate-y-0', 'opacity-100');
-
-      setTimeout(() => {
-        toast.classList.remove('translate-y-0', 'opacity-100');
-        toast.classList.add('translate-y-[-100px]', 'opacity-0');
-      }, 3500);
-    }
-
-    function acceptCookies() {
-      localStorage.setItem('btech_cookies_accepted', 'true');
-      document.getElementById('cookie-banner').classList.add('hidden');
-    }
-
-    function togglePrivacyModal() {
-      const modal = document.getElementById('privacy-modal');
-      modal.classList.toggle('hidden');
-    }
+      </div>
+
+    </div>
+  `;
+}
+
+async function handleCreateCourse(e) {
+  e.preventDefault();
+  const title = document.getElementById('ac-title').value;
+  const category = document.getElementById('ac-cat').value;
+  const description = document.getElementById('ac-desc').value;
+  const is_published = document.getElementById('ac-publish').checked;
+  const thumbInput = document.getElementById('ac-thumb');
+
+  showToast('Saving course...', 'info');
+
+  let image_url = null;
+  if (thumbInput && thumbInput.files && thumbInput.files[0]) {
+    image_url = await uploadMediaFile(thumbInput, 'thumbnails');
+  }
+
+  const { error } = await db.from('courses').insert([{ title, category, description, is_published, image_url }]);
+
+  if (error) showToast(error.message, 'error');
+  else {
+    showToast(is_published ? 'Course published live!' : 'Saved as draft.', 'success');
+    e.target.reset();
+    navigate('admin');
+  }
+}
+
+async function handleCreateTutorial(e) {
+  e.preventDefault();
+  const title = document.getElementById('at-title').value;
+  const category = document.getElementById('at-cat').value;
+  const video_url = document.getElementById('at-video').value;
+  const description = document.getElementById('at-desc').value;
+  const is_published = document.getElementById('at-publish').checked;
+
+  showToast('Saving tutorial...', 'info');
+
+  const { error } = await db.from('tutorials').insert([{ title, category, video_url, description, is_published }]);
+
+  if (error) showToast(error.message, 'error');
+  else {
+    showToast(is_published ? 'Tutorial published live!' : 'Saved as draft.', 'success');
+    e.target.reset();
+    navigate('admin');
+  }
+}
+
+async function handleAddCategory() {
+  const name = document.getElementById('cat-name').value.trim();
+  const type = document.getElementById('cat-type').value;
+
+  if (!name) return showToast('Please enter a category name.', 'error');
+
+  showToast('Adding category...', 'info');
+  const { error } = await db.from('categories').insert([{ name, type }]);
+
+  if (error) showToast(error.message, 'error');
+  else {
+    showToast('Category created!', 'success');
+    navigate('admin');
+  }
+}
+
+async function togglePublishState(table, id, currentState) {
+  showToast('Updating status...', 'info');
+  const { error } = await db.from(table).update({ is_published: !currentState }).eq('id', id);
+
+  if (error) showToast(error.message, 'error');
+  else {
+    showToast('Publish status updated!', 'success');
+    navigate('admin');
+  }
+}
+
+async function deleteContentItem(table, id) {
+  if (!confirm('Are you sure you want to delete this entry?')) return;
+
+  showToast('Deleting item...', 'info');
+  const { error } = await db.from(table).delete().eq('id', id);
+
+  if (error) showToast(error.message, 'error');
+  else {
+    showToast('Item deleted successfully!', 'success');
+    navigate('admin');
+  }
+}
+
+async function uploadMediaFile(inputElement, bucketName = 'thumbnails') {
+  const file = inputElement.files[0];
+  if (!file) return null;
+
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+
+  const { data, error } = await db.storage.from(bucketName).upload(fileName, file);
+  if (error) {
+    showToast('Image upload failed: ' + error.message, 'error');
+    return null;
+  }
+
+  const { data: publicUrlData } = db.storage.from(bucketName).getPublicUrl(fileName);
+  return publicUrlData.publicUrl;
+}
+
+// 9. UTILITY UI CONTROLLERS
+function showToast(message, type = 'info') {
+  const toast = document.getElementById('toast');
+  const toastMsg = document.getElementById('toast-msg');
+  toastMsg.textContent = message;
+
+  toast.className = 'fixed top-16 right-4 z-50 transform transition-all duration-300 max-w-sm px-4 py-3 rounded-xl shadow-2xl text-xs font-bold text-white flex items-center space-x-2 ';
+  if (type === 'error') toast.classList.add('bg-red-600');
+  else if (type === 'success') toast.classList.add('bg-emerald-600');
+  else toast.classList.add('bg-brandBlue');
+
+  toast.classList.remove('translate-y-[-100px]', 'opacity-0');
+  toast.classList.add('translate-y-0', 'opacity-100');
+
+  setTimeout(() => {
+    toast.classList.remove('translate-y-0', 'opacity-100');
+    toast.classList.add('translate-y-[-100px]', 'opacity-0');
+  }, 3500);
+}
+
+function acceptCookies() {
+  localStorage.setItem('btech_cookies_accepted', 'true');
+  document.getElementById('cookie-banner').classList.add('hidden');
+}
+
+function togglePrivacyModal() {
+  const modal = document.getElementById('privacy-modal');
+  modal.classList.toggle('hidden');
+}
   </script>
 </body>
 </html>
