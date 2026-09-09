@@ -154,11 +154,32 @@
       updateHeaderNav();
       navigate('home');
 
-      db.auth.onAuthStateChange((_event, session) => {
+      // Auth Listener with Recovery Handler
+      db.auth.onAuthStateChange((event, session) => {
         currentUser = session ? session.user : null;
         updateHeaderNav();
+
+        // Detects when user clicks the password recovery link from email
+        if (event === 'PASSWORD_RECOVERY') {
+          showSetNewPasswordPrompt();
+        }
       });
     });
+
+    // Handle Password Recovery Session
+    async function showSetNewPasswordPrompt() {
+      const newPassword = prompt("Please enter your new password:");
+      if (!newPassword) return;
+
+      const { error } = await db.auth.updateUser({ password: newPassword });
+      if (error) {
+        showToast(error.message, 'error');
+      } else {
+        showToast('Password updated successfully!', 'success');
+        if (ADMIN_EMAILS.includes(currentUser?.email)) navigate('admin');
+        else navigate('home');
+      }
+    }
 
     // 3. NAVIGATION ROUTER
     async function navigate(view) {
@@ -607,4 +628,4 @@
     }
   </script>
 </body>
-</html> 
+</html>
