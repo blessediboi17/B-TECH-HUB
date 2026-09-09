@@ -1,942 +1,555 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>B-TECH HUB — Tech • Learn • Build • Grow</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>B-Tech Hub | Digital Platform</title>
+
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          colors: { brandBlue: '#0052FF', brandDark: '#0A1120', cardBg: '#FFFFFF', bodyBg: '#F8FAFC' }
+          colors: {
+            brandBlue: '#0052FF',
+            brandDark: '#0b0f19',
+            brandGold: '#F59E0B',
+          }
         }
       }
     }
   </script>
+
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
-    body { -webkit-tap-highlight-color: transparent; }
-    .fade-in { animation: fadeIn 0.25s ease-out forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+    }
+    .fade-in {
+      animation: fadeIn 0.25s ease-in-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
-<body class="bg-bodyBg text-slate-900 min-h-screen flex flex-col justify-between font-sans selection:bg-brandBlue selection:text-white">
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased">
 
-  <!-- Header Navigation -->
-  <header class="bg-brandDark text-white sticky top-0 z-50 border-b border-slate-800 shadow-md">
-    <div class="max-w-7xl mx-auto px-4 py-3.5 flex justify-between items-center">
-      
-      <!-- Brand Logo -->
-      <button onclick="navigate('home')" class="flex items-center space-x-3 text-left focus:outline-none">
-        <img src="logo.png" alt="B-TECH HUB Logo" class="h-9 w-auto object-contain" onerror="this.src='https://via.placeholder.com/150x40/0052FF/ffffff?text=B-TECH+HUB'">
-      </button>
+  <!-- NAVIGATION HEADER -->
+  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 text-white">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+      <a href="#" onclick="navigate('home')" class="flex items-center space-x-2">
+        <span class="bg-brandBlue text-white font-black px-2.5 py-1 rounded-lg text-sm tracking-wider">B-TECH</span>
+        <span class="font-bold text-base tracking-tight text-slate-100">HUB</span>
+      </a>
 
-      <!-- Desktop Navigation Links -->
-      <nav class="hidden md:flex items-center space-x-6 text-xs font-bold text-slate-300">
+      <nav class="hidden md:flex items-center space-x-6 text-xs font-semibold text-slate-300">
         <button onclick="navigate('home')" class="hover:text-amber-400 transition">Home</button>
         <button onclick="navigate('courses')" class="hover:text-amber-400 transition">Courses</button>
         <button onclick="navigate('tutorials')" class="hover:text-amber-400 transition">Tutorials</button>
-        <button onclick="navigate('resources')" class="hover:text-amber-400 transition">Resources</button>
-        <button onclick="navigate('projects')" class="hover:text-amber-400 transition">Projects</button>
-        <button onclick="navigate('about')" class="hover:text-amber-400 transition">About</button>
-        <button onclick="navigate('contact')" class="hover:text-amber-400 transition">Contact</button>
       </nav>
 
-      <!-- Auth Action Button -->
-      <div class="flex items-center space-x-3">
-        <button id="nav-auth-btn" onclick="handleAuthAction()" class="px-4 py-2 bg-brandBlue hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition shadow-md">
-          Log In
-        </button>
-
-        <button onclick="toggleMobileMenu()" class="md:hidden text-slate-300 hover:text-white p-2 rounded-lg border border-slate-800">
-          <svg id="icon-menu" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-          <svg id="icon-close" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-        </button>
+      <div id="nav-auth-slot" class="flex items-center space-x-3">
+        <!-- Injected dynamically by JS -->
       </div>
-    </div>
-
-    <!-- Mobile Drawer Navigation -->
-    <div id="mobile-dropdown" class="hidden md:hidden bg-slate-900 border-t border-slate-800 px-5 py-4 space-y-3 text-xs font-bold text-slate-300">
-      <button onclick="navigate('home'); toggleMobileMenu();" class="block w-full text-left py-2 border-b border-slate-800">Home</button>
-      <button onclick="navigate('courses'); toggleMobileMenu();" class="block w-full text-left py-2 border-b border-slate-800">Courses</button>
-      <button onclick="navigate('tutorials'); toggleMobileMenu();" class="block w-full text-left py-2 border-b border-slate-800">Tutorials</button>
-      <button onclick="navigate('resources'); toggleMobileMenu();" class="block w-full text-left py-2 border-b border-slate-800">Resources</button>
-      <button onclick="navigate('projects'); toggleMobileMenu();" class="block w-full text-left py-2 border-b border-slate-800">Projects</button>
-      <button onclick="navigate('about'); toggleMobileMenu();" class="block w-full text-left py-2 border-b border-slate-800">About</button>
-      <button onclick="navigate('contact'); toggleMobileMenu();" class="block w-full text-left py-2">Contact</button>
     </div>
   </header>
 
-  <!-- PWA & Mobile Capabilities -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0A1120">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="B-Tech Hub">
-<link rel="apple-touch-icon" href="logo.png">
-  
-  <!-- Application Main View Container -->
-  <main id="app-content" class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-8">
-    <!-- Dynamic Content Injected Here -->
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast" class="fixed top-16 right-4 z-50 transform transition-all duration-300 translate-y-[-100px] opacity-0 max-w-sm px-4 py-3 rounded-xl shadow-2xl text-xs font-bold text-white flex items-center space-x-2">
+    <span id="toast-msg"></span>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <main id="app" class="flex-grow max-w-6xl w-full mx-auto px-4 py-6">
+    <!-- Views rendered here -->
   </main>
 
-  <!-- Toast Notification Container -->
-  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
-
-  <!-- Corporate Footer -->
-  <footer class="bg-brandDark text-slate-400 text-xs py-12 border-t border-slate-800 mt-12">
-    <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-      <div class="space-y-3">
-        <div class="flex items-center space-x-2">
-          <img src="logo.png" alt="Logo" class="h-6 w-auto" onerror="this.src='https://via.placeholder.com/100x30/0052FF/ffffff?text=B-TECH'">
-        </div>
-        <p class="text-[11px] font-bold text-amber-400 tracking-wider">TECH • LEARN • BUILD • GROW</p>
-        <p class="text-xs text-slate-400 leading-relaxed">Learn Skills. Build Projects. Grow Your Future.</p>
+  <!-- FOOTER -->
+  <footer class="bg-slate-900 text-slate-400 text-xs border-t border-slate-800 mt-12 py-8">
+    <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
+      <p>© 2026 B-Tech Hub. All Rights Reserved.</p>
+      <div class="flex space-x-6">
+        <button onclick="togglePrivacyModal()" class="hover:text-white underline">Privacy Policy</button>
+        <a href="mailto:iboiblessed1@gmail.com" class="hover:text-white underline">Contact Support</a>
       </div>
-
-      <div class="space-y-2">
-        <p class="text-white font-bold text-xs uppercase tracking-wider">Explore</p>
-        <ul class="space-y-1">
-          <li><button onclick="navigate('courses')" class="hover:text-white">Courses</button></li>
-          <li><button onclick="navigate('tutorials')" class="hover:text-white">Tutorials</button></li>
-          <li><button onclick="navigate('resources')" class="hover:text-white">Resources</button></li>
-          <li><button onclick="navigate('projects')" class="hover:text-white">Projects</button></li>
-        </ul>
-      </div>
-
-      <div class="space-y-2">
-        <p class="text-white font-bold text-xs uppercase tracking-wider">Company</p>
-        <ul class="space-y-1">
-          <li><button onclick="navigate('about')" class="hover:text-white">About</button></li>
-          <li><button onclick="navigate('contact')" class="hover:text-white">Contact</button></li>
-        </ul>
-      </div>
-
-      <div class="space-y-2">
-        <p class="text-white font-bold text-xs uppercase tracking-wider">Hub Contacts</p>
-        <p class="text-xs text-slate-300">Monrovia, Liberia</p>
-        <p class="text-xs text-slate-300"><a href="mailto:blessedtechhub5@gmail.com" class="text-blue-400 hover:underline">blessedtechhub5@gmail.com</a></p>
-      </div>
-    </div>
-
-    <div class="max-w-7xl mx-auto px-6 border-t border-slate-800/80 pt-6 flex flex-col sm:flex-row justify-between items-center text-[11px] text-slate-500">
-      <p>&copy; 2026 B-Tech Hub. All rights reserved.</p>
-      <p class="text-slate-400 font-semibold mt-2 sm:mt-0">Your Tech Journey Starts Here.</p>
     </div>
   </footer>
 
+  <!-- COOKIE CONSENT BANNER -->
+  <div id="cookie-banner" class="fixed bottom-4 right-4 max-w-sm bg-slate-900 border border-slate-800 text-slate-300 p-4 rounded-xl shadow-2xl hidden z-50">
+    <p class="text-xs mb-3">We use cookies to ensure login state persistence. By continuing, you agree to our <button onclick="togglePrivacyModal()" class="text-amber-400 underline font-semibold">Privacy Policy</button>.</p>
+    <button onclick="acceptCookies()" class="w-full py-2 bg-brandBlue hover:bg-blue-600 text-white text-xs font-bold rounded-lg transition">Accept Cookies</button>
+  </div>
+
+  <!-- PRIVACY POLICY MODAL -->
+  <div id="privacy-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6 sm:p-8 rounded-2xl space-y-4 shadow-2xl border">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h2 class="text-lg font-black text-slate-900">Privacy Policy</h2>
+        <button onclick="togglePrivacyModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+      </div>
+      <div class="text-xs text-slate-600 leading-relaxed space-y-3">
+        <p><strong>Effective Date:</strong> September 2026</p>
+        <p>B-Tech Hub ("we", "our", "us") respects your privacy. This policy outlines how we handle user data on our platform.</p>
+        <h3 class="font-bold text-slate-800 text-sm">1. Information We Collect</h3>
+        <p>We collect basic details such as your email address when you register an account or interact with learning resources.</p>
+        <h3 class="font-bold text-slate-800 text-sm">2. Cookies & Local Storage</h3>
+        <p>We use essential cookies and browser storage to maintain session states ("Remember Me") and site security.</p>
+        <h3 class="font-bold text-slate-800 text-sm">3. Data Security</h3>
+        <p>All authentication credentials and user database entries are protected via Supabase row-level security (RLS) standards.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORGOT PASSWORD / OTP MODAL -->
+  <div id="otp-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white max-w-sm w-full p-6 rounded-2xl space-y-4 shadow-2xl border">
+      <div class="flex justify-between items-center">
+        <h3 class="text-base font-black text-slate-900">Reset Password</h3>
+        <button onclick="closeOtpModal()" class="text-slate-400 hover:text-slate-600 text-sm font-bold">✕</button>
+      </div>
+
+      <!-- Step 1: Request OTP -->
+      <div id="otp-step-1" class="space-y-3">
+        <p class="text-xs text-slate-600">Enter your account email. We will send an OTP code to reset your password.</p>
+        <input id="otp-email" type="email" placeholder="iboiblessed1@gmail.com" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
+        <button onclick="sendOtpCode()" class="w-full py-2.5 bg-brandBlue text-white font-bold text-xs rounded-lg hover:bg-blue-600 transition">Send Code</button>
+      </div>
+
+      <!-- Step 2: Enter OTP & New Password -->
+      <div id="otp-step-2" class="space-y-3 hidden">
+        <p class="text-xs text-slate-600">Enter the 6-digit OTP code sent to your email and your new password.</p>
+        <input id="otp-code" type="text" maxlength="6" placeholder="123456" class="w-full p-2.5 border rounded-lg text-xs text-center font-mono tracking-widest focus:ring-2 focus:ring-brandBlue outline-none" />
+        <input id="otp-new-pass" type="password" minlength="6" placeholder="New Password" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
+        <button onclick="verifyOtpAndReset()" class="w-full py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-lg hover:bg-emerald-500 transition">Update Password</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC SCRIPT -->
   <script>
-    // Supabase Configuration
+    // 1. SUPABASE CLIENT INITIALIZATION
     const SUPABASE_URL = 'https://argvofusfdrwengshbqw.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZ3ZvZnVzZmRyd2VuZ3NoYnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjkxOTIsImV4cCI6MjEwMzg0NTE5Mn0.lS8P1NhaWVhyW3XMHz5ErC-aIXq-wsMrV8I9RFxtXIE';
-    const ADMIN_EMAILS = ['blessedtechhub5@gmail.com', 'iboiblessed1@gmail.com'];
-    
-    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZ3ZvZnVzZmRyd2VuZ3NoYnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEyODg5MzAsImV4cCI6MjA1Njg2NDkzMH0.placeholder'; 
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Owner Accounts
+    const ADMIN_EMAILS = ['iboiblessed1@gmail.com'];
     let currentUser = null;
 
-    // Session Listener
-    document.addEventListener('DOMContentLoaded', async () => {
-      const { data: { session } } = await db.auth.getSession();
-      if (session) {
-        currentUser = session.user;
-        updateAuthBtn();
+    // 2. BOOTSTRAP & AUTH STATE
+    window.addEventListener('DOMContentLoaded', async () => {
+      // Cookie banner check
+      if (!localStorage.getItem('btech_cookies_accepted')) {
+        document.getElementById('cookie-banner').classList.remove('hidden');
       }
+
+      // Check session
+      const { data: { session } } = await db.auth.getSession();
+      currentUser = session ? session.user : null;
+      updateHeaderNav();
+      navigate('home');
 
       db.auth.onAuthStateChange((_event, session) => {
         currentUser = session ? session.user : null;
-        updateAuthBtn();
+        updateHeaderNav();
       });
-
-      navigate('home');
     });
 
-    function updateAuthBtn() {
-      const btn = document.getElementById('nav-auth-btn');
-      if (currentUser) {
-        btn.textContent = ADMIN_EMAILS.includes(currentUser.email) ? 'Admin Room' : 'Dashboard';
+    // 3. NAVIGATION ROUTER
+    async function navigate(view) {
+      const app = document.getElementById('app');
+      app.innerHTML = '';
+
+      if (view === 'home') renderHome(app);
+      else if (view === 'courses') renderCourses(app);
+      else if (view === 'tutorials') renderTutorials(app);
+      else if (view === 'login') renderLogin(app);
+      else if (view === 'admin') await renderAdmin(app);
+    }
+
+    function updateHeaderNav() {
+      const slot = document.getElementById('nav-auth-slot');
+      if (!currentUser) {
+        slot.innerHTML = `<button onclick="navigate('login')" class="px-3.5 py-1.5 bg-brandBlue hover:bg-blue-600 text-white text-xs font-bold rounded-lg transition">Sign In</button>`;
       } else {
-        btn.textContent = 'Log In';
+        const isAdmin = ADMIN_EMAILS.includes(currentUser.email);
+        slot.innerHTML = `
+          ${isAdmin ? `<button onclick="navigate('admin')" class="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-lg transition">Admin</button>` : ''}
+          <button onclick="handleSignOut()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition">Sign Out</button>
+        `;
       }
     }
 
-    function handleAuthAction() {
-      if (currentUser) {
-        if (ADMIN_EMAILS.includes(currentUser.email)) navigate('admin');
-        else navigate('dashboard');
-      } else {
-        navigate('login');
-      }
-    }
-
-    function toggleMobileMenu() {
-      const menu = document.getElementById('mobile-dropdown');
-      const iconMenu = document.getElementById('icon-menu');
-      const iconClose = document.getElementById('icon-close');
-      const isHidden = menu.classList.contains('hidden');
-      
-      menu.classList.toggle('hidden', !isHidden);
-      iconMenu.classList.toggle('hidden', isHidden);
-      iconClose.classList.toggle('hidden', !isHidden);
-    }
-
-    function showToast(msg, type = 'info') {
-      const container = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      const styles = {
-        success: 'bg-slate-900 text-emerald-400 border-emerald-500',
-        error: 'bg-slate-900 text-red-400 border-red-500',
-        info: 'bg-slate-900 text-white border-slate-700'
-      };
-      toast.className = `${styles[type]} fade-in pointer-events-auto text-xs px-4 py-3 rounded-lg shadow-xl border font-semibold`;
-      toast.innerHTML = `<span>${msg}</span>`;
-      container.appendChild(toast);
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 200);
-      }, 3000);
-    }
-
-    function navigate(view) {
-      const container = document.getElementById('app-content');
-      if (!container) return;
-      window.scrollTo(0, 0);
-
-      if (view === 'home') renderHome(container);
-      else if (view === 'courses') renderCourses(container);
-      else if (view === 'tutorials') renderTutorials(container);
-      else if (view === 'resources') renderResources(container);
-      else if (view === 'projects') renderProjects(container);
-      else if (view === 'about') renderAbout(container);
-      else if (view === 'contact') renderContact(container);
-      else if (view === 'login') renderLogin(container);
-      else if (view === 'dashboard') renderDashboard(container);
-      else if (view === 'admin') renderAdmin(container);
-    }
-
-    // --- HOME VIEW ---
+    // 4. HOME VIEW
     function renderHome(container) {
       container.innerHTML = `
-        <div class="space-y-16 py-4 fade-in">
-          <!-- Hero Section -->
-          <section class="bg-brandDark text-white rounded-3xl p-8 sm:p-14 border border-slate-800 shadow-2xl relative overflow-hidden text-center sm:text-left">
-            <div class="max-w-3xl space-y-6 relative z-10">
-              <span class="px-3.5 py-1 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-full text-xs font-bold uppercase tracking-wider">B-TECH HUB Platform</span>
-              <h1 class="text-4xl sm:text-6xl font-black leading-tight tracking-tight">Build Your Future With Technology.</h1>
-              <p class="text-slate-300 text-sm sm:text-base leading-relaxed">Learn practical tech skills, discover powerful tools, build real projects, and grow in the digital world.</p>
-              <div class="flex flex-wrap gap-4 justify-center sm:justify-start pt-2">
-                <button onclick="navigate('courses')" class="px-6 py-3.5 bg-brandBlue hover:bg-blue-600 font-bold rounded-xl text-xs shadow-lg transition">Start Learning</button>
-                <button onclick="navigate('resources')" class="px-6 py-3.5 bg-slate-800 hover:bg-slate-700 font-bold rounded-xl text-xs border border-slate-700 transition">Explore Resources</button>
-              </div>
-            </div>
-          </section>
-
-          <!-- Intro Section -->
-          <section class="max-w-4xl mx-auto text-center space-y-4">
-            <h2 class="text-2xl sm:text-3xl font-black text-slate-900">Technology Should Be Easier to Learn.</h2>
-            <p class="text-slate-600 text-sm leading-relaxed">
-              B-Tech Hub is a technology and learning platform created to help beginners, creators, students, developers, and digital enthusiasts learn practical skills and discover resources they can actually use.
-            </p>
-          </section>
-
-          <!-- What You Can Do Section -->
-          <section class="space-y-8">
-            <h2 class="text-2xl font-black text-slate-900 text-center">WHAT YOU CAN DO</h2>
-            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div class="bg-white p-6 rounded-2xl border border-slate-200 space-y-3 shadow-sm">
-                <span class="text-xs font-bold text-brandBlue uppercase">01. Learn</span>
-                <h3 class="font-bold text-slate-900 text-base">Gain practical technology skills.</h3>
-                <p class="text-xs text-slate-600 leading-relaxed">Explore easy-to-understand tutorials and learning materials designed to help you progress from beginner to confident creator.</p>
-              </div>
-
-              <div class="bg-white p-6 rounded-2xl border border-slate-200 space-y-3 shadow-sm">
-                <span class="text-xs font-bold text-emerald-600 uppercase">02. Build</span>
-                <h3 class="font-bold text-slate-900 text-base">Turn Knowledge Into Real Projects.</h3>
-                <p class="text-xs text-slate-600 leading-relaxed">Learn by doing. Follow practical guides and build websites, applications, and digital projects.</p>
-              </div>
-
-              <div class="bg-white p-6 rounded-2xl border border-slate-200 space-y-3 shadow-sm">
-                <span class="text-xs font-bold text-amber-500 uppercase">03. Discover</span>
-                <h3 class="font-bold text-slate-900 text-base">Find the Tools You Need.</h3>
-                <p class="text-xs text-slate-600 leading-relaxed">Discover useful AI, coding, design, productivity, and development tools in one place.</p>
-              </div>
-
-              <div class="bg-white p-6 rounded-2xl border border-slate-200 space-y-3 shadow-sm">
-                <span class="text-xs font-bold text-purple-600 uppercase">04. Grow</span>
-                <h3 class="font-bold text-slate-900 text-base">Keep Moving Forward.</h3>
-                <p class="text-xs text-slate-600 leading-relaxed">Develop your skills, discover new opportunities, and stay connected with the rapidly changing digital world.</p>
-              </div>
-            </div>
-          </section>
+        <div class="py-12 space-y-8 fade-in text-center">
+          <span class="px-3 py-1 bg-blue-100 text-brandBlue text-xs font-bold rounded-full">Official Brand Hub</span>
+          <h1 class="text-3xl md:text-5xl font-black text-slate-900 leading-tight">Master Web Development, Graphic Design & AI Automation</h1>
+          <p class="text-xs md:text-sm text-slate-600 max-w-xl mx-auto leading-relaxed">Access tutorials, structured courses, and automation utilities curated directly by Blessed Studios.</p>
+          
+          <div class="flex justify-center gap-4 pt-4">
+            <button onclick="navigate('courses')" class="px-6 py-3 bg-brandBlue text-white font-bold text-xs rounded-xl shadow-lg hover:bg-blue-600 transition">Explore Courses</button>
+            <button onclick="navigate('tutorials')" class="px-6 py-3 bg-slate-900 text-white font-bold text-xs rounded-xl shadow-lg hover:bg-slate-800 transition">Watch Tutorials</button>
+          </div>
         </div>
       `;
     }
 
-    // --- COURSES VIEW ---
+    // 5. PUBLIC COURSES VIEW
     async function renderCourses(container) {
+      container.innerHTML = `<div class="text-center py-12 text-xs font-bold text-slate-400">Loading published courses...</div>`;
+      
+      const { data: courses } = await db.from('courses').select('*').eq('is_published', true);
+
       container.innerHTML = `
-        <div class="space-y-10 py-4 fade-in">
-          <div class="text-center space-y-3 max-w-2xl mx-auto">
-            <h1 class="text-3xl font-black text-slate-900">Learn. Practice. Build.</h1>
-            <p class="text-slate-600 text-xs sm:text-sm">Learn technology through practical courses designed for real-world skills.</p>
+        <div class="space-y-6 fade-in py-4">
+          <div class="border-b pb-4">
+            <h2 class="text-2xl font-black text-slate-900">Featured Courses</h2>
+            <p class="text-xs text-slate-500">Industry-ready pathways in Web Dev and AI Automation.</p>
           </div>
-
-          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 space-y-3 shadow-sm flex flex-col justify-between">
-              <div>
-                <span class="px-2.5 py-1 bg-blue-50 text-brandBlue text-[10px] font-bold rounded-md">Web Dev</span>
-                <h3 class="font-bold text-slate-900 text-base mt-2">Web Development</h3>
-                <p class="text-xs text-slate-600 mt-1">Learn how websites work and build modern websites from scratch.</p>
-              </div>
-              <button onclick="showToast('Web Development Course enrollment opening soon!')" class="w-full py-2 bg-slate-900 text-white font-bold text-xs rounded-lg mt-4">Enroll Course</button>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 space-y-3 shadow-sm flex flex-col justify-between">
-              <div>
-                <span class="px-2.5 py-1 bg-purple-50 text-purple-600 text-[10px] font-bold rounded-md">AI Tech</span>
-                <h3 class="font-bold text-slate-900 text-base mt-2">AI & Automation</h3>
-                <p class="text-xs text-slate-600 mt-1">Discover AI tools and learn how to use technology to work smarter.</p>
-              </div>
-              <button onclick="showToast('AI Course enrollment opening soon!')" class="w-full py-2 bg-slate-900 text-white font-bold text-xs rounded-lg mt-4">Enroll Course</button>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 space-y-3 shadow-sm flex flex-col justify-between">
-              <div>
-                <span class="px-2.5 py-1 bg-amber-50 text-amber-600 text-[10px] font-bold rounded-md">Design</span>
-                <h3 class="font-bold text-slate-900 text-base mt-2">Graphic Design</h3>
-                <p class="text-xs text-slate-600 mt-1">Learn the fundamentals of digital design and visual communication.</p>
-              </div>
-              <button onclick="showToast('Graphic Design Course enrollment opening soon!')" class="w-full py-2 bg-slate-900 text-white font-bold text-xs rounded-lg mt-4">Enroll Course</button>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 space-y-3 shadow-sm flex flex-col justify-between">
-              <div>
-                <span class="px-2.5 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-bold rounded-md">Digital</span>
-                <h3 class="font-bold text-slate-900 text-base mt-2">Digital Skills</h3>
-                <p class="text-xs text-slate-600 mt-1">Build the essential technology skills you need in today's digital world.</p>
-              </div>
-              <button onclick="showToast('Digital Skills Course enrollment opening soon!')" class="w-full py-2 bg-slate-900 text-white font-bold text-xs rounded-lg mt-4">Enroll Course</button>
-            </div>
-          </div>
-
-          <div class="bg-brandDark text-white p-8 rounded-2xl text-center space-y-4 border border-slate-800">
-            <h2 class="text-xl font-bold">Ready to start learning?</h2>
-            <p class="text-xs text-slate-400">Choose a course and take the next step in your tech journey.</p>
-            <button onclick="navigate('login')" class="px-6 py-2.5 bg-brandBlue hover:bg-blue-600 font-bold rounded-lg text-xs">Browse Courses</button>
+          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            ${!courses || courses.length === 0 ? '<p class="text-xs text-slate-500 col-span-full">No published courses available yet.</p>' : 
+              courses.map(c => `
+                <div class="bg-white p-5 rounded-2xl border shadow-sm space-y-3">
+                  <span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-md">${c.category}</span>
+                  <h3 class="font-black text-base text-slate-900">${c.title}</h3>
+                  <p class="text-xs text-slate-600 leading-relaxed">${c.description}</p>
+                </div>
+              `).join('')
+            }
           </div>
         </div>
       `;
     }
 
-    // --- TUTORIALS VIEW ---
-    function renderTutorials(container) {
+    // 6. PUBLIC TUTORIALS VIEW
+    async function renderTutorials(container) {
+      container.innerHTML = `<div class="text-center py-12 text-xs font-bold text-slate-400">Loading video tutorials...</div>`;
+
+      const { data: tutorials } = await db.from('tutorials').select('*').eq('is_published', true);
+
       container.innerHTML = `
-        <div class="space-y-8 py-4 fade-in max-w-5xl mx-auto">
-          <div class="space-y-3">
-            <h1 class="text-3xl font-black text-slate-900">Practical Tutorials. Real Skills.</h1>
-            <p class="text-xs sm:text-sm text-slate-600">Step-by-step guides that make technology easier to understand and apply.</p>
+        <div class="space-y-6 fade-in py-4">
+          <div class="border-b pb-4">
+            <h2 class="text-2xl font-black text-slate-900">Video Tutorials</h2>
+            <p class="text-xs text-slate-500">Walkthroughs on graphic design, development, and tech setup.</p>
           </div>
-
-          <!-- Search & Filter Bar -->
-          <div class="space-y-4">
-            <input type="text" placeholder="Search tutorials..." class="w-full p-3 border rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-brandBlue" />
-            <div class="flex flex-wrap gap-2 text-xs font-semibold">
-              <span class="px-3 py-1 bg-brandDark text-white rounded-lg cursor-pointer">All</span>
-              <span class="px-3 py-1 bg-white border rounded-lg hover:bg-slate-100 cursor-pointer">Web Development</span>
-              <span class="px-3 py-1 bg-white border rounded-lg hover:bg-slate-100 cursor-pointer">AI</span>
-              <span class="px-3 py-1 bg-white border rounded-lg hover:bg-slate-100 cursor-pointer">Design</span>
-              <span class="px-3 py-1 bg-white border rounded-lg hover:bg-slate-100 cursor-pointer">Coding</span>
-              <span class="px-3 py-1 bg-white border rounded-lg hover:bg-slate-100 cursor-pointer">Digital Skills</span>
-            </div>
-          </div>
-
-          <!-- Example Tutorials -->
-          <div class="grid sm:grid-cols-2 gap-6">
-            <div class="bg-white p-5 rounded-xl border space-y-2 shadow-sm">
-              <span class="text-[10px] font-bold text-brandBlue uppercase">Web Development</span>
-              <h3 class="font-bold text-slate-900 text-sm">HTML for Beginners</h3>
-              <p class="text-xs text-slate-600">Learn the fundamentals of HTML and create your first webpage.</p>
-            </div>
-
-            <div class="bg-white p-5 rounded-xl border space-y-2 shadow-sm">
-              <span class="text-[10px] font-bold text-brandBlue uppercase">Web Development</span>
-              <h3 class="font-bold text-slate-900 text-sm">CSS Basics</h3>
-              <p class="text-xs text-slate-600">Learn how to style websites and create modern layouts.</p>
-            </div>
-
-            <div class="bg-white p-5 rounded-xl border space-y-2 shadow-sm">
-              <span class="text-[10px] font-bold text-brandBlue uppercase">Coding</span>
-              <h3 class="font-bold text-slate-900 text-sm">JavaScript Fundamentals</h3>
-              <p class="text-xs text-slate-600">Start programming for the web with JavaScript.</p>
-            </div>
-
-            <div class="bg-white p-5 rounded-xl border space-y-2 shadow-sm">
-              <span class="text-[10px] font-bold text-purple-600 uppercase">AI</span>
-              <h3 class="font-bold text-slate-900 text-sm">Build a Website With AI</h3>
-              <p class="text-xs text-slate-600">Discover how AI can help you plan, create, and improve websites.</p>
-            </div>
+          <div class="grid md:grid-cols-2 gap-6">
+            ${!tutorials || tutorials.length === 0 ? '<p class="text-xs text-slate-500 col-span-full">No video tutorials published yet.</p>' : 
+              tutorials.map(t => `
+                <div class="bg-white p-5 rounded-2xl border shadow-sm space-y-3">
+                  <span class="px-2.5 py-0.5 bg-blue-100 text-brandBlue text-[10px] font-bold rounded-md">${t.category}</span>
+                  <h3 class="font-black text-base text-slate-900">${t.title}</h3>
+                  ${t.video_url ? `<div class="aspect-video bg-slate-100 rounded-xl flex items-center justify-center text-xs font-bold text-slate-400 overflow-hidden"><a href="${t.video_url}" target="_blank" class="text-brandBlue underline">Watch Video Source ↗</a></div>` : ''}
+                  <p class="text-xs text-slate-600">${t.description}</p>
+                </div>
+              `).join('')
+            }
           </div>
         </div>
       `;
     }
 
-    // --- RESOURCES VIEW ---
-    function renderResources(container) {
+    // 7. AUTHENTICATION & LOGIN VIEW
+    function renderLogin(container) {
       container.innerHTML = `
-        <div class="space-y-8 py-4 fade-in max-w-5xl mx-auto">
-          <div class="space-y-3">
-            <h1 class="text-3xl font-black text-slate-900">Tools & Resources For Your Tech Journey</h1>
-            <p class="text-xs sm:text-sm text-slate-600">Discover useful tools, websites, courses, templates, and resources to help you learn and build.</p>
+        <div class="max-w-md mx-auto space-y-6 py-8 fade-in">
+          <div class="flex border-b border-slate-200 text-center font-bold text-xs">
+            <button id="tab-login-btn" onclick="switchAuthTab('login')" class="w-1/2 py-3 border-b-2 border-brandBlue text-brandBlue">Log In</button>
+            <button id="tab-signup-btn" onclick="switchAuthTab('signup')" class="w-1/2 py-3 text-slate-400 hover:text-slate-600">Create Account</button>
           </div>
 
-          <!-- Categories List -->
-          <div class="flex flex-wrap gap-2 text-xs font-semibold">
-            <span class="px-3.5 py-1.5 bg-brandDark text-white rounded-lg">AI Tools</span>
-            <span class="px-3.5 py-1.5 bg-white border rounded-lg">Coding Tools</span>
-            <span class="px-3.5 py-1.5 bg-white border rounded-lg">Design Tools</span>
-            <span class="px-3.5 py-1.5 bg-white border rounded-lg">Developer Resources</span>
-            <span class="px-3.5 py-1.5 bg-white border rounded-lg">Free Courses</span>
-            <span class="px-3.5 py-1.5 bg-white border rounded-lg">Templates</span>
-            <span class="px-3.5 py-1.5 bg-white border rounded-lg">Productivity</span>
-          </div>
-
-          <!-- CTA Banner -->
-          <div class="bg-brandDark text-white p-8 rounded-2xl text-center space-y-3 border border-slate-800">
-            <h2 class="text-xl font-bold">Find Your Next Tool</h2>
-            <p class="text-xs text-slate-400 max-w-lg mx-auto">Explore resources selected to help you work smarter and create better.</p>
-            <button onclick="showToast('Loading full directory...')" class="px-6 py-2.5 bg-brandBlue hover:bg-blue-600 font-bold rounded-lg text-xs">Explore Resources</button>
-          </div>
-        </div>
-      `;
-    }
-
-    // --- PROJECTS VIEW ---
-    async function renderProjects(container) {
-      container.innerHTML = `
-        <div class="space-y-8 py-4 fade-in max-w-6xl mx-auto">
-          <div class="space-y-2">
-            <h1 class="text-3xl font-black text-slate-900">Learn by Building.</h1>
-            <p class="text-xs sm:text-sm text-slate-600">See what can happen when technology, creativity, and practical learning come together.</p>
-          </div>
-
-          <div id="projects-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <p class="text-slate-400 text-xs font-semibold col-span-full py-8 text-center">Loading showcase projects...</p>
-          </div>
-        </div>
-      `;
-
-      const { data: projects } = await db.from('projects').select('*').order('created_at', { ascending: false });
-      const grid = document.getElementById('projects-grid');
-
-      if (!projects || projects.length === 0) {
-        grid.innerHTML = `
-          <div class="bg-white p-6 rounded-2xl border space-y-3 col-span-full text-center">
-            <h3 class="font-bold text-slate-900 text-sm">Sample Project</h3>
-            <p class="text-xs text-slate-600">Interactive web portal build for digital learning.</p>
-            <p class="text-[11px] font-bold text-brandBlue">Built with: HTML • CSS • JavaScript</p>
-            <button class="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg">View Project</button>
-          </div>
-        `;
-        return;
-      }
-
-      grid.innerHTML = projects.map(p => `
-        <div class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm flex flex-col justify-between">
-          <div class="space-y-2">
-            <h3 class="font-bold text-slate-900 text-base">${p.title}</h3>
-            <p class="text-xs text-slate-600 leading-relaxed">${p.description}</p>
-            <p class="text-[11px] font-bold text-brandBlue">Built with: ${p.built_with}</p>
-          </div>
-          <div class="space-y-2 pt-2 border-t border-slate-100">
-            ${p.live_url ? `<a href="${p.live_url}" target="_blank" class="block text-center py-2 bg-brandDark text-white text-xs font-bold rounded-xl hover:bg-slate-800">View Project</a>` : ''}
-            <button onclick="likeProject('${p.id}', ${p.likes_count || 0})" class="w-full py-1.5 text-xs font-bold text-slate-600 hover:text-red-500 border rounded-lg flex items-center justify-center gap-1.5">
-              <span>❤️ Like</span> <span id="likes-count-${p.id}">${p.likes_count || 0}</span>
-            </button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    async function likeProject(id, current) {
-      const next = current + 1;
-      const el = document.getElementById(`likes-count-${id}`);
-      if (el) el.textContent = next;
-      await db.from('projects').update({ likes_count: next }).eq('id', id);
-      showToast('Liked!', 'success');
-    }
-
-    // --- ABOUT VIEW ---
-    function renderAbout(container) {
-      container.innerHTML = `
-        <div class="max-w-3xl mx-auto space-y-8 py-4 fade-in">
-          <div class="space-y-4">
-            <h1 class="text-3xl font-black text-slate-900">Welcome to B-Tech Hub.</h1>
-            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              B-Tech Hub is a technology learning and resource platform focused on making technology more accessible and practical.
-            </p>
-          </div>
-
-          <div class="bg-white p-6 rounded-2xl border space-y-3">
-            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Our Goal Is Simple:</h2>
-            <p class="text-sm font-bold text-brandBlue">Help people learn technology, build useful things, and grow their digital future.</p>
-          </div>
-
-          <div class="space-y-3 bg-brandDark text-white p-8 rounded-2xl">
-            <p class="text-xs text-slate-400">We believe you don't need to know everything before you start.</p>
-            <div class="space-y-1 font-bold text-sm">
-              <p class="text-blue-400">You learn.</p>
-              <p class="text-emerald-400">You build.</p>
-              <p class="text-amber-400">You improve.</p>
-              <p class="text-purple-400">You grow.</p>
+          <!-- LOGIN FORM -->
+          <form id="form-login" onsubmit="handleEmailLogin(event)" class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm">
+            <div class="space-y-1">
+              <h2 class="text-xl font-black text-slate-900">Welcome Back</h2>
+              <p class="text-xs text-slate-500">Sign in to manage your account and access resources.</p>
             </div>
-            <p class="text-xs text-slate-300 font-semibold pt-2">That's B-Tech Hub.</p>
-          </div>
-        </div>
-      `;
-    }
 
-    // --- CONTACT VIEW ---
-    function renderContact(container) {
-      container.innerHTML = `
-        <div class="max-w-4xl mx-auto space-y-8 py-4 fade-in grid md:grid-cols-2 gap-8">
-          <div class="space-y-4">
-            <h1 class="text-3xl font-black text-slate-900">Let's Connect.</h1>
-            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Have a question, suggestion, partnership idea, or something you'd like to share?
-            </p>
-            <p class="text-xs font-bold text-slate-900">Send us a message.</p>
-
-            <div class="space-y-3 text-xs pt-4 border-t">
-              <div>
-                <span class="font-bold text-slate-400 block">Email:</span>
-                <a href="mailto:blessedtechhub5@gmail.com" class="text-brandBlue font-bold">blessedtechhub5@gmail.com</a>
-              </div>
-              <div>
-                <span class="font-bold text-slate-400 block">Location:</span>
-                <span class="font-bold text-slate-800">Monrovia, Liberia</span>
-              </div>
-              <div>
-                <span class="font-bold text-slate-400 block">Website:</span>
-                <span class="font-bold text-slate-800">B-Tech-Hub.vercel.app</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Form -->
-          <form onsubmit="handleContactSubmit(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
             <div>
-              <label class="text-[11px] font-bold text-slate-700 block mb-1">Name</label>
-              <input id="c-name" type="text" required class="w-full p-2.5 border rounded-lg text-xs" />
+              <label class="text-[11px] font-bold text-slate-700 block mb-1">Email Address</label>
+              <input id="l-email" type="email" required placeholder="admin@btechhub.com" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
             </div>
+
             <div>
-              <label class="text-[11px] font-bold text-slate-700 block mb-1">Email</label>
-              <input id="c-email" type="email" required class="w-full p-2.5 border rounded-lg text-xs" />
+              <div class="flex justify-between items-center mb-1">
+                <label class="text-[11px] font-bold text-slate-700">Password</label>
+                <button type="button" onclick="showForgotPasswordModal()" class="text-[11px] font-bold text-brandBlue hover:underline">Forgot Password?</button>
+              </div>
+              <input id="l-pass" type="password" required placeholder="••••••••" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
             </div>
+
+            <div class="flex items-center space-x-2">
+              <input id="l-remember" type="checkbox" class="w-4 h-4 text-brandBlue rounded border-slate-300 focus:ring-brandBlue" checked />
+              <label for="l-remember" class="text-xs font-semibold text-slate-600">Remember me on this device</label>
+            </div>
+
+            <button type="submit" class="w-full py-2.5 bg-brandBlue hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow-md transition">Log In</button>
+          </form>
+
+          <!-- SIGNUP FORM -->
+          <form id="form-signup" onsubmit="handleEmailSignup(event)" class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm hidden">
+            <div class="space-y-1">
+              <h2 class="text-xl font-black text-slate-900">Create Account</h2>
+              <p class="text-xs text-slate-500">Join B-Tech Hub to access tutorials and tools.</p>
+            </div>
+
             <div>
-              <label class="text-[11px] font-bold text-slate-700 block mb-1">Subject</label>
-              <input id="c-subject" type="text" required class="w-full p-2.5 border rounded-lg text-xs" />
+              <label class="text-[11px] font-bold text-slate-700 block mb-1">Email Address</label>
+              <input id="s-email" type="email" required placeholder="yourname@gmail.com" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
             </div>
+
             <div>
-              <label class="text-[11px] font-bold text-slate-700 block mb-1">Message</label>
-              <textarea id="c-msg" rows="4" required class="w-full p-2.5 border rounded-lg text-xs"></textarea>
+              <label class="text-[11px] font-bold text-slate-700 block mb-1">Password</label>
+              <input id="s-pass" type="password" required minlength="6" placeholder="Min. 6 characters" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
             </div>
-            <button type="submit" class="w-full py-2.5 bg-brandBlue hover:bg-blue-600 text-white font-bold text-xs rounded-lg transition">Send Message</button>
+
+            <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-md transition">Create Account</button>
           </form>
         </div>
       `;
     }
 
-    async function handleContactSubmit(e) {
+    // Auth Switcher
+    function switchAuthTab(tab) {
+      const isLogin = tab === 'login';
+      document.getElementById('form-login').classList.toggle('hidden', !isLogin);
+      document.getElementById('form-signup').classList.toggle('hidden', isLogin);
+    }
+
+    async function handleEmailLogin(e) {
       e.preventDefault();
-      const name = document.getElementById('c-name').value.trim();
-      const email = document.getElementById('c-email').value.trim();
-      const subject = document.getElementById('c-subject').value.trim();
-      const message = document.getElementById('c-msg').value.trim();
+      const email = document.getElementById('l-email').value.trim();
+      const password = document.getElementById('l-pass').value.trim();
+      const rememberMe = document.getElementById('l-remember').checked;
 
-      const { error } = await db.from('contact_messages').insert([{ name, email, subject, message }]);
-      if (error) return showToast('Failed to send message: ' + error.message, 'error');
+      if (!rememberMe) {
+        db.auth.configure({ storage: window.sessionStorage });
+      } else {
+        db.auth.configure({ storage: window.localStorage });
+      }
 
-      showToast('Message sent successfully!', 'success');
-      e.target.reset();
+      const { data, error } = await db.auth.signInWithPassword({ email, password });
+      if (error) {
+        showToast(error.message, 'error');
+      } else {
+        showToast('Login successful!', 'success');
+        if (ADMIN_EMAILS.includes(data.user.email)) navigate('admin');
+        else navigate('home');
+      }
     }
 
-    // --- LOGIN VIEW ---
-    function renderLogin(container) {
-  container.innerHTML = `
-    <div class="max-w-md mx-auto space-y-6 py-8 fade-in">
-      <!-- Header Tabs -->
-      <div class="flex border-b border-slate-200 text-center font-bold text-xs">
-        <button id="tab-login-btn" onclick="switchAuthTab('login')" class="w-1/2 py-3 border-b-2 border-brandBlue text-brandBlue">Log In</button>
-        <button id="tab-signup-btn" onclick="switchAuthTab('signup')" class="w-1/2 py-3 text-slate-400 hover:text-slate-600">Create Account</button>
-      </div>
+    async function handleEmailSignup(e) {
+      e.preventDefault();
+      const email = document.getElementById('s-email').value.trim();
+      const password = document.getElementById('s-pass').value.trim();
 
-      <!-- LOGIN FORM -->
-      <form id="form-login" onsubmit="handleEmailLogin(event)" class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm">
-        <div class="space-y-1">
-          <h2 class="text-xl font-black text-slate-900">Welcome Back</h2>
-          <p class="text-xs text-slate-500">Log in to manage B-Tech Hub.</p>
-        </div>
-
-        <div>
-          <label class="text-[11px] font-bold text-slate-700 block mb-1">Email Address</label>
-          <input id="l-email" type="email" required placeholder="admin@btechhub.com" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
-        </div>
-
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <label class="text-[11px] font-bold text-slate-700">Password</label>
-            <button type="button" onclick="showForgotPasswordModal()" class="text-[11px] font-bold text-brandBlue hover:underline">Forgot Password?</button>
-          </div>
-          <input id="l-pass" type="password" required placeholder="••••••••" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
-        </div>
-
-        <!-- Remember Me Checkbox -->
-        <div class="flex items-center space-x-2">
-          <input id="l-remember" type="checkbox" class="w-4 h-4 text-brandBlue rounded border-slate-300 focus:ring-brandBlue" checked />
-          <label for="l-remember" class="text-xs font-semibold text-slate-600">Remember me on this device</label>
-        </div>
-
-        <button type="submit" class="w-full py-2.5 bg-brandBlue hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow-md transition">Log In</button>
-      </form>
-
-      <!-- SIGNUP FORM -->
-      <form id="form-signup" onsubmit="handleEmailSignup(event)" class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm hidden">
-        <div class="space-y-1">
-          <h2 class="text-xl font-black text-slate-900">Create Account</h2>
-          <p class="text-xs text-slate-500">Join B-Tech Hub to access tutorials and tools.</p>
-        </div>
-
-        <div>
-          <label class="text-[11px] font-bold text-slate-700 block mb-1">Email Address</label>
-          <input id="s-email" type="email" required placeholder="yourname@gmail.com" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
-        </div>
-
-        <div>
-          <label class="text-[11px] font-bold text-slate-700 block mb-1">Password</label>
-          <input id="s-pass" type="password" required minlength="6" placeholder="Min. 6 characters" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
-        </div>
-
-        <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-md transition">Create Account</button>
-      </form>
-    </div>
-
-    <!-- FORGOT PASSWORD / OTP MODAL -->
-    <div id="otp-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-      <div class="bg-white max-w-sm w-full p-6 rounded-2xl space-y-4 shadow-2xl border">
-        <div class="flex justify-between items-center">
-          <h3 class="text-base font-black text-slate-900">Reset Password</h3>
-          <button onclick="closeOtpModal()" class="text-slate-400 hover:text-slate-600 text-sm font-bold">✕</button>
-        </div>
-
-        <!-- Step 1: Request OTP -->
-        <div id="otp-step-1" class="space-y-3">
-          <p class="text-xs text-slate-600">Enter your account email. We'll send an OTP code to reset your password.</p>
-          <input id="otp-email" type="email" placeholder="iboiblessed1@gmail.com" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
-          <button onclick="sendOtpCode()" class="w-full py-2.5 bg-brandBlue text-white font-bold text-xs rounded-lg">Send Code</button>
-        </div>
-
-        <!-- Step 2: Enter OTP & New Password -->
-        <div id="otp-step-2" class="space-y-3 hidden">
-          <p class="text-xs text-slate-600">Enter the 6-digit OTP code sent to your email and your new password.</p>
-          <input id="otp-code" type="text" maxlength="6" placeholder="123456" class="w-full p-2.5 border rounded-lg text-xs text-center font-mono tracking-widest focus:ring-2 focus:ring-brandBlue outline-none" />
-          <input id="otp-new-pass" type="password" minlength="6" placeholder="New Password" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
-          <button onclick="verifyOtpAndReset()" class="w-full py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-lg">Update Password</button>
-        </div>
-      </div>
-    </div>
-  `;
+      const { error } = await db.auth.signUp({ email, password });
+      if (error) showToast(error.message, 'error');
+      else showToast('Account created! You can now log in.', 'success');
     }
 
-// Tab Switcher
-function switchAuthTab(tab) {
-  const isLogin = tab === 'login';
-  document.getElementById('form-login').classList.toggle('hidden', !isLogin);
-  document.getElementById('form-signup').classList.toggle('hidden', isLogin);
-  
-  document.getElementById('tab-login-btn').className = isLogin 
-    ? 'w-1/2 py-3 border-b-2 border-brandBlue text-brandBlue font-bold' 
-    : 'w-1/2 py-3 text-slate-400 hover:text-slate-600 font-bold';
+    async function handleSignOut() {
+      await db.auth.signOut();
+      showToast('Signed out.', 'success');
+      navigate('home');
+    }
 
-  document.getElementById('tab-signup-btn').className = !isLogin 
-    ? 'w-1/2 py-3 border-b-2 border-brandBlue text-brandBlue font-bold' 
-    : 'w-1/2 py-3 text-slate-400 hover:text-slate-600 font-bold';
-}
+    // OTP Handlers
+    function showForgotPasswordModal() {
+      document.getElementById('otp-modal').classList.remove('hidden');
+    }
 
-// Handle Login with "Remember Me" Option
-async function handleEmailLogin(e) {
-  e.preventDefault();
-  const email = document.getElementById('l-email').value.trim();
-  const password = document.getElementById('l-pass').value.trim();
-  const rememberMe = document.getElementById('l-remember').checked;
+    function closeOtpModal() {
+      document.getElementById('otp-modal').classList.add('hidden');
+      document.getElementById('otp-step-1').classList.remove('hidden');
+      document.getElementById('otp-step-2').classList.add('hidden');
+    }
 
-  if (!rememberMe) {
-    // Session expires when browser tab closes
-    db.auth.configure({ storage: window.sessionStorage });
-  } else {
-    // Session persists across restarts
-    db.auth.configure({ storage: window.localStorage });
-  }
+    async function sendOtpCode() {
+      const email = document.getElementById('otp-email').value.trim();
+      if (!email) return showToast('Enter your email.', 'error');
 
-  const { data, error } = await db.auth.signInWithPassword({ email, password });
+      const { error } = await db.auth.resetPasswordForEmail(email);
+      if (error) return showToast(error.message, 'error');
 
-  if (error) {
-    showToast(error.message, 'error');
-  } else {
-    showToast('Login successful!', 'success');
-    if (ADMIN_EMAILS.includes(data.user.email)) navigate('admin');
-    else navigate('dashboard');
-  }
-}
+      showToast('OTP code sent to email!', 'success');
+      document.getElementById('otp-step-1').classList.add('hidden');
+      document.getElementById('otp-step-2').classList.remove('hidden');
+    }
 
-// Handle Account Registration
-async function handleEmailSignup(e) {
-  e.preventDefault();
-  const email = document.getElementById('s-email').value.trim();
-  const password = document.getElementById('s-pass').value.trim();
+    async function verifyOtpAndReset() {
+      const email = document.getElementById('otp-email').value.trim();
+      const token = document.getElementById('otp-code').value.trim();
+      const newPassword = document.getElementById('otp-new-pass').value.trim();
 
-  const { error } = await db.auth.signUp({ email, password });
-  if (error) showToast(error.message, 'error');
-  else showToast('Account created! Check your email to verify.', 'success');
-}
+      if (!token || !newPassword) return showToast('Fill all fields.', 'error');
 
-// Password Reset OTP Modals
-function showForgotPasswordModal() {
-  document.getElementById('otp-modal').classList.remove('hidden');
-}
+      const { error: otpError } = await db.auth.verifyOtp({ email, token, type: 'recovery' });
+      if (otpError) return showToast('Invalid OTP code.', 'error');
 
-function closeOtpModal() {
-  document.getElementById('otp-modal').classList.add('hidden');
-  document.getElementById('otp-step-1').classList.remove('hidden');
-  document.getElementById('otp-step-2').classList.add('hidden');
-}
+      const { error: passError } = await db.auth.updateUser({ password: newPassword });
+      if (passError) return showToast(passError.message, 'error');
 
-async function sendOtpCode() {
-  const email = document.getElementById('otp-email').value.trim();
-  if (!email) return showToast('Enter your email.', 'error');
+      showToast('Password updated! Redirecting...', 'success');
+      closeOtpModal();
+      navigate('admin');
+    }
 
-  const { error } = await db.auth.resetPasswordForEmail(email);
-  if (error) return showToast(error.message, 'error');
+    // 8. ADMIN CONTROL CENTER
+    async function renderAdmin(container) {
+      if (!currentUser || !ADMIN_EMAILS.includes(currentUser.email)) {
+        container.innerHTML = `<p class="text-center py-12 text-xs font-bold text-red-500">Access Denied. Owner level access required.</p>`;
+        return;
+      }
 
-  showToast('OTP code sent to your email!', 'success');
-  document.getElementById('otp-step-1').classList.add('hidden');
-  document.getElementById('otp-step-2').classList.remove('hidden');
-}
+      const { data: categories } = await db.from('categories').select('*');
 
-async function verifyOtpAndReset() {
-  const email = document.getElementById('otp-email').value.trim();
-  const token = document.getElementById('otp-code').value.trim();
-  const newPassword = document.getElementById('otp-new-pass').value.trim();
-
-  if (!token || !newPassword) return showToast('Fill all fields.', 'error');
-
-  // Verify OTP
-  const { error: otpError } = await db.auth.verifyOtp({ email, token, type: 'recovery' });
-  if (otpError) return showToast('Invalid OTP code.', 'error');
-
-  // Set new password
-  const { error: passError } = await db.auth.updateUser({ password: newPassword });
-  if (passError) return showToast(passError.message, 'error');
-
-  showToast('Password updated! Logging in...', 'success');
-  closeOtpModal();
-  navigate('admin');
-        }
-    
-    // --- USER DASHBOARD ---
-    function renderDashboard(container) {
       container.innerHTML = `
-        <div class="max-w-4xl mx-auto space-y-6 py-4 fade-in">
-          <div class="bg-brandDark text-white p-6 rounded-2xl space-y-1">
-            <h1 class="text-2xl font-black">Welcome back!</h1>
-            <p class="text-xs text-slate-400">Keep learning, keep building, and keep growing.</p>
+        <div class="max-w-5xl mx-auto space-y-8 py-4 fade-in">
+          <div class="bg-slate-900 text-white p-6 rounded-2xl flex justify-between items-center shadow-xl">
+            <div>
+              <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Owner Control Center</span>
+              <h1 class="text-2xl font-black">B-Tech Hub Portal</h1>
+            </div>
+            <button onclick="handleSignOut()" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg transition">Sign Out</button>
           </div>
 
-          <div class="grid sm:grid-cols-2 gap-4">
-            <div class="bg-white p-5 rounded-xl border space-y-2">
-              <h3 class="font-bold text-slate-900 text-sm">My Courses</h3>
-              <p class="text-xs text-slate-600">Continue your courses.</p>
-            </div>
-            <div class="bg-white p-5 rounded-xl border space-y-2">
-              <h3 class="font-bold text-slate-900 text-sm">Saved Resources</h3>
-              <p class="text-xs text-slate-600">Access resources you've saved.</p>
-            </div>
-            <div class="bg-white p-5 rounded-xl border space-y-2">
-              <h3 class="font-bold text-slate-900 text-sm">Learning Progress</h3>
-              <p class="text-xs text-slate-600">Track your progress.</p>
-            </div>
-            <div class="bg-white p-5 rounded-xl border space-y-2">
-              <h3 class="font-bold text-slate-900 text-sm">Profile</h3>
-              <p class="text-xs text-slate-600">Manage your account.</p>
+          <!-- Add Course / Tutorial Block -->
+          <div class="grid md:grid-cols-2 gap-6">
+            <!-- New Course Form -->
+            <form onsubmit="handleCreateCourse(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
+              <h3 class="font-bold text-slate-900 text-sm uppercase">Publish / Draft Course</h3>
+              <input id="ac-title" type="text" placeholder="Course Title (e.g. AI Automation)" required class="w-full p-2.5 border rounded-lg text-xs" />
+              
+              <select id="ac-cat" class="w-full p-2.5 border rounded-lg text-xs bg-white">
+                ${categories ? categories.filter(c => c.type === 'course').map(c => `<option value="${c.name}">${c.name}</option>`).join('') : '<option>Web Development</option>'}
+              </select>
+
+              <textarea id="ac-desc" rows="3" placeholder="Course Description..." required class="w-full p-2.5 border rounded-lg text-xs"></textarea>
+              
+              <div class="flex items-center space-x-2 pt-1">
+                <input id="ac-publish" type="checkbox" class="w-4 h-4 text-brandBlue rounded" />
+                <label for="ac-publish" class="text-xs font-bold text-slate-700">Publish Publicly Now (Uncheck for Draft)</label>
+              </div>
+
+              <button type="submit" class="w-full py-2.5 bg-brandBlue text-white font-bold text-xs rounded-lg hover:bg-blue-600">Save Course</button>
+            </form>
+
+            <!-- New Tutorial / Video Form -->
+            <form onsubmit="handleCreateTutorial(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
+              <h3 class="font-bold text-slate-900 text-sm uppercase">Publish / Draft Video Tutorial</h3>
+              <input id="at-title" type="text" placeholder="Tutorial Title" required class="w-full p-2.5 border rounded-lg text-xs" />
+              
+              <select id="at-cat" class="w-full p-2.5 border rounded-lg text-xs bg-white">
+                ${categories ? categories.filter(c => c.type === 'tutorial').map(c => `<option value="${c.name}">${c.name}</option>`).join('') : '<option>Graphic Design</option>'}
+              </select>
+
+              <input id="at-video" type="url" placeholder="Video Embed / YouTube / TikTok URL" class="w-full p-2.5 border rounded-lg text-xs" />
+              <textarea id="at-desc" rows="2" placeholder="Tutorial Overview..." required class="w-full p-2.5 border rounded-lg text-xs"></textarea>
+
+              <div class="flex items-center space-x-2 pt-1">
+                <input id="at-publish" type="checkbox" class="w-4 h-4 text-brandBlue rounded" />
+                <label for="at-publish" class="text-xs font-bold text-slate-700">Publish Publicly Now (Uncheck for Draft)</label>
+              </div>
+
+              <button type="submit" class="w-full py-2.5 bg-slate-900 text-white font-bold text-xs rounded-lg hover:bg-slate-800">Save Tutorial</button>
+            </form>
+          </div>
+
+          <!-- Category Management -->
+          <div class="bg-white p-6 rounded-2xl border space-y-4">
+            <h3 class="font-bold text-slate-900 text-sm uppercase">Dynamic Categories</h3>
+            <div class="flex gap-2">
+              <input id="cat-name" type="text" placeholder="Category Name (e.g., Cybersecurity)" class="flex-grow p-2.5 border rounded-lg text-xs" />
+              <select id="cat-type" class="p-2.5 border rounded-lg text-xs bg-white">
+                <option value="course">Course</option>
+                <option value="tutorial">Tutorial</option>
+              </select>
+              <button onclick="handleAddCategory()" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-lg">Add Category</button>
             </div>
           </div>
         </div>
       `;
     }
 
-    // --- ADMIN DASHBOARD ---
-    async function renderAdmin(container) {
-  if (!currentUser || !ADMIN_EMAILS.includes(currentUser.email)) {
-    container.innerHTML = `<p class="text-center py-12 text-xs font-bold text-red-500">Access Denied. Admins only.</p>`;
-    return;
-  }
+    async function handleCreateCourse(e) {
+      e.preventDefault();
+      const title = document.getElementById('ac-title').value;
+      const category = document.getElementById('ac-cat').value;
+      const description = document.getElementById('ac-desc').value;
+      const is_published = document.getElementById('ac-publish').checked;
 
-  // Fetch dynamic categories
-  const { data: categories } = await db.from('categories').select('*');
-
-  container.innerHTML = `
-    <div class="max-w-5xl mx-auto space-y-8 py-4 fade-in">
-      <div class="bg-brandDark text-white p-6 rounded-2xl flex justify-between items-center shadow-xl">
-        <div>
-          <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Owner Control Center</span>
-          <h1 class="text-2xl font-black">B-Tech Hub Portal</h1>
-        </div>
-        <button onclick="db.auth.signOut(); navigate('home');" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg transition">Sign Out</button>
-      </div>
-
-      <!-- Add Course / Tutorial Block -->
-      <div class="grid md:grid-cols-2 gap-6">
-        <!-- New Course Form -->
-        <form onsubmit="handleCreateCourse(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
-          <h3 class="font-bold text-slate-900 text-sm uppercase">Publish / Draft Course</h3>
-          <input id="ac-title" type="text" placeholder="Course Title (e.g. AI Automation)" required class="w-full p-2.5 border rounded-lg text-xs" />
-          
-          <select id="ac-cat" class="w-full p-2.5 border rounded-lg text-xs bg-white">
-            ${categories ? categories.filter(c => c.type === 'course').map(c => `<option value="${c.name}">${c.name}</option>`).join('') : '<option>Web Dev</option>'}
-          </select>
-
-          <textarea id="ac-desc" rows="3" placeholder="Course Description..." required class="w-full p-2.5 border rounded-lg text-xs"></textarea>
-          
-          <div class="flex items-center space-x-2 pt-1">
-            <input id="ac-publish" type="checkbox" class="w-4 h-4 text-brandBlue rounded" />
-            <label for="ac-publish" class="text-xs font-bold text-slate-700">Publish Publicly Now (Uncheck for Draft)</label>
-          </div>
-
-          <button type="submit" class="w-full py-2.5 bg-brandBlue text-white font-bold text-xs rounded-lg hover:bg-blue-600">Save Course</button>
-        </form>
-
-        <!-- New Tutorial / Video Form -->
-        <form onsubmit="handleCreateTutorial(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
-          <h3 class="font-bold text-slate-900 text-sm uppercase">Publish / Draft Video Tutorial</h3>
-          <input id="at-title" type="text" placeholder="Tutorial Title" required class="w-full p-2.5 border rounded-lg text-xs" />
-          
-          <select id="at-cat" class="w-full p-2.5 border rounded-lg text-xs bg-white">
-            ${categories ? categories.filter(c => c.type === 'tutorial').map(c => `<option value="${c.name}">${c.name}</option>`).join('') : '<option>Graphic Design</option>'}
-          </select>
-
-          <input id="at-video" type="url" placeholder="Video Embed / YouTube / TikTok URL" class="w-full p-2.5 border rounded-lg text-xs" />
-          <textarea id="at-desc" rows="2" placeholder="Tutorial Overview..." required class="w-full p-2.5 border rounded-lg text-xs"></textarea>
-
-          <div class="flex items-center space-x-2 pt-1">
-            <input id="at-publish" type="checkbox" class="w-4 h-4 text-brandBlue rounded" />
-            <label for="at-publish" class="text-xs font-bold text-slate-700">Publish Publicly Now (Uncheck for Draft)</label>
-          </div>
-
-          <button type="submit" class="w-full py-2.5 bg-slate-900 text-white font-bold text-xs rounded-lg hover:bg-slate-800">Save Tutorial</button>
-        </form>
-      </div>
-
-      <!-- Category Management -->
-      <div class="bg-white p-6 rounded-2xl border space-y-4">
-        <h3 class="font-bold text-slate-900 text-sm uppercase">Dynamic Categories</h3>
-        <div class="flex gap-2">
-          <input id="cat-name" type="text" placeholder="Category Name (e.g., Cybersecurity)" class="flex-grow p-2.5 border rounded-lg text-xs" />
-          <select id="cat-type" class="p-2.5 border rounded-lg text-xs bg-white">
-            <option value="course">Course</option>
-            <option value="tutorial">Tutorial</option>
-          </select>
-          <button onclick="handleAddCategory()" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-lg">Add Category</button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-// Action Handlers
-async function handleCreateCourse(e) {
-  e.preventDefault();
-  const title = document.getElementById('ac-title').value;
-  const category = document.getElementById('ac-cat').value;
-  const description = document.getElementById('ac-desc').value;
-  const is_published = document.getElementById('ac-publish').checked;
-
-  const { error } = await db.from('courses').insert([{ title, category, description, is_published }]);
-  if (error) showToast(error.message, 'error');
-  else {
-    showToast(is_published ? 'Course published live!' : 'Saved as draft.', 'success');
-    e.target.reset();
-  }
-}
-
-async function handleCreateTutorial(e) {
-  e.preventDefault();
-  const title = document.getElementById('at-title').value;
-  const category = document.getElementById('at-cat').value;
-  const video_url = document.getElementById('at-video').value;
-  const description = document.getElementById('at-desc').value;
-  const is_published = document.getElementById('at-publish').checked;
-
-  const { error } = await db.from('tutorials').insert([{ title, category, video_url, description, is_published }]);
-  if (error) showToast(error.message, 'error');
-  else {
-    showToast(is_published ? 'Tutorial published live!' : 'Saved as draft.', 'success');
-    e.target.reset();
-  }
-}
-
-async function handleAddCategory() {
-  const name = document.getElementById('cat-name').value.trim();
-  const type = document.getElementById('cat-type').value;
-
-  if (!name) return showToast('Enter a category name.', 'error');
-
-  const { error } = await db.from('categories').insert([{ name, type }]);
-  if (error) showToast(error.message, 'error');
-  else {
-    showToast('Category created!', 'success');
-    navigate('admin');
-  }
+      const { error } = await db.from('courses').insert([{ title, category, description, is_published }]);
+      if (error) showToast(error.message, 'error');
+      else {
+        showToast(is_published ? 'Course published live!' : 'Saved as draft.', 'success');
+        e.target.reset();
+      }
     }
 
-       <!-- Cookie Banner -->
-<div id="cookie-banner" class="fixed bottom-4 right-4 max-w-sm bg-slate-900 border border-slate-800 text-slate-300 p-4 rounded-xl shadow-2xl hidden z-50">
-  <p class="text-xs mb-3">We use cookies to improve your browsing experience on B-Tech Hub. By continuing, you agree to our <a href="#" onclick="togglePrivacyModal()" class="text-amber-400 underline">Privacy Policy</a>.</p>
-  <button onclick="acceptCookies()" class="w-full py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg transition">Accept Cookies</button>
-</div>
+    async function handleCreateTutorial(e) {
+      e.preventDefault();
+      const title = document.getElementById('at-title').value;
+      const category = document.getElementById('at-cat').value;
+      const video_url = document.getElementById('at-video').value;
+      const description = document.getElementById('at-desc').value;
+      const is_published = document.getElementById('at-publish').checked;
 
-<script>
-  if (!localStorage.getItem('btech_cookies_accepted')) {
-    document.getElementById('cookie-banner').classList.remove('hidden');
-  }
-  function acceptCookies() {
-    localStorage.setItem('btech_cookies_accepted', 'true');
-    document.getElementById('cookie-banner').classList.add('hidden');
-  }
+      const { error } = await db.from('tutorials').insert([{ title, category, video_url, description, is_published }]);
+      if (error) showToast(error.message, 'error');
+      else {
+        showToast(is_published ? 'Tutorial published live!' : 'Saved as draft.', 'success');
+        e.target.reset();
+      }
+    }
 
-    <!-- PRIVACY POLICY MODAL -->
-<div id="privacy-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-  <div class="bg-white max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6 sm:p-8 rounded-2xl space-y-4 shadow-2xl border">
-    <div class="flex justify-between items-center border-b pb-3">
-      <h2 class="text-lg font-black text-slate-900">Privacy Policy</h2>
-      <button onclick="togglePrivacyModal()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
-    </div>
-    <div class="text-xs text-slate-600 leading-relaxed space-y-3">
-      <p><strong>Effective Date:</strong> September 2026</p>
-      <p>B-Tech Hub ("we", "our", "us") respects your privacy. This policy outlines how we handle user data on <strong>B-Tech-Hub.vercel.app</strong>.</p>
-      <h3 class="font-bold text-slate-800 text-sm">1. Information We Collect</h3>
-      <p>We collect basic details such as your email address when you register an account or submit messages via our contact forms.</p>
-      <h3 class="font-bold text-slate-800 text-sm">2. Cookies & Local Storage</h3>
-      <p>We use essential cookies and browser storage to maintain session states ("Remember Me") and remember site preferences.</p>
-      <h3 class="font-bold text-slate-800 text-sm">3. Data Security</h3>
-      <p>All authentication credentials and user entries are protected via Supabase database row-level security (RLS) policies.</p>
-    </div>
-  </div>
-</div>
+    async function handleAddCategory() {
+      const name = document.getElementById('cat-name').value.trim();
+      const type = document.getElementById('cat-type').value;
 
-<script>
-  function togglePrivacyModal() {
-    document.getElementById('privacy-modal').classList.toggle('hidden');
-  }
-</script>
+      if (!name) return showToast('Enter a category name.', 'error');
+
+      const { error } = await db.from('categories').insert([{ name, type }]);
+      if (error) showToast(error.message, 'error');
+      else {
+        showToast('Category created!', 'success');
+        navigate('admin');
+      }
+    }
+
+    // 9. UTILITY HELPERS
+    function showToast(msg, type = 'info') {
+      const toast = document.getElementById('toast');
+      const msgEl = document.getElementById('toast-msg');
+      msgEl.innerText = msg;
+
+      toast.className = `fixed top-16 right-4 z-50 transform transition-all duration-300 px-4 py-3 rounded-xl shadow-2xl text-xs font-bold text-white flex items-center space-x-2 ${
+        type === 'error' ? 'bg-red-600' : 'bg-emerald-600'
+      }`;
+
+      toast.classList.remove('translate-y-[-100px]', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-[-100px]', 'opacity-0');
+      }, 3000);
+    }
+
+    function togglePrivacyModal() {
+      document.getElementById('privacy-modal').classList.toggle('hidden');
+    }
+
+    function acceptCookies() {
+      localStorage.setItem('btech_cookies_accepted', 'true');
+      document.getElementById('cookie-banner').classList.add('hidden');
+    }
+  </script>
 </body>
 </html>
