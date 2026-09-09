@@ -888,6 +888,31 @@ async function handleAddCategory() {
     localStorage.setItem('btech_cookies_accepted', 'true');
     document.getElementById('cookie-banner').classList.add('hidden');
   }
+
+    <!-- PRIVACY POLICY MODAL -->
+<div id="privacy-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+  <div class="bg-white max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6 sm:p-8 rounded-2xl space-y-4 shadow-2xl border">
+    <div class="flex justify-between items-center border-b pb-3">
+      <h2 class="text-lg font-black text-slate-900">Privacy Policy</h2>
+      <button onclick="togglePrivacyModal()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+    </div>
+    <div class="text-xs text-slate-600 leading-relaxed space-y-3">
+      <p><strong>Effective Date:</strong> September 2026</p>
+      <p>B-Tech Hub ("we", "our", "us") respects your privacy. This policy outlines how we handle user data on <strong>B-Tech-Hub.vercel.app</strong>.</p>
+      <h3 class="font-bold text-slate-800 text-sm">1. Information We Collect</h3>
+      <p>We collect basic details such as your email address when you register an account or submit messages via our contact forms.</p>
+      <h3 class="font-bold text-slate-800 text-sm">2. Cookies & Local Storage</h3>
+      <p>We use essential cookies and browser storage to maintain session states ("Remember Me") and remember site preferences.</p>
+      <h3 class="font-bold text-slate-800 text-sm">3. Data Security</h3>
+      <p>All authentication credentials and user entries are protected via Supabase database row-level security (RLS) policies.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  function togglePrivacyModal() {
+    document.getElementById('privacy-modal').classList.toggle('hidden');
+  }
 </script>
 </body>
 </html>
