@@ -624,6 +624,101 @@
       }
     }
 
+// Tab Switcher
+function switchAuthTab(tab) {
+  const isLogin = tab === 'login';
+  document.getElementById('form-login').classList.toggle('hidden', !isLogin);
+  document.getElementById('form-signup').classList.toggle('hidden', isLogin);
+  
+  document.getElementById('tab-login-btn').className = isLogin 
+    ? 'w-1/2 py-3 border-b-2 border-brandBlue text-brandBlue font-bold' 
+    : 'w-1/2 py-3 text-slate-400 hover:text-slate-600 font-bold';
+
+  document.getElementById('tab-signup-btn').className = !isLogin 
+    ? 'w-1/2 py-3 border-b-2 border-brandBlue text-brandBlue font-bold' 
+    : 'w-1/2 py-3 text-slate-400 hover:text-slate-600 font-bold';
+}
+
+// Handle Login with "Remember Me" Option
+async function handleEmailLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('l-email').value.trim();
+  const password = document.getElementById('l-pass').value.trim();
+  const rememberMe = document.getElementById('l-remember').checked;
+
+  if (!rememberMe) {
+    // Session expires when browser tab closes
+    db.auth.configure({ storage: window.sessionStorage });
+  } else {
+    // Session persists across restarts
+    db.auth.configure({ storage: window.localStorage });
+  }
+
+  const { data, error } = await db.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    showToast(error.message, 'error');
+  } else {
+    showToast('Login successful!', 'success');
+    if (ADMIN_EMAILS.includes(data.user.email)) navigate('admin');
+    else navigate('dashboard');
+  }
+}
+
+// Handle Account Registration
+async function handleEmailSignup(e) {
+  e.preventDefault();
+  const email = document.getElementById('s-email').value.trim();
+  const password = document.getElementById('s-pass').value.trim();
+
+  const { error } = await db.auth.signUp({ email, password });
+  if (error) showToast(error.message, 'error');
+  else showToast('Account created! Check your email to verify.', 'success');
+}
+
+// Password Reset OTP Modals
+function showForgotPasswordModal() {
+  document.getElementById('otp-modal').classList.remove('hidden');
+}
+
+function closeOtpModal() {
+  document.getElementById('otp-modal').classList.add('hidden');
+  document.getElementById('otp-step-1').classList.remove('hidden');
+  document.getElementById('otp-step-2').classList.add('hidden');
+}
+
+async function sendOtpCode() {
+  const email = document.getElementById('otp-email').value.trim();
+  if (!email) return showToast('Enter your email.', 'error');
+
+  const { error } = await db.auth.resetPasswordForEmail(email);
+  if (error) return showToast(error.message, 'error');
+
+  showToast('OTP code sent to your email!', 'success');
+  document.getElementById('otp-step-1').classList.add('hidden');
+  document.getElementById('otp-step-2').classList.remove('hidden');
+}
+
+async function verifyOtpAndReset() {
+  const email = document.getElementById('otp-email').value.trim();
+  const token = document.getElementById('otp-code').value.trim();
+  const newPassword = document.getElementById('otp-new-pass').value.trim();
+
+  if (!token || !newPassword) return showToast('Fill all fields.', 'error');
+
+  // Verify OTP
+  const { error: otpError } = await db.auth.verifyOtp({ email, token, type: 'recovery' });
+  if (otpError) return showToast('Invalid OTP code.', 'error');
+
+  // Set new password
+  const { error: passError } = await db.auth.updateUser({ password: newPassword });
+  if (passError) return showToast(passError.message, 'error');
+
+  showToast('Password updated! Logging in...', 'success');
+  closeOtpModal();
+  navigate('admin');
+        }
+    
     // --- USER DASHBOARD ---
     function renderDashboard(container) {
       container.innerHTML = `
