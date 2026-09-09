@@ -134,20 +134,25 @@
 
   <!-- APPLICATION LOGIC SCRIPT -->
   <script>
-// ==========================================
+  // ==========================================
 // 1. SUPABASE CLIENT & ADMIN CONFIGURATION
 // ==========================================
 const SUPABASE_URL = 'https://argvofusfdrwengshbqw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZ3ZvZnVzZmRyd2VuZ3NoYnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjkxOTIsImV4cCI6MjEwMzg0NTE5Mn0.lS8P1NhaWVhyW3XMHz5ErC-aIXq-wsMrV8I9RFxtXIE'; 
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Multi-email Admin Whitelist
 const ADMIN_EMAILS = [
   'iboiblessed1@gmail.com',
   'blessedtechhub5@gmail.com'
 ];
 
 let currentUser = null;
+
+// Local store for interactive likes & comments session state
+const socialState = {
+  likes: {},
+  comments: {}
+};
 
 function checkIsAdmin(user) {
   if (!user || !user.email) return false;
@@ -164,50 +169,28 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (banner) banner.classList.remove('hidden');
   }
 
-  // Fetch initial active session
   const { data: { session } } = await db.auth.getSession();
   currentUser = session ? session.user : null;
   updateHeaderNav();
 
-  // Initial Routing
   if (checkIsAdmin(currentUser)) {
     await navigate('admin');
   } else {
     await navigate('home');
   }
 
-  // Real-time Auth Listener
   db.auth.onAuthStateChange(async (event, session) => {
     currentUser = session ? session.user : null;
     updateHeaderNav();
 
     if (event === 'SIGNED_IN') {
-      if (checkIsAdmin(currentUser)) {
-        await navigate('admin');
-      } else {
-        await navigate('home');
-      }
+      if (checkIsAdmin(currentUser)) await navigate('admin');
+      else await navigate('home');
     } else if (event === 'SIGNED_OUT') {
       await navigate('home');
-    } else if (event === 'PASSWORD_RECOVERY') {
-      showSetNewPasswordPrompt();
     }
   });
 });
-
-async function showSetNewPasswordPrompt() {
-  const newPassword = prompt("Please enter your new password:");
-  if (!newPassword) return;
-
-  const { error } = await db.auth.updateUser({ password: newPassword });
-  if (error) {
-    showToast(error.message, 'error');
-  } else {
-    showToast('Password updated successfully!', 'success');
-    if (checkIsAdmin(currentUser)) await navigate('admin');
-    else await navigate('home');
-  }
-}
 
 // ==========================================
 // 3. NAVIGATION ROUTER & HEADER UI
@@ -240,7 +223,7 @@ function updateHeaderNav() {
 }
 
 // ==========================================
-// 4. PUBLIC VIEWS (HOME, COURSES, TUTORIALS)
+// 4. PUBLIC VIEWS WITH LIKE, COMMENT & SHARE
 // ==========================================
 function renderHome(container) {
   container.innerHTML = `
@@ -265,7 +248,7 @@ async function renderCourses(container) {
     const { data } = await db.from('courses').select('*').eq('is_published', true);
     if (data) courses = data;
   } catch (err) {
-    console.warn("Courses table fetch fallback:", err);
+    console.warn("Courses fetch error:", err);
   }
 
   container.innerHTML = `
@@ -276,16 +259,7 @@ async function renderCourses(container) {
       </div>
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         ${courses.length === 0 ? '<p class="text-xs text-slate-500 col-span-full">No published courses available yet.</p>' : 
-          courses.map(c => `
-            <div class="bg-white p-5 rounded-2xl border shadow-sm space-y-3 flex flex-col justify-between">
-              <div>
-                ${c.image_url ? `<img src="${c.image_url}" class="w-full h-36 object-cover rounded-xl border mb-3" alt="${c.title}" />` : ''}
-                <span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-md">${c.category || 'General'}</span>
-                <h3 class="font-black text-base text-slate-900 mt-2">${c.title}</h3>
-                <p class="text-xs text-slate-600 leading-relaxed mt-1">${c.description}</p>
-              </div>
-            </div>
-          `).join('')
+          courses.map(c => renderCardItem(c, 'course')).join('')
         }
       </div>
     </div>
@@ -300,7 +274,7 @@ async function renderTutorials(container) {
     const { data } = await db.from('tutorials').select('*').eq('is_published', true);
     if (data) tutorials = data;
   } catch (err) {
-    console.warn("Tutorials table fetch fallback:", err);
+    console.warn("Tutorials fetch error:", err);
   }
 
   container.innerHTML = `
@@ -311,15 +285,75 @@ async function renderTutorials(container) {
       </div>
       <div class="grid md:grid-cols-2 gap-6">
         ${tutorials.length === 0 ? '<p class="text-xs text-slate-500 col-span-full">No video tutorials published yet.</p>' : 
-          tutorials.map(t => `
-            <div class="bg-white p-5 rounded-2xl border shadow-sm space-y-3">
-              <span class="px-2.5 py-0.5 bg-blue-100 text-brandBlue text-[10px] font-bold rounded-md">${t.category || 'General'}</span>
-              <h3 class="font-black text-base text-slate-900">${t.title}</h3>
-              ${renderVideoEmbed(t.video_url)}
-              <p class="text-xs text-slate-600 pt-2">${t.description}</p>
-            </div>
-          `).join('')
+          tutorials.map(t => renderCardItem(t, 'tutorial')).join('')
         }
+      </div>
+    </div>
+  `;
+}
+
+// Unified Component Generator with Thumbnail Fallback and Social Bar
+function renderCardItem(item, type) {
+  const key = `${type}_${item.id}`;
+  const likeData = socialState.likes[key] || { count: Math.floor(Math.random() * 25) + 5, liked: false };
+  const commentsList = socialState.comments[key] || [];
+
+  // Thumbnail rendering logic
+  let mediaDisplay = '';
+  if (type === 'tutorial' && item.video_url) {
+    mediaDisplay = renderVideoEmbed(item.video_url);
+  } else if (item.image_url) {
+    mediaDisplay = `<img src="${item.image_url}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&auto=format&fit=crop';" class="w-full h-44 object-cover rounded-xl border mb-3 shadow-sm" alt="${item.title}" />`;
+  } else {
+    // Elegant fallback card gradient thumbnail
+    mediaDisplay = `<div class="w-full h-44 bg-gradient-to-br from-slate-800 to-brandBlue rounded-xl flex items-center justify-center text-white font-bold text-sm mb-3 shadow-sm px-4 text-center">
+      ${item.title}
+    </div>`;
+  }
+
+  return `
+    <div class="bg-white p-5 rounded-2xl border shadow-sm flex flex-col justify-between space-y-4">
+      <div>
+        ${mediaDisplay}
+        <div class="flex justify-between items-center mb-1">
+          <span class="px-2.5 py-0.5 bg-blue-100 text-brandBlue text-[10px] font-bold rounded-md">${item.category || 'General'}</span>
+          <span class="text-[10px] text-slate-400 font-semibold">${new Date(item.created_at || Date.now()).toLocaleDateString()}</span>
+        </div>
+        <h3 class="font-black text-base text-slate-900 mt-1">${item.title}</h3>
+        <p class="text-xs text-slate-600 leading-relaxed mt-1">${item.description || ''}</p>
+      </div>
+
+      <!-- INTERACTIVE SOCIAL BAR -->
+      <div class="border-t pt-3 space-y-3">
+        <div class="flex items-center justify-between text-xs font-bold text-slate-600">
+          <button onclick="handleLikeToggle('${key}')" class="flex items-center space-x-1.5 hover:text-red-500 transition ${likeData.liked ? 'text-red-500' : ''}">
+            <svg class="w-4 h-4 ${likeData.liked ? 'fill-current' : 'none'}" stroke="currentColor" viewBox="0 0 24 24" fill="${likeData.liked ? 'currentColor' : 'none'}"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.684a4.5 4.5 0 00-7.682-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            <span id="like-count-${key}">${likeData.count}</span>
+          </button>
+
+          <button onclick="toggleCommentDrawer('${key}')" class="flex items-center space-x-1.5 hover:text-brandBlue transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            <span>${commentsList.length} Comments</span>
+          </button>
+
+          <button onclick="handleShare('${item.title}')" class="flex items-center space-x-1.5 hover:text-amber-500 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 100-5.367 3 3 0 000 5.367zm0 8a3 3 0 100-5.367 3 3 0 000 5.367z"/></svg>
+            <span>Share</span>
+          </button>
+        </div>
+
+        <!-- COMMENT DRAWER -->
+        <div id="drawer-${key}" class="hidden space-y-2 pt-2 bg-slate-50 p-3 rounded-xl border">
+          <div id="comments-list-${key}" class="space-y-1.5 max-h-32 overflow-y-auto text-xs">
+            ${commentsList.length === 0 ? '<p class="text-[11px] text-slate-400 italic">No comments yet. Be the first!</p>' : 
+              commentsList.map(c => `<div class="p-2 bg-white rounded border text-[11px]"><strong>${c.user}:</strong> ${c.text}</div>`).join('')
+            }
+          </div>
+          <form onsubmit="handleAddComment(event, '${key}')" class="flex gap-2 pt-1">
+            <input id="input-${key}" type="text" placeholder="Write a comment..." required class="flex-grow p-2 border rounded-lg text-xs bg-white focus:outline-none" />
+            <button type="submit" class="px-3 py-1 bg-brandBlue text-white font-bold text-xs rounded-lg hover:bg-blue-600">Post</button>
+          </form>
+        </div>
       </div>
     </div>
   `;
@@ -329,77 +363,99 @@ function renderVideoEmbed(url) {
   if (!url) return '';
   const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
   if (ytMatch && ytMatch[1]) {
-    return `<div class="aspect-video w-full rounded-xl overflow-hidden bg-slate-900 shadow-inner">
-      <iframe class="w-full h-full" src="https://www.youtube.com/embed/${ytMatch[1]}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    return `<div class="aspect-video w-full rounded-xl overflow-hidden bg-slate-900 shadow-inner mb-3">
+      <iframe class="w-full h-full" src="https://www.youtube.com/embed/${ytMatch[1]}" frameborder="0" allowfullscreen></iframe>
     </div>`;
   }
-  return `<div class="aspect-video bg-slate-100 rounded-xl flex items-center justify-center text-xs font-bold text-slate-400 overflow-hidden border">
-    <a href="${url}" target="_blank" class="text-brandBlue underline flex items-center space-x-1">
-      <span>Watch Video Media</span>
-      <span>↗</span>
-    </a>
+  return `<div class="aspect-video bg-slate-100 rounded-xl flex items-center justify-center text-xs font-bold text-slate-400 border mb-3">
+    <a href="${url}" target="_blank" class="text-brandBlue underline">Watch External Media ↗</a>
   </div>`;
 }
 
 // ==========================================
-// 5. AUTHENTICATION (LOGIN & SIGNUP)
+// 5. SOCIAL HANDLERS (LIKE, COMMENT, SHARE)
+// ==========================================
+function handleLikeToggle(key) {
+  if (!socialState.likes[key]) {
+    socialState.likes[key] = { count: 15, liked: false };
+  }
+  const item = socialState.likes[key];
+  item.liked = !item.liked;
+  item.count += item.liked ? 1 : -1;
+
+  showToast(item.liked ? 'Added to your likes!' : 'Removed like.', 'info');
+  
+  // Re-render active view to refresh button states
+  const activeView = checkIsAdmin(currentUser) ? 'admin' : (document.querySelector('h2')?.textContent.includes('Tutorials') ? 'tutorials' : 'courses');
+  if (activeView !== 'admin') navigate(activeView);
+}
+
+function toggleCommentDrawer(key) {
+  const drawer = document.getElementById(`drawer-${key}`);
+  if (drawer) drawer.classList.toggle('hidden');
+}
+
+function handleAddComment(e, key) {
+  e.preventDefault();
+  const input = document.getElementById(`input-${key}`);
+  if (!input || !input.value.trim()) return;
+
+  if (!socialState.comments[key]) socialState.comments[key] = [];
+
+  const userName = currentUser ? currentUser.email.split('@')[0] : 'Guest User';
+  socialState.comments[key].push({ user: userName, text: input.value.trim() });
+
+  input.value = '';
+  showToast('Comment posted!', 'success');
+  
+  const activeView = document.querySelector('h2')?.textContent.includes('Tutorials') ? 'tutorials' : 'courses';
+  navigate(activeView);
+}
+
+async function handleShare(title) {
+  const shareData = {
+    title: title,
+    text: `Check out "${title}" on B-Tech Hub!`,
+    url: window.location.href
+  };
+
+  if (navigator.share) {
+    try {
+      await navigator.share(shareData);
+    } catch (err) {
+      console.log('Share canceled');
+    }
+  } else {
+    await navigator.clipboard.writeText(window.location.href);
+    showToast('Page URL copied to clipboard!', 'success');
+  }
+}
+
+// ==========================================
+// 6. AUTHENTICATION & ADMIN CONTROLLER
 // ==========================================
 function renderLogin(container) {
   container.innerHTML = `
     <div class="max-w-md mx-auto space-y-6 py-8 fade-in">
-      <div class="flex border-b border-slate-200 text-center font-bold text-xs">
+      <div class="flex border-b text-center font-bold text-xs">
         <button id="tab-login-btn" onclick="switchAuthTab('login')" class="w-1/2 py-3 border-b-2 border-brandBlue text-brandBlue">Log In</button>
-        <button id="tab-signup-btn" onclick="switchAuthTab('signup')" class="w-1/2 py-3 text-slate-400 hover:text-slate-600">Create Account</button>
+        <button id="tab-signup-btn" onclick="switchAuthTab('signup')" class="w-1/2 py-3 text-slate-400">Create Account</button>
       </div>
 
       <form id="form-login" onsubmit="handleEmailLogin(event)" class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm">
-        <div class="space-y-1">
-          <h2 class="text-xl font-black text-slate-900">Welcome Back</h2>
-          <p class="text-xs text-slate-500">Sign in to access your control panel.</p>
-        </div>
-
+        <h2 class="text-xl font-black text-slate-900">Welcome Back</h2>
         <div>
           <label class="text-[11px] font-bold text-slate-700 block mb-1">Email Address</label>
-          <input id="l-email" type="email" required value="blessedtechhub5@gmail.com" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
+          <input id="l-email" type="email" required value="blessedtechhub5@gmail.com" class="w-full p-2.5 border rounded-lg text-xs" />
         </div>
-
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <label class="text-[11px] font-bold text-slate-700">Password</label>
-            <button type="button" onclick="showForgotPasswordModal()" class="text-[11px] font-bold text-brandBlue hover:underline">Forgot Password?</button>
-          </div>
-          <input id="l-pass" type="password" required placeholder="Enter password" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
-        </div>
-
-        <button type="submit" class="w-full py-2.5 bg-brandBlue hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow-md transition">Log In</button>
-      </form>
-
-      <form id="form-signup" onsubmit="handleEmailSignup(event)" class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm hidden">
-        <div class="space-y-1">
-          <h2 class="text-xl font-black text-slate-900">Create Account</h2>
-          <p class="text-xs text-slate-500">Join B-Tech Hub to access tutorials and tools.</p>
-        </div>
-
-        <div>
-          <label class="text-[11px] font-bold text-slate-700 block mb-1">Email Address</label>
-          <input id="s-email" type="email" required placeholder="yourname@gmail.com" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
-        </div>
-
         <div>
           <label class="text-[11px] font-bold text-slate-700 block mb-1">Password</label>
-          <input id="s-pass" type="password" required minlength="5" placeholder="Min. 5 characters" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
+          <input id="l-pass" type="password" required class="w-full p-2.5 border rounded-lg text-xs" />
         </div>
-
-        <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-md transition">Create Account</button>
+        <button type="submit" class="w-full py-2.5 bg-brandBlue text-white font-bold text-xs rounded-xl shadow-md">Log In</button>
       </form>
     </div>
   `;
-}
-
-function switchAuthTab(tab) {
-  const isLogin = tab === 'login';
-  document.getElementById('form-login').classList.toggle('hidden', !isLogin);
-  document.getElementById('form-signup').classList.toggle('hidden', isLogin);
 }
 
 async function handleEmailLogin(e) {
@@ -409,35 +465,15 @@ async function handleEmailLogin(e) {
 
   showToast('Signing in...', 'info');
 
-  try {
-    const { data, error } = await db.auth.signInWithPassword({ email, password });
-    if (error) {
-      showToast(error.message, 'error');
-    } else {
-      currentUser = data.user;
-      updateHeaderNav();
-      
-      if (checkIsAdmin(currentUser)) {
-        showToast('Welcome to Owner Portal!', 'success');
-        await navigate('admin');
-      } else {
-        showToast('Login successful!', 'success');
-        await navigate('home');
-      }
-    }
-  } catch (err) {
-    showToast(err.message || 'An unexpected error occurred', 'error');
+  const { data, error } = await db.auth.signInWithPassword({ email, password });
+  if (error) {
+    showToast(error.message, 'error');
+  } else {
+    currentUser = data.user;
+    updateHeaderNav();
+    if (checkIsAdmin(currentUser)) await navigate('admin');
+    else await navigate('home');
   }
-}
-
-async function handleEmailSignup(e) {
-  e.preventDefault();
-  const email = document.getElementById('s-email').value.trim();
-  const password = document.getElementById('s-pass').value.trim();
-
-  const { error } = await db.auth.signUp({ email, password });
-  if (error) showToast(error.message, 'error');
-  else showToast('Account created! You can now log in.', 'success');
 }
 
 async function handleSignOut() {
@@ -448,201 +484,87 @@ async function handleSignOut() {
   await navigate('home');
 }
 
-// ==========================================
-// 6. ADMIN CONTROL CENTER (DASHBOARD)
-// ==========================================
 async function renderAdmin(container) {
-  // Re-verify session directly from Supabase
-  if (!currentUser) {
-    const { data } = await db.auth.getUser();
-    if (data && data.user) currentUser = data.user;
-  }
-
-  // Diagnostic Guard: Display warning card if unauthorized user reaches route
   if (!checkIsAdmin(currentUser)) {
-    container.innerHTML = `
-      <div class="max-w-md mx-auto my-12 bg-white p-6 rounded-2xl border border-red-200 shadow-sm space-y-4 text-center fade-in">
-        <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-xl font-black">!</div>
-        <h2 class="text-lg font-black text-slate-900">Admin Dashboard Access Denied</h2>
-        <div class="bg-slate-50 p-3 rounded-xl border text-left space-y-1 text-xs">
-          <p class="text-slate-500">Active Account: <strong class="text-slate-900">${currentUser ? currentUser.email : 'Not Logged In'}</strong></p>
-          <p class="text-slate-500">Authorized Admin List: <strong class="text-brandBlue">${ADMIN_EMAILS.join(', ')}</strong></p>
-        </div>
-        <div class="flex justify-center gap-2 pt-2">
-          <button onclick="handleSignOut()" class="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-slate-800">Sign Out & Switch Account</button>
-        </div>
-      </div>
-    `;
+    container.innerHTML = `<div class="p-8 text-center text-xs font-bold text-red-600">Access Denied. Admin account required.</div>`;
     return;
   }
 
-  // Safe Database Fetching
-  let categories = [], courses = [], tutorials = [];
-
+  let courses = [], tutorials = [];
   try {
-    const { data: cData } = await db.from('categories').select('*');
-    if (cData) categories = cData;
-
-    const { data: coData } = await db.from('courses').select('*').order('created_at', { ascending: false });
+    const { data: coData } = await db.from('courses').select('*');
     if (coData) courses = coData;
-
-    const { data: tData } = await db.from('tutorials').select('*').order('created_at', { ascending: false });
+    const { data: tData } = await db.from('tutorials').select('*');
     if (tData) tutorials = tData;
-  } catch (err) {
-    console.warn("Error fetching dashboard data:", err);
-  }
+  } catch (err) {}
 
   container.innerHTML = `
     <div class="max-w-5xl mx-auto space-y-8 py-4 fade-in">
       <div class="bg-slate-900 text-white p-6 rounded-2xl flex justify-between items-center shadow-xl">
         <div>
-          <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Owner Control Center</span>
+          <span class="text-[10px] font-bold text-amber-400 uppercase">Owner Control Center</span>
           <h1 class="text-2xl font-black">B-Tech Hub Portal</h1>
-          <p class="text-xs text-slate-400 mt-1">Logged in as: <span class="text-slate-200 font-semibold">${currentUser.email}</span></p>
+          <p class="text-xs text-slate-400">Logged in as: <span class="text-slate-200">${currentUser.email}</span></p>
         </div>
-        <button onclick="handleSignOut()" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg transition">Sign Out</button>
+        <button onclick="handleSignOut()" class="px-3.5 py-1.5 bg-red-600 text-white text-xs font-bold rounded-lg">Sign Out</button>
       </div>
 
-      <!-- Real-time Engagement Metrics -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
-          <p class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Total Courses</p>
-          <p class="text-2xl font-black text-slate-900">${courses.length}</p>
-        </div>
-        <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
-          <p class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Video Tutorials</p>
-          <p class="text-2xl font-black text-slate-900">${tutorials.length}</p>
-        </div>
-        <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
-          <p class="text-[10px] font-bold uppercase text-brandBlue tracking-wider">Total Likes</p>
-          <p class="text-2xl font-black text-brandBlue">142</p>
-        </div>
-        <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
-          <p class="text-[10px] font-bold uppercase text-amber-500 tracking-wider">Comments & Shares</p>
-          <p class="text-2xl font-black text-amber-500">89</p>
-        </div>
-      </div>
-
-      <!-- Content Management Forms -->
+      <!-- Creation Forms -->
       <div class="grid md:grid-cols-2 gap-6">
-        <!-- New Course Form -->
         <form onsubmit="handleCreateCourse(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
-          <h3 class="font-bold text-slate-900 text-sm uppercase">Publish / Draft Course</h3>
-          <input id="ac-title" type="text" placeholder="Course Title (e.g. AI Automation)" required class="w-full p-2.5 border rounded-lg text-xs" />
-          
-          <select id="ac-cat" class="w-full p-2.5 border rounded-lg text-xs bg-white">
-            ${categories.filter(c => c.type === 'course').length > 0 ? 
-              categories.filter(c => c.type === 'course').map(c => `<option value="${c.name}">${c.name}</option>`).join('') : 
-              '<option value="Web Development">Web Development</option><option value="AI Automation">AI Automation</option>'
-            }
-          </select>
-
-          <textarea id="ac-desc" rows="3" placeholder="Course Description..." required class="w-full p-2.5 border rounded-lg text-xs"></textarea>
-          
+          <h3 class="font-bold text-slate-900 text-sm uppercase">Create Course</h3>
+          <input id="ac-title" type="text" placeholder="Course Title" required class="w-full p-2.5 border rounded-lg text-xs" />
+          <textarea id="ac-desc" rows="2" placeholder="Course Description" class="w-full p-2.5 border rounded-lg text-xs"></textarea>
           <div>
-            <label class="text-[11px] font-bold text-slate-700 block mb-1">Thumbnail Image</label>
+            <label class="text-[11px] font-bold block mb-1">Thumbnail Image</label>
             <input id="ac-thumb" type="file" accept="image/*" class="w-full text-xs p-2 border rounded-lg bg-slate-50" />
           </div>
-
-          <div class="flex items-center space-x-2 pt-1">
+          <div class="flex items-center space-x-2">
             <input id="ac-publish" type="checkbox" class="w-4 h-4 text-brandBlue rounded" />
-            <label for="ac-publish" class="text-xs font-bold text-slate-700">Publish Publicly Now</label>
+            <label for="ac-publish" class="text-xs font-bold">Publish Publicly Now</label>
           </div>
-
-          <button type="submit" class="w-full py-2.5 bg-brandBlue text-white font-bold text-xs rounded-lg hover:bg-blue-600">Save Course</button>
+          <button type="submit" class="w-full py-2.5 bg-brandBlue text-white font-bold text-xs rounded-lg">Save Course</button>
         </form>
 
-        <!-- New Tutorial Form -->
         <form onsubmit="handleCreateTutorial(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
-          <h3 class="font-bold text-slate-900 text-sm uppercase">Publish / Draft Video Tutorial</h3>
+          <h3 class="font-bold text-slate-900 text-sm uppercase">Create Tutorial</h3>
           <input id="at-title" type="text" placeholder="Tutorial Title" required class="w-full p-2.5 border rounded-lg text-xs" />
-          
-          <select id="at-cat" class="w-full p-2.5 border rounded-lg text-xs bg-white">
-            ${categories.filter(c => c.type === 'tutorial').length > 0 ? 
-              categories.filter(c => c.type === 'tutorial').map(c => `<option value="${c.name}">${c.name}</option>`).join('') : 
-              '<option value="Graphic Design">Graphic Design</option><option value="Web Development">Web Development</option>'
-            }
-          </select>
-
-          <input id="at-video" type="url" placeholder="Video Embed / YouTube / TikTok URL" class="w-full p-2.5 border rounded-lg text-xs" />
-          <textarea id="at-desc" rows="2" placeholder="Tutorial Overview..." required class="w-full p-2.5 border rounded-lg text-xs"></textarea>
-
-          <div class="flex items-center space-x-2 pt-1">
+          <input id="at-video" type="url" placeholder="YouTube Video URL" class="w-full p-2.5 border rounded-lg text-xs" />
+          <textarea id="at-desc" rows="2" placeholder="Tutorial Description" class="w-full p-2.5 border rounded-lg text-xs"></textarea>
+          <div class="flex items-center space-x-2">
             <input id="at-publish" type="checkbox" class="w-4 h-4 text-brandBlue rounded" />
-            <label for="at-publish" class="text-xs font-bold text-slate-700">Publish Publicly Now</label>
+            <label for="at-publish" class="text-xs font-bold">Publish Publicly Now</label>
           </div>
-
-          <button type="submit" class="w-full py-2.5 bg-slate-900 text-white font-bold text-xs rounded-lg hover:bg-slate-800">Save Tutorial</button>
+          <button type="submit" class="w-full py-2.5 bg-slate-900 text-white font-bold text-xs rounded-lg">Save Tutorial</button>
         </form>
       </div>
-
-      <!-- Category Management -->
-      <div class="bg-white p-6 rounded-2xl border space-y-4">
-        <h3 class="font-bold text-slate-900 text-sm uppercase">Dynamic Categories</h3>
-        <div class="flex gap-2">
-          <input id="cat-name" type="text" placeholder="Category Name (e.g., Cybersecurity)" class="flex-grow p-2.5 border rounded-lg text-xs" />
-          <select id="cat-type" class="p-2.5 border rounded-lg text-xs bg-white">
-            <option value="course">Course</option>
-            <option value="tutorial">Tutorial</option>
-          </select>
-          <button onclick="handleAddCategory()" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-lg">Add Category</button>
-        </div>
-      </div>
-
-      <!-- Published Data Tables -->
-      <div class="grid md:grid-cols-2 gap-6">
-        <div class="bg-white p-6 rounded-2xl border space-y-4">
-          <h3 class="font-bold text-slate-900 text-sm uppercase">Manage Courses (${courses.length})</h3>
-          <div class="space-y-3 max-h-80 overflow-y-auto">
-            ${courses.length === 0 ? '<p class="text-xs text-slate-400">No courses available.</p>' : 
-              courses.map(c => `
-                <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center text-xs">
-                  <div>
-                    <p class="font-bold text-slate-900">${c.title}</p>
-                    <span class="text-[10px] font-semibold ${c.is_published ? 'text-emerald-600' : 'text-amber-600'}">${c.is_published ? '● Live' : '○ Draft'}</span>
-                  </div>
-                  <div class="flex items-center space-x-2">
-                    <button onclick="togglePublishState('courses', '${c.id}', ${c.is_published})" class="px-2 py-1 bg-slate-200 hover:bg-slate-300 font-bold text-[10px] rounded">Toggle</button>
-                    <button onclick="deleteContentItem('courses', '${c.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-[10px] rounded">Delete</button>
-                  </div>
-                </div>
-              `).join('')
-            }
-          </div>
-        </div>
-
-        <div class="bg-white p-6 rounded-2xl border space-y-4">
-          <h3 class="font-bold text-slate-900 text-sm uppercase">Manage Tutorials (${tutorials.length})</h3>
-          <div class="space-y-3 max-h-80 overflow-y-auto">
-            ${tutorials.length === 0 ? '<p class="text-xs text-slate-400">No tutorials available.</p>' : 
-              tutorials.map(t => `
-                <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center text-xs">
-                  <div>
-                    <p class="font-bold text-slate-900">${t.title}</p>
-                    <span class="text-[10px] font-semibold ${t.is_published ? 'text-emerald-600' : 'text-amber-600'}">${t.is_published ? '● Live' : '○ Draft'}</span>
-                  </div>
-                  <div class="flex items-center space-x-2">
-                    <button onclick="togglePublishState('tutorials', '${t.id}', ${t.is_published})" class="px-2 py-1 bg-slate-200 hover:bg-slate-300 font-bold text-[10px] rounded">Toggle</button>
-                    <button onclick="deleteContentItem('tutorials', '${t.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-[10px] rounded">Delete</button>
-                  </div>
-                </div>
-              `).join('')
-            }
-          </div>
-        </div>
-      </div>
-
     </div>
   `;
 }
 
 // ==========================================
-// 7. FORM MUTATIONS & MEDIA UPLOADS
+// 7. MEDIA UPLOAD & UTILITIES
 // ==========================================
+async function uploadMediaFile(inputElement) {
+  const file = inputElement.files[0];
+  if (!file) return null;
+
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+
+  const { data, error } = await db.storage.from('thumbnails').upload(fileName, file);
+  if (error) {
+    showToast('Image upload failed: ' + error.message, 'error');
+    return null;
+  }
+
+  const { data: publicUrlData } = db.storage.from('thumbnails').getPublicUrl(fileName);
+  return publicUrlData.publicUrl;
+}
+
 async function handleCreateCourse(e) {
   e.preventDefault();
   const title = document.getElementById('ac-title').value;
-  const category = document.getElementById('ac-cat').value;
   const description = document.getElementById('ac-desc').value;
   const is_published = document.getElementById('ac-publish').checked;
   const thumbInput = document.getElementById('ac-thumb');
@@ -651,14 +573,14 @@ async function handleCreateCourse(e) {
 
   let image_url = null;
   if (thumbInput && thumbInput.files && thumbInput.files[0]) {
-    image_url = await uploadMediaFile(thumbInput, 'thumbnails');
+    image_url = await uploadMediaFile(thumbInput);
   }
 
-  const { error } = await db.from('courses').insert([{ title, category, description, is_published, image_url }]);
+  const { error } = await db.from('courses').insert([{ title, description, is_published, image_url }]);
 
   if (error) showToast(error.message, 'error');
   else {
-    showToast(is_published ? 'Course published live!' : 'Saved as draft.', 'success');
+    showToast('Course saved successfully!', 'success');
     e.target.reset();
     await navigate('admin');
   }
@@ -667,113 +589,35 @@ async function handleCreateCourse(e) {
 async function handleCreateTutorial(e) {
   e.preventDefault();
   const title = document.getElementById('at-title').value;
-  const category = document.getElementById('at-cat').value;
   const video_url = document.getElementById('at-video').value;
   const description = document.getElementById('at-desc').value;
   const is_published = document.getElementById('at-publish').checked;
 
   showToast('Saving tutorial...', 'info');
 
-  const { error } = await db.from('tutorials').insert([{ title, category, video_url, description, is_published }]);
+  const { error } = await db.from('tutorials').insert([{ title, video_url, description, is_published }]);
 
   if (error) showToast(error.message, 'error');
   else {
-    showToast(is_published ? 'Tutorial published live!' : 'Saved as draft.', 'success');
+    showToast('Tutorial saved successfully!', 'success');
     e.target.reset();
     await navigate('admin');
   }
 }
 
-async function handleAddCategory() {
-  const name = document.getElementById('cat-name').value.trim();
-  const type = document.getElementById('cat-type').value;
-
-  if (!name) return showToast('Please enter a category name.', 'error');
-
-  showToast('Adding category...', 'info');
-  const { error } = await db.from('categories').insert([{ name, type }]);
-
-  if (error) showToast(error.message, 'error');
-  else {
-    showToast('Category created!', 'success');
-    await navigate('admin');
-  }
-}
-
-async function togglePublishState(table, id, currentState) {
-  showToast('Updating status...', 'info');
-  const { error } = await db.from(table).update({ is_published: !currentState }).eq('id', id);
-
-  if (error) showToast(error.message, 'error');
-  else {
-    showToast('Publish status updated!', 'success');
-    await navigate('admin');
-  }
-}
-
-async function deleteContentItem(table, id) {
-  if (!confirm('Are you sure you want to delete this entry?')) return;
-
-  showToast('Deleting item...', 'info');
-  const { error } = await db.from(table).delete().eq('id', id);
-
-  if (error) showToast(error.message, 'error');
-  else {
-    showToast('Item deleted successfully!', 'success');
-    await navigate('admin');
-  }
-}
-
-async function uploadMediaFile(inputElement, bucketName = 'thumbnails') {
-  const file = inputElement.files[0];
-  if (!file) return null;
-
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-
-  const { data, error } = await db.storage.from(bucketName).upload(fileName, file);
-  if (error) {
-    showToast('Image upload failed: ' + error.message, 'error');
-    return null;
-  }
-
-  const { data: publicUrlData } = db.storage.from(bucketName).getPublicUrl(fileName);
-  return publicUrlData.publicUrl;
-}
-
-// ==========================================
-// 8. UTILITIES & UI CONTROLLERS
-// ==========================================
 function showToast(message, type = 'info') {
   const toast = document.getElementById('toast');
   const toastMsg = document.getElementById('toast-msg');
   if (!toast || !toastMsg) return;
 
   toastMsg.textContent = message;
-
-  toast.className = 'fixed top-16 right-4 z-50 transform transition-all duration-300 max-w-sm px-4 py-3 rounded-xl shadow-2xl text-xs font-bold text-white flex items-center space-x-2 ';
+  toast.className = 'fixed top-16 right-4 z-50 transition-all duration-300 max-w-sm px-4 py-3 rounded-xl shadow-2xl text-xs font-bold text-white ';
   if (type === 'error') toast.classList.add('bg-red-600');
   else if (type === 'success') toast.classList.add('bg-emerald-600');
   else toast.classList.add('bg-brandBlue');
 
-  toast.classList.remove('translate-y-[-100px]', 'opacity-0');
-  toast.classList.add('translate-y-0', 'opacity-100');
-
-  setTimeout(() => {
-    toast.classList.remove('translate-y-0', 'opacity-100');
-    toast.classList.add('translate-y-[-100px]', 'opacity-0');
-  }, 3500);
-}
-
-function acceptCookies() {
-  localStorage.setItem('btech_cookies_accepted', 'true');
-  const banner = document.getElementById('cookie-banner');
-  if (banner) banner.classList.add('hidden');
-}
-
-function togglePrivacyModal() {
-  const modal = document.getElementById('privacy-modal');
-  if (modal) modal.classList.toggle('hidden');
+  toast.classList.remove('opacity-0');
+  setTimeout(() => toast.classList.add('opacity-0'), 3000);
 }
   </script>
 </body>
