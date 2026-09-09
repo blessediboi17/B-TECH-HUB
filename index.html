@@ -159,14 +159,12 @@
         currentUser = session ? session.user : null;
         updateHeaderNav();
 
-        // Detects when user clicks the password recovery link from email
         if (event === 'PASSWORD_RECOVERY') {
           showSetNewPasswordPrompt();
         }
       });
     });
 
-    // Handle Password Recovery Session
     async function showSetNewPasswordPrompt() {
       const newPassword = prompt("Please enter your new password:");
       if (!newPassword) return;
@@ -256,7 +254,7 @@
       `;
     }
 
-    // 6. PUBLIC TUTORIALS VIEW
+    // 6. PUBLIC TUTORIALS VIEW WITH EMBEDDED PLAYER
     async function renderTutorials(container) {
       container.innerHTML = `<div class="text-center py-12 text-xs font-bold text-slate-400">Loading video tutorials...</div>`;
 
@@ -278,14 +276,32 @@
                 <div class="bg-white p-5 rounded-2xl border shadow-sm space-y-3">
                   <span class="px-2.5 py-0.5 bg-blue-100 text-brandBlue text-[10px] font-bold rounded-md">${t.category}</span>
                   <h3 class="font-black text-base text-slate-900">${t.title}</h3>
-                  ${t.video_url ? `<div class="aspect-video bg-slate-100 rounded-xl flex items-center justify-center text-xs font-bold text-slate-400 overflow-hidden"><a href="${t.video_url}" target="_blank" class="text-brandBlue underline">Watch Video Source ↗</a></div>` : ''}
-                  <p class="text-xs text-slate-600">${t.description}</p>
+                  ${renderVideoEmbed(t.video_url)}
+                  <p class="text-xs text-slate-600 pt-2">${t.description}</p>
                 </div>
               `).join('')
             }
           </div>
         </div>
       `;
+    }
+
+    function renderVideoEmbed(url) {
+      if (!url) return '';
+      // YouTube URL Parsing
+      const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+      if (ytMatch && ytMatch[1]) {
+        return `<div class="aspect-video w-full rounded-xl overflow-hidden bg-slate-900 shadow-inner">
+          <iframe class="w-full h-full" src="https://www.youtube.com/embed/${ytMatch[1]}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>`;
+      }
+      // Fallback Direct Link / TikTok Embed
+      return `<div class="aspect-video bg-slate-100 rounded-xl flex items-center justify-center text-xs font-bold text-slate-400 overflow-hidden border">
+        <a href="${url}" target="_blank" class="text-brandBlue underline flex items-center space-x-1">
+          <span>Watch Video Media</span>
+          <span>↗</span>
+        </a>
+      </div>`;
     }
 
     // 7. AUTHENTICATION & LOGIN VIEW
@@ -433,7 +449,7 @@
       navigate('admin');
     }
 
-    // 8. ADMIN CONTROL CENTER
+    // 8. ADMIN CONTROL CENTER WITH FULL ITEM MANAGEMENT (CRUD)
     async function renderAdmin(container) {
       if (!currentUser || !ADMIN_EMAILS.includes(currentUser.email)) {
         container.innerHTML = `<p class="text-center py-12 text-xs font-bold text-red-500">Access Denied. Owner level access required.</p>`;
@@ -441,6 +457,8 @@
       }
 
       const { data: categories } = await db.from('categories').select('*');
+      const { data: courses } = await db.from('courses').select('*').order('created_at', { ascending: false });
+      const { data: tutorials } = await db.from('tutorials').select('*').order('created_at', { ascending: false });
 
       container.innerHTML = `
         <div class="max-w-5xl mx-auto space-y-8 py-4 fade-in">
@@ -511,6 +529,52 @@
               <button onclick="handleAddCategory()" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-lg">Add Category</button>
             </div>
           </div>
+
+          <!-- MANAGE EXISTING CONTENT -->
+          <div class="grid md:grid-cols-2 gap-6">
+            <!-- Existing Courses Table -->
+            <div class="bg-white p-6 rounded-2xl border space-y-4">
+              <h3 class="font-bold text-slate-900 text-sm uppercase">Manage Courses (${courses ? courses.length : 0})</h3>
+              <div class="space-y-3 max-h-80 overflow-y-auto">
+                ${!courses || courses.length === 0 ? '<p class="text-xs text-slate-400">No courses available.</p>' : 
+                  courses.map(c => `
+                    <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center text-xs">
+                      <div>
+                        <p class="font-bold text-slate-900">${c.title}</p>
+                        <span class="text-[10px] font-semibold ${c.is_published ? 'text-emerald-600' : 'text-amber-600'}">${c.is_published ? '● Live' : '○ Draft'}</span>
+                      </div>
+                      <div class="flex items-center space-x-2">
+                        <button onclick="togglePublishState('courses', '${c.id}', ${c.is_published})" class="px-2 py-1 bg-slate-200 hover:bg-slate-300 font-bold text-[10px] rounded">Toggle</button>
+                        <button onclick="deleteContentItem('courses', '${c.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-[10px] rounded">Delete</button>
+                      </div>
+                    </div>
+                  `).join('')
+                }
+              </div>
+            </div>
+
+            <!-- Existing Tutorials Table -->
+            <div class="bg-white p-6 rounded-2xl border space-y-4">
+              <h3 class="font-bold text-slate-900 text-sm uppercase">Manage Tutorials (${tutorials ? tutorials.length : 0})</h3>
+              <div class="space-y-3 max-h-80 overflow-y-auto">
+                ${!tutorials || tutorials.length === 0 ? '<p class="text-xs text-slate-400">No tutorials available.</p>' : 
+                  tutorials.map(t => `
+                    <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center text-xs">
+                      <div>
+                        <p class="font-bold text-slate-900">${t.title}</p>
+                        <span class="text-[10px] font-semibold ${t.is_published ? 'text-emerald-600' : 'text-amber-600'}">${t.is_published ? '● Live' : '○ Draft'}</span>
+                      </div>
+                      <div class="flex items-center space-x-2">
+                        <button onclick="togglePublishState('tutorials', '${t.id}', ${t.is_published})" class="px-2 py-1 bg-slate-200 hover:bg-slate-300 font-bold text-[10px] rounded">Toggle</button>
+                        <button onclick="deleteContentItem('tutorials', '${t.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-[10px] rounded">Delete</button>
+                      </div>
+                    </div>
+                  `).join('')
+                }
+              </div>
+            </div>
+          </div>
+
         </div>
       `;
     }
@@ -542,6 +606,7 @@
       else {
         showToast(is_published ? 'Course published live!' : 'Saved as draft.', 'success');
         e.target.reset();
+        navigate('admin');
       }
     }
 
@@ -558,6 +623,7 @@
       else {
         showToast(is_published ? 'Tutorial published live!' : 'Saved as draft.', 'success');
         e.target.reset();
+        navigate('admin');
       }
     }
 
@@ -571,6 +637,25 @@
       if (error) showToast(error.message, 'error');
       else {
         showToast('Category created!', 'success');
+        navigate('admin');
+      }
+    }
+
+    async function togglePublishState(table, id, currentStatus) {
+      const { error } = await db.from(table).update({ is_published: !currentStatus }).eq('id', id);
+      if (error) showToast(error.message, 'error');
+      else {
+        showToast('Publish status updated!', 'success');
+        navigate('admin');
+      }
+    }
+
+    async function deleteContentItem(table, id) {
+      if (!confirm('Are you sure you want to delete this item?')) return;
+      const { error } = await db.from(table).delete().eq('id', id);
+      if (error) showToast(error.message, 'error');
+      else {
+        showToast('Item deleted.', 'success');
         navigate('admin');
       }
     }
