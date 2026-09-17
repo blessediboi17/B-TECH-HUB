@@ -1,880 +1,1710 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>B-Tech Hub | Digital Platform</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>B-Tech Hub — Web Development, AI & Digital Solutions</title>
+<meta name="description" content="I create modern websites, digital solutions and AI-powered experiences for businesses, schools, churches and organizations." />
 
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            brandBlue: '#0052FF',
-            brandDark: '#0b0f19',
-            brandGold: '#F59E0B',
-          }
-        }
-      }
-    }
-  </script>
+<!-- ============ Open Graph / share metadata (updated live from site_settings by JS) ============ -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="B-Tech Hub" />
+<meta id="og-title" property="og:title" content="B-Tech Hub — Web Development, AI & Digital Solutions" />
+<meta id="og-description" property="og:description" content="I create modern websites, digital solutions and AI-powered experiences for businesses, schools, churches and organizations." />
+<meta id="og-image" property="og:image" content="" />
+<meta id="og-url" property="og:url" content="" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta id="tw-title" name="twitter:title" content="B-Tech Hub" />
+<meta id="tw-description" name="twitter:description" content="Web Development • AI • Digital Solutions" />
+<meta id="tw-image" name="twitter:image" content="" />
 
-  <!-- Supabase JS Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#1856E0" />
+<link id="favicon-link" rel="icon" href="data:," />
 
-  <style>
-    .glass-card {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(12px);
-    }
-    .fade-in {
-      animation: fadeIn 0.25s ease-in-out forwards;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+<style>
+/* =========================================================
+   DESIGN TOKENS
+   Brand: B-Tech Hub blue, white, black, light gray, dark text.
+   No gradients, no glassmorphism, no heavy shadows, minimal motion.
+   Type: Plus Jakarta Sans (headings) + Inter (body).
+   ========================================================= */
+:root{
+  --blue: #1856E0;
+  --blue-dark: #123F9E;
+  --blue-tint: #EAF0FE;
+  --ink: #10131A;
+  --text: #2A2E38;
+  --muted: #6B7280;
+  --line: #E4E7EC;
+  --surface: #FFFFFF;
+  --surface-alt: #F5F6F8;
+  --danger: #C4402A;
+  --ok: #1C7C4E;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --font-head: 'Plus Jakarta Sans', Inter, system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --maxw: 1120px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family: var(--font-body);
+  color: var(--text);
+  background: var(--surface);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+h1,h2,h3,h4{
+  font-family: var(--font-head);
+  color: var(--ink);
+  line-height: 1.15;
+  margin: 0 0 0.5em 0;
+  font-weight: 700;
+}
+h1{font-size: clamp(2rem, 5vw, 3.1rem); font-weight: 800; letter-spacing: -0.02em;}
+h2{font-size: clamp(1.5rem, 3.4vw, 2.1rem); letter-spacing: -0.01em;}
+h3{font-size: 1.2rem;}
+p{margin: 0 0 1em 0; max-width: 62ch; color: var(--text);}
+a{color: var(--blue); text-decoration: none;}
+a:hover{text-decoration: underline;}
+img{max-width:100%; display:block;}
+button, input, textarea, select{font-family: inherit; font-size: 1rem;}
+:focus-visible{outline: 2px solid var(--blue); outline-offset: 2px;}
+.container{max-width: var(--maxw); margin: 0 auto; padding: 0 20px;}
+.section{padding: 56px 0;}
+.section-alt{background: var(--surface-alt);}
+.section-head{margin-bottom: 28px;}
+.section-head p{color: var(--muted);}
+
+/* Buttons */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding: 12px 22px; border-radius: var(--radius-sm); font-weight: 600;
+  border: 1px solid transparent; cursor: pointer; text-decoration:none; font-size: 0.96rem;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.btn:hover{text-decoration:none;}
+.btn-primary{background: var(--blue); color:#fff;}
+.btn-primary:hover{background: var(--blue-dark);}
+.btn-outline{background: transparent; color: var(--ink); border-color: var(--line);}
+.btn-outline:hover{border-color: var(--blue); color: var(--blue);}
+.btn-sm{padding: 8px 14px; font-size: 0.86rem;}
+.btn-danger{background:#fff; color: var(--danger); border-color: var(--danger);}
+.btn-block{width:100%;}
+
+/* Header */
+header.site-header{
+  position: sticky; top:0; z-index: 40; background: rgba(255,255,255,.96);
+  backdrop-filter: saturate(1.1);
+  border-bottom: 1px solid var(--line);
+}
+.nav-row{display:flex; align-items:center; justify-content:space-between; height:64px;}
+.brand{display:flex; align-items:center; gap:10px; font-family: var(--font-head); font-weight:800; font-size:1.05rem; color:var(--ink);}
+.brand img{height:28px; width:auto;}
+.brand-mark{width:30px;height:30px;border-radius:7px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.85rem;}
+nav.primary-nav{display:none; align-items:center; gap:26px;}
+nav.primary-nav a{color: var(--text); font-weight:500; font-size:.95rem;}
+nav.primary-nav a.active{color: var(--blue); font-weight:600;}
+.nav-actions{display:flex; align-items:center; gap:10px;}
+.hamburger{display:flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius: var(--radius-sm); border:1px solid var(--line); background:#fff; cursor:pointer;}
+.mobile-menu{display:none; flex-direction:column; border-top:1px solid var(--line); background:#fff;}
+.mobile-menu.open{display:flex;}
+.mobile-menu a{padding:14px 20px; border-bottom:1px solid var(--line); color: var(--text); font-weight:500;}
+@media (min-width: 880px){
+  nav.primary-nav{display:flex;}
+  .hamburger{display:none;}
+  .mobile-menu{display:none !important;}
+}
+
+/* Hero */
+.hero{padding: 64px 0 48px;}
+.hero-grid{display:grid; gap:36px; align-items:center;}
+@media(min-width:880px){ .hero-grid{grid-template-columns: 1.1fr 0.9fr;} }
+.hero-eyebrow{color:var(--blue); font-weight:600; font-size:.92rem; margin-bottom:10px;}
+.hero-actions{display:flex; gap:12px; flex-wrap:wrap; margin-top:22px;}
+.hero-photo{border-radius: var(--radius); overflow:hidden; background: var(--surface-alt); aspect-ratio: 4/5; display:flex; align-items:center; justify-content:center;}
+.hero-photo img{width:100%; height:100%; object-fit:cover;}
+.hero-photo .ph{color:var(--muted); font-size:.9rem;}
+
+/* Cards */
+.grid{display:grid; gap:20px;}
+.grid-3{grid-template-columns: 1fr;}
+@media(min-width:700px){.grid-3{grid-template-columns: repeat(2,1fr);}}
+@media(min-width:1000px){.grid-3{grid-template-columns: repeat(3,1fr);}}
+.card{border:1px solid var(--line); border-radius: var(--radius); background:#fff; overflow:hidden; display:flex; flex-direction:column;}
+.card-body{padding:20px;}
+.card-img{aspect-ratio:16/10; background:var(--surface-alt); overflow:hidden;}
+.card-img img{width:100%;height:100%;object-fit:cover;}
+.card h3{margin-bottom:6px;}
+.tag-row{display:flex; flex-wrap:wrap; gap:6px; margin: 10px 0;}
+.tag{font-size:.76rem; color: var(--blue); background: var(--blue-tint); padding:3px 9px; border-radius: 20px; font-weight:600;}
+.service-icon{width:44px;height:44px; border-radius:9px; background:var(--blue-tint); color:var(--blue); display:flex; align-items:center; justify-content:center; margin-bottom:14px;}
+
+/* Post meta */
+.post-meta{display:flex; gap:16px; color:var(--muted); font-size:.85rem; margin-top:10px; flex-wrap:wrap;}
+.post-meta span{display:inline-flex; align-items:center; gap:5px;}
+
+/* CTA */
+.cta-band{background: var(--ink); color:#fff; border-radius: var(--radius); padding: 44px 28px; text-align:center;}
+.cta-band h2{color:#fff;}
+.cta-band p{color:#C9CDD6; margin-left:auto; margin-right:auto;}
+
+/* Forms */
+.field{margin-bottom:16px;}
+.field label{display:block; font-weight:600; font-size:.88rem; margin-bottom:6px; color: var(--ink);}
+.field input, .field textarea, .field select{
+  width:100%; padding: 11px 13px; border:1px solid var(--line); border-radius: var(--radius-sm); background:#fff; color: var(--text);
+}
+.field input:focus, .field textarea:focus, .field select:focus{border-color: var(--blue);}
+.field-check{display:flex; align-items:flex-start; gap:10px; font-size:.88rem; color:var(--text);}
+.field-check input{width:auto; margin-top:3px;}
+.form-2col{display:grid; gap:16px;}
+@media(min-width:640px){.form-2col{grid-template-columns:1fr 1fr;}}
+.form-note{font-size:.82rem; color:var(--muted);}
+.form-success{background:#EAF7EF; border:1px solid #BFE6CC; color:var(--ok); padding:14px 16px; border-radius: var(--radius-sm); font-size:.92rem;}
+.form-error{background:#FCEAE6; border:1px solid #F3C2B6; color:var(--danger); padding:14px 16px; border-radius: var(--radius-sm); font-size:.92rem;}
+
+/* Footer */
+footer.site-footer{border-top:1px solid var(--line); background: var(--surface-alt); padding: 44px 0 28px; margin-top:40px;}
+.footer-grid{display:grid; gap:28px;}
+@media(min-width:760px){.footer-grid{grid-template-columns: 1.3fr 1fr 1fr;}}
+.footer-grid h4{font-size:.85rem; text-transform:none; color:var(--ink); margin-bottom:12px;}
+.footer-grid a{display:block; color:var(--muted); padding:5px 0; font-size:.92rem;}
+.footer-bottom{margin-top:30px; padding-top:20px; border-top:1px solid var(--line); display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between; color:var(--muted); font-size:.82rem;}
+
+/* Social action row (like/comment/share) */
+.social-row{display:flex; gap:10px; margin: 18px 0;}
+.social-btn{display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border:1px solid var(--line); border-radius:20px; background:#fff; cursor:pointer; font-size:.86rem; color:var(--text);}
+.social-btn.liked{color:var(--blue); border-color:var(--blue); background:var(--blue-tint);}
+.social-btn:hover{border-color:var(--blue);}
+
+/* Comments */
+.comment{border-bottom:1px solid var(--line); padding:14px 0;}
+.comment-name{font-weight:600; font-size:.9rem;}
+.comment-date{color:var(--muted); font-size:.78rem;}
+
+/* Breadcrumb / back */
+.back-link{display:inline-flex; align-items:center; gap:6px; font-size:.9rem; margin-bottom:18px; color:var(--muted);}
+
+/* Empty state */
+.empty{border:1px dashed var(--line); border-radius: var(--radius); padding: 32px; text-align:center; color:var(--muted);}
+
+/* ===================== ADMIN ===================== */
+.admin-shell{display:flex; min-height: 100vh; background: var(--surface-alt);}
+.admin-side{width:220px; background: var(--ink); color:#fff; flex-shrink:0; display:none; flex-direction:column; padding:20px 0;}
+.admin-side a{color:#C9CDD6; padding:11px 22px; font-size:.9rem; display:block; font-weight:500;}
+.admin-side a.active{color:#fff; background: rgba(255,255,255,.08); border-left:3px solid var(--blue);}
+.admin-side .side-title{color:#fff; font-family:var(--font-head); font-weight:800; padding: 4px 22px 20px;}
+@media(min-width:900px){.admin-side{display:flex;}}
+.admin-main{flex:1; min-width:0;}
+.admin-topbar{background:#fff; border-bottom:1px solid var(--line); padding:14px 22px; display:flex; align-items:center; justify-content:space-between;}
+.admin-mobile-nav{display:flex; gap:8px; flex-wrap:wrap; padding:14px 22px; background:#fff; border-bottom:1px solid var(--line);}
+@media(min-width:900px){.admin-mobile-nav{display:none;}}
+.admin-mobile-nav a{font-size:.82rem; padding:6px 10px; border:1px solid var(--line); border-radius:20px; color:var(--text);}
+.admin-mobile-nav a.active{background:var(--blue); color:#fff; border-color:var(--blue);}
+.admin-content{padding: 22px;}
+.stat-grid{display:grid; gap:14px; grid-template-columns: repeat(2,1fr);}
+@media(min-width:700px){.stat-grid{grid-template-columns: repeat(5,1fr);}}
+.stat-card{background:#fff; border:1px solid var(--line); border-radius: var(--radius); padding:18px;}
+.stat-card .num{font-family:var(--font-head); font-size:1.7rem; font-weight:800; color:var(--ink);}
+.stat-card .lbl{color:var(--muted); font-size:.82rem; margin-top:4px;}
+.admin-panel{background:#fff; border:1px solid var(--line); border-radius: var(--radius); padding:20px; margin-bottom:20px;}
+.admin-panel h3{margin-bottom:14px;}
+table.admin-table{width:100%; border-collapse:collapse; font-size:.88rem;}
+table.admin-table th{text-align:left; color:var(--muted); font-weight:600; padding:9px 8px; border-bottom:1px solid var(--line); white-space:nowrap;}
+table.admin-table td{padding:9px 8px; border-bottom:1px solid var(--line); vertical-align:top;}
+.pill{font-size:.74rem; padding:3px 9px; border-radius:20px; font-weight:600;}
+.pill-draft{background:#F1F2F4; color:#5A5F6A;}
+.pill-published{background:#E4F5EA; color:var(--ok);}
+.pill-pending{background:#FDF1DF; color:#9A6A11;}
+.pill-approved{background:#E4F5EA; color:var(--ok);}
+.pill-hidden{background:#FCEAE6; color:var(--danger);}
+.row-actions{display:flex; gap:8px; flex-wrap:wrap;}
+.admin-login-wrap{min-height:100vh; display:flex; align-items:center; justify-content:center; background: var(--surface-alt); padding:20px;}
+.admin-login-box{width:100%; max-width:380px; background:#fff; border:1px solid var(--line); border-radius: var(--radius); padding:32px;}
+.toggle{display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-size:.86rem; user-select:none;}
+.toggle input{width:16px; height:16px;}
+textarea.code-like{font-family: ui-monospace, monospace; font-size:.85rem;}
+.pane{display:none;}
+.pane.active{display:block;}
+.small-muted{color:var(--muted); font-size:.82rem;}
+hr.sep{border:none; border-top:1px solid var(--line); margin:22px 0;}
+
+/* Utilities */
+.center{text-align:center;}
+.mt-0{margin-top:0;}
+.hidden{display:none !important;}
+.skeleton{background: linear-gradient(90deg,#EEE 25%,#F5F5F5 37%,#EEE 63%); background-size:400% 100%; animation:sk 1.4s infinite;}
+@media (prefers-reduced-motion: reduce){ .skeleton{animation:none;} }
+@keyframes sk{0%{background-position:100% 0}100%{background-position:0 0}}
+</style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased">
+<body>
 
-  <!-- NAVIGATION HEADER -->
-  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 text-white">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
-      <a href="#" onclick="navigate('home')" class="flex items-center space-x-2">
-        <span class="bg-brandBlue text-white font-black px-2.5 py-1 rounded-lg text-sm tracking-wider">B-TECH</span>
-        <span class="font-bold text-base tracking-tight text-slate-100">HUB</span>
+<!-- =========================================================
+     PUBLIC SITE SHELL
+     ========================================================= -->
+<div id="public-shell">
+  <header class="site-header">
+    <div class="container nav-row">
+      <a href="#/" class="brand">
+        <span class="brand-mark" id="brand-mark">B</span>
+        <span id="brand-name">B-TECH HUB</span>
       </a>
-
-      <nav class="hidden md:flex items-center space-x-6 text-xs font-semibold text-slate-300">
-        <button onclick="navigate('home')" class="hover:text-amber-400 transition">Home</button>
-        <button onclick="navigate('courses')" class="hover:text-amber-400 transition">Courses</button>
-        <button onclick="navigate('tutorials')" class="hover:text-amber-400 transition">Tutorials</button>
+      <nav class="primary-nav" id="primary-nav">
+        <a href="#/" data-route="/">Home</a>
+        <a href="#/about" data-route="/about">About</a>
+        <a href="#/services" data-route="/services">Services</a>
+        <a href="#/projects" data-route="/projects">Projects</a>
+        <a href="#/posts" data-route="/posts">Posts</a>
+        <a href="#/resources" data-route="/resources">Resources</a>
+        <a href="#/contact" data-route="/contact">Contact</a>
       </nav>
-
-      <div id="nav-auth-slot" class="flex items-center space-x-3">
-        <!-- Injected dynamically by JS -->
+      <div class="nav-actions">
+        <a href="#/contact" class="btn btn-primary btn-sm" style="display:none" id="work-with-me-desktop">Work With Me</a>
+        <button class="hamburger" id="hamburger" aria-label="Menu">☰</button>
       </div>
+    </div>
+    <div class="mobile-menu" id="mobile-menu">
+      <a href="#/" data-route="/">Home</a>
+      <a href="#/about" data-route="/about">About</a>
+      <a href="#/services" data-route="/services">Services</a>
+      <a href="#/projects" data-route="/projects">Projects</a>
+      <a href="#/posts" data-route="/posts">Posts</a>
+      <a href="#/resources" data-route="/resources">Resources</a>
+      <a href="#/contact" data-route="/contact">Contact</a>
+      <a href="#/contact" style="color:var(--blue); font-weight:700;">Work With Me →</a>
     </div>
   </header>
 
-  <!-- TOAST NOTIFICATION CONTAINER -->
-  <div id="toast" class="fixed top-16 right-4 z-50 transform transition-all duration-300 translate-y-[-100px] opacity-0 max-w-sm px-4 py-3 rounded-xl shadow-2xl text-xs font-bold text-white flex items-center space-x-2">
-    <span id="toast-msg"></span>
-  </div>
+  <main id="app"></main>
 
-  <!-- MAIN APP CONTAINER -->
-  <main id="app" class="flex-grow max-w-6xl w-full mx-auto px-4 py-6">
-    <!-- Views rendered here -->
-  </main>
-
-  <!-- FOOTER -->
-  <footer class="bg-slate-900 text-slate-400 text-xs border-t border-slate-800 mt-12 py-8">
-    <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
-      <p>© 2026 B-Tech Hub. All Rights Reserved.</p>
-      <div class="flex space-x-6">
-        <button onclick="togglePrivacyModal()" class="hover:text-white underline">Privacy Policy</button>
-        <a href="mailto:iboiblessed1@gmail.com" class="hover:text-white underline">Contact Support</a>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="brand" style="margin-bottom:10px;"><span class="brand-mark">B</span><span id="footer-brand">B-TECH HUB</span></div>
+          <p class="small-muted" id="footer-tagline">Web Development • AI • Digital Solutions</p>
+        </div>
+        <div>
+          <h4>Site</h4>
+          <a href="#/about">About</a>
+          <a href="#/services">Services</a>
+          <a href="#/projects">Projects</a>
+          <a href="#/posts">Posts</a>
+          <a href="#/resources">Resources</a>
+        </div>
+        <div>
+          <h4>Contact</h4>
+          <a id="footer-email" href="#"></a>
+          <a id="footer-email2" href="#"></a>
+          <a id="footer-phone" href="#"></a>
+          <a id="footer-whatsapp" href="#" target="_blank" rel="noopener">WhatsApp</a>
+          <a id="footer-fb" href="#" target="_blank" rel="noopener">Facebook</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© <span id="year"></span> B-Tech Hub. All rights reserved.</span>
+        <span><a href="#/privacy">Privacy Policy</a> · <a href="#/terms">Terms of Service</a></span>
       </div>
     </div>
   </footer>
+</div>
 
-  <!-- COOKIE CONSENT BANNER -->
-  <div id="cookie-banner" class="fixed bottom-4 right-4 max-w-sm bg-slate-900 border border-slate-800 text-slate-300 p-4 rounded-xl shadow-2xl hidden z-50">
-    <p class="text-xs mb-3">We use cookies to ensure login state persistence. By continuing, you agree to our <button onclick="togglePrivacyModal()" class="text-amber-400 underline font-semibold">Privacy Policy</button>.</p>
-    <button onclick="acceptCookies()" class="w-full py-2 bg-brandBlue hover:bg-blue-600 text-white text-xs font-bold rounded-lg transition">Accept Cookies</button>
-  </div>
+<!-- =========================================================
+     ADMIN SHELL (hash routes starting with #/admin)
+     ========================================================= -->
+<div id="admin-shell" class="hidden">
 
-  <!-- PRIVACY POLICY MODAL -->
-  <div id="privacy-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6 sm:p-8 rounded-2xl space-y-4 shadow-2xl border">
-      <div class="flex justify-between items-center border-b pb-3">
-        <h2 class="text-lg font-black text-slate-900">Privacy Policy</h2>
-        <button onclick="togglePrivacyModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+  <!-- Login -->
+  <div id="admin-login-view" class="admin-login-wrap hidden">
+    <div class="admin-login-box">
+      <div class="brand" style="margin-bottom:22px;"><span class="brand-mark">B</span><span>B-TECH HUB Admin</span></div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="login-email" autocomplete="username" placeholder="you@example.com" />
       </div>
-      <div class="text-xs text-slate-600 leading-relaxed space-y-3">
-        <p><strong>Effective Date:</strong> September 2026</p>
-        <p>B-Tech Hub ("we", "our", "us") respects your privacy. This policy outlines how we handle user data on our platform.</p>
-        <h3 class="font-bold text-slate-800 text-sm">1. Information We Collect</h3>
-        <p>We collect basic details such as your email address when you register an account or interact with learning resources.</p>
-        <h3 class="font-bold text-slate-800 text-sm">2. Cookies & Local Storage</h3>
-        <p>We use essential cookies and browser storage to maintain session states ("Remember Me") and site security.</p>
-        <h3 class="font-bold text-slate-800 text-sm">3. Data Security</h3>
-        <p>All authentication credentials and user database entries are protected via Supabase row-level security (RLS) standards.</p>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="login-password" autocomplete="current-password" placeholder="••••••••" />
       </div>
+      <button class="btn btn-primary btn-block" id="login-btn">Sign in</button>
+      <div id="login-error" class="form-error hidden" style="margin-top:14px;"></div>
+      <p class="small-muted" style="margin-top:16px;">Only the one authorized B-Tech Hub account can access this dashboard.</p>
     </div>
   </div>
 
-  <!-- FORGOT PASSWORD / OTP MODAL -->
-  <div id="otp-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white max-w-sm w-full p-6 rounded-2xl space-y-4 shadow-2xl border">
-      <div class="flex justify-between items-center">
-        <h3 class="text-base font-black text-slate-900">Reset Password</h3>
-        <button onclick="closeOtpModal()" class="text-slate-400 hover:text-slate-600 text-sm font-bold">✕</button>
+  <!-- Dashboard -->
+  <div id="admin-dashboard-view" class="admin-shell hidden">
+    <aside class="admin-side">
+      <div class="side-title">B-TECH HUB</div>
+      <a href="#/admin/dashboard" data-admin-route="dashboard">Dashboard</a>
+      <a href="#/admin/posts" data-admin-route="posts">Posts</a>
+      <a href="#/admin/projects" data-admin-route="projects">Projects</a>
+      <a href="#/admin/services" data-admin-route="services">Services</a>
+      <a href="#/admin/resources" data-admin-route="resources">Resources</a>
+      <a href="#/admin/messages" data-admin-route="messages">Messages</a>
+      <a href="#/admin/comments" data-admin-route="comments">Comments</a>
+      <a href="#/admin/homepage" data-admin-route="homepage">Homepage Control</a>
+      <a href="#/admin/analytics" data-admin-route="analytics">Analytics</a>
+      <a href="#/admin/settings" data-admin-route="settings">Site Settings</a>
+      <a href="#/" style="margin-top:auto; opacity:.8;">← View Public Site</a>
+    </aside>
+    <div class="admin-main">
+      <div class="admin-topbar">
+        <strong id="admin-page-title">Dashboard</strong>
+        <button class="btn btn-outline btn-sm" id="logout-btn">Log out</button>
       </div>
-
-      <!-- Step 1: Request OTP -->
-      <div id="otp-step-1" class="space-y-3">
-        <p class="text-xs text-slate-600">Enter your account email. We will send an OTP code to reset your password.</p>
-        <input id="otp-email" type="email" placeholder="iboiblessed1@gmail.com" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
-        <button onclick="sendOtpCode()" class="w-full py-2.5 bg-brandBlue text-white font-bold text-xs rounded-lg hover:bg-blue-600 transition">Send Code</button>
+      <div class="admin-mobile-nav">
+        <a href="#/admin/dashboard" data-admin-route="dashboard">Dashboard</a>
+        <a href="#/admin/posts" data-admin-route="posts">Posts</a>
+        <a href="#/admin/projects" data-admin-route="projects">Projects</a>
+        <a href="#/admin/services" data-admin-route="services">Services</a>
+        <a href="#/admin/resources" data-admin-route="resources">Resources</a>
+        <a href="#/admin/messages" data-admin-route="messages">Messages</a>
+        <a href="#/admin/comments" data-admin-route="comments">Comments</a>
+        <a href="#/admin/homepage" data-admin-route="homepage">Homepage</a>
+        <a href="#/admin/analytics" data-admin-route="analytics">Analytics</a>
+        <a href="#/admin/settings" data-admin-route="settings">Settings</a>
       </div>
-
-      <!-- Step 2: Enter OTP & New Password -->
-      <div id="otp-step-2" class="space-y-3 hidden">
-        <p class="text-xs text-slate-600">Enter the 6-digit OTP code sent to your email and your new password.</p>
-        <input id="otp-code" type="text" maxlength="6" placeholder="123456" class="w-full p-2.5 border rounded-lg text-xs text-center font-mono tracking-widest focus:ring-2 focus:ring-brandBlue outline-none" />
-        <input id="otp-new-pass" type="password" minlength="5" placeholder="New Password" class="w-full p-2.5 border rounded-lg text-xs focus:ring-2 focus:ring-brandBlue outline-none" />
-        <button onclick="verifyOtpAndReset()" class="w-full py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-lg hover:bg-emerald-500 transition">Update Password</button>
-      </div>
+      <div class="admin-content" id="admin-content"></div>
     </div>
   </div>
+</div>
 
-  <!-- APPLICATION LOGIC SCRIPT -->
-  <script>
-    // ==========================================
-// 1. SUPABASE CLIENT & ADMIN CONFIGURATION
-// ==========================================
-const SUPABASE_URL = 'https://argvofusfdrwengshbqw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZ3ZvZnVzZmRyd2VuZ3NoYnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjkxOTIsImV4cCI6MjEwMzg0NTE5Mn0.lS8P1NhaWVhyW3XMHz5ErC-aIXq-wsMrV8I9RFxtXIE'; 
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<script>
+/* =========================================================
+   0. CONFIG — paste your real Supabase project values here
+   ========================================================= */
+const SUPABASE_URL = "https://argvofusfdrwengshbqw.supabase.co";       // e.g. https://xxxxx.supabase.co
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZ3ZvZnVzZmRyd2VuZ3NoYnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjkxOTIsImV4cCI6MjEwMzg0NTE5Mn0.lS8P1NhaWVhyW3XMHz5ErC-aIXq-wsMrV8I9RFxtXIE";
 
-const ADMIN_EMAILS = [
-  'iboiblessed1@gmail.com',
-  'blessedtechhub5@gmail.com'
-];
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-let currentUser = null;
-let currentView = 'home';
+/* fixed brand contact info (also editable live from Admin → Site Settings,
+   these are just the day-one defaults so the site isn't empty before you
+   fill in Site Settings) */
+const DEFAULT_CONTACT = {
+  contact_email: "blessedtechhub5@gmail.com",
+  contact_email_secondary: "iboiblessed1@gmail.com",
+  contact_phone: "+231760863284",
+  contact_whatsapp: "https://wa.me/231777002416",
+  social_facebook: "https://facebook.com/blessedstudios1",
+  location: "Liberia"
+};
 
-function checkIsAdmin(user) {
-  if (!user || !user.email) return false;
-  const cleanEmail = user.email.trim().toLowerCase();
-  return ADMIN_EMAILS.some(adminEmail => adminEmail.trim().toLowerCase() === cleanEmail);
+let SETTINGS = null;
+let SECTIONS = [];
+const SESSION_ID = getSessionId();
+
+function getSessionId(){
+  let id = localStorage.getItem('bth_session');
+  if(!id){
+    id = 'sess_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    localStorage.setItem('bth_session', id);
+  }
+  return id;
+}
+function esc(str){
+  if(str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+function fmtDate(d){
+  if(!d) return '';
+  return new Date(d).toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'});
+}
+function slugify(s){
+  return (s||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
 }
 
-// Persistent Unique Fingerprint for Non-Logged In Visitors
-function getVisitorKey() {
-  if (currentUser && currentUser.email) return currentUser.email.toLowerCase();
-  let vid = localStorage.getItem('btech_visitor_id');
-  if (!vid) {
-    vid = 'visitor_' + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
-    localStorage.setItem('btech_visitor_id', vid);
-  }
-  return vid;
+/* =========================================================
+   1. SETTINGS — load once, apply to header/footer/meta
+   ========================================================= */
+async function loadSettings(){
+  const { data } = await sb.from('site_settings').select('*').eq('id',1).single();
+  SETTINGS = data || {};
+  applySettingsToChrome();
+  const { data: sections } = await sb.from('homepage_sections').select('*').order('sort_order');
+  SECTIONS = sections || [];
 }
 
-// ==========================================
-// 2. INITIALIZATION & AUTH LISTENER
-// ==========================================
-window.addEventListener('DOMContentLoaded', async () => {
-  if (!localStorage.getItem('btech_cookies_accepted')) {
-    const banner = document.getElementById('cookie-banner');
-    if (banner) banner.classList.remove('hidden');
+function applySettingsToChrome(){
+  const s = SETTINGS || {};
+  const name = s.site_name || 'B-Tech Hub';
+  document.getElementById('brand-name').textContent = name.toUpperCase();
+  document.getElementById('footer-brand').textContent = name.toUpperCase();
+  document.getElementById('footer-tagline').textContent = s.tagline || 'Web Development • AI • Digital Solutions';
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  const email = s.contact_email || DEFAULT_CONTACT.contact_email;
+  const email2 = s.contact_email_secondary || DEFAULT_CONTACT.contact_email_secondary;
+  const phone = s.contact_phone || DEFAULT_CONTACT.contact_phone;
+  const wa = s.contact_whatsapp || DEFAULT_CONTACT.contact_whatsapp;
+  const fb = s.social_facebook || DEFAULT_CONTACT.social_facebook;
+
+  const fe = document.getElementById('footer-email'); fe.href = 'mailto:'+email; fe.textContent = email;
+  const fe2 = document.getElementById('footer-email2'); if(email2){ fe2.href='mailto:'+email2; fe2.textContent = email2; } else fe2.remove();
+  const fp = document.getElementById('footer-phone'); fp.href = 'tel:'+phone; fp.textContent = phone;
+  const fw = document.getElementById('footer-whatsapp'); fw.href = wa;
+  const ffb = document.getElementById('footer-fb'); ffb.href = fb;
+
+  if(s.logo_url){
+    document.getElementById('brand-mark').outerHTML = `<img src="${esc(s.logo_url)}" alt="${esc(name)} logo" />`;
   }
-
-  const { data: { session } } = await db.auth.getSession();
-  currentUser = session ? session.user : null;
-  updateHeaderNav();
-
-  if (checkIsAdmin(currentUser)) {
-    await navigate('admin');
-  } else {
-    await navigate('home');
+  if(s.favicon_url){
+    document.getElementById('favicon-link').href = s.favicon_url;
   }
+  document.getElementById('og-title').content = s.seo_title || name;
+  document.getElementById('og-description').content = s.seo_description || s.tagline || '';
+  document.getElementById('og-image').content = s.default_share_image || '';
+  document.getElementById('og-url').content = location.href.split('#')[0];
+  document.getElementById('tw-title').content = s.seo_title || name;
+  document.getElementById('tw-description').content = s.seo_description || s.tagline || '';
+  document.getElementById('tw-image').content = s.default_share_image || '';
+}
 
-  db.auth.onAuthStateChange(async (event, session) => {
-    currentUser = session ? session.user : null;
-    updateHeaderNav();
+/* =========================================================
+   2. ANALYTICS — first-party pageview logging
+   ========================================================= */
+async function logPageview(path){
+  try{
+    await sb.from('analytics_events').insert({ session_id: SESSION_ID, path, referrer: document.referrer || null });
+  }catch(e){ /* fail silently — never block the UI on analytics */ }
+}
 
-    if (event === 'SIGNED_IN') {
-      if (checkIsAdmin(currentUser)) await navigate('admin');
-      else await navigate('home');
-    } else if (event === 'SIGNED_OUT') {
-      await navigate('home');
-    }
+/* =========================================================
+   3. ROUTER
+   ========================================================= */
+const app = document.getElementById('app');
+
+async function router(){
+  const hash = location.hash || '#/';
+  const path = hash.replace(/^#/, '') || '/';
+
+  if(path.startsWith('/admin')){
+    document.getElementById('public-shell').classList.add('hidden');
+    document.getElementById('admin-shell').classList.remove('hidden');
+    await routeAdmin(path);
+    return;
+  }
+  document.getElementById('public-shell').classList.remove('hidden');
+  document.getElementById('admin-shell').classList.add('hidden');
+  closeMobileMenu();
+
+  highlightNav(path);
+  logPageview(path);
+
+  if(path === '/') return renderHome();
+  if(path === '/about') return renderAbout();
+  if(path === '/services') return renderServices();
+  if(path.startsWith('/services/')) return renderServiceDetail(path.split('/')[2]);
+  if(path === '/projects') return renderProjects();
+  if(path.startsWith('/projects/')) return renderProjectDetail(path.split('/')[2]);
+  if(path === '/posts') return renderPosts();
+  if(path.startsWith('/posts/')) return renderPostDetail(path.split('/')[2]);
+  if(path === '/resources') return renderResources();
+  if(path === '/contact') return renderContact();
+  if(path === '/privacy') return renderPrivacy();
+  if(path === '/terms') return renderTerms();
+  return render404();
+}
+window.addEventListener('hashchange', router);
+
+function highlightNav(path){
+  document.querySelectorAll('[data-route]').forEach(a=>{
+    a.classList.toggle('active', a.dataset.route === path);
   });
+}
+
+function closeMobileMenu(){ document.getElementById('mobile-menu').classList.remove('open'); }
+document.getElementById('hamburger').addEventListener('click', ()=>{
+  document.getElementById('mobile-menu').classList.toggle('open');
 });
+document.getElementById('mobile-menu').addEventListener('click', e=>{ if(e.target.tagName==='A') closeMobileMenu(); });
 
-// ==========================================
-// 3. NAVIGATION ROUTER & HEADER UI
-// ==========================================
-async function navigate(view) {
-  currentView = view;
-  const app = document.getElementById('app');
-  if (!app) return;
-  app.innerHTML = '';
+/* =========================================================
+   4. PUBLIC PAGES
+   ========================================================= */
+function pageShell(inner){ app.innerHTML = inner; window.scrollTo(0,0); }
 
-  if (view === 'home') renderHome(app);
-  else if (view === 'courses') await renderCourses(app);
-  else if (view === 'tutorials') await renderTutorials(app);
-  else if (view === 'login') renderLogin(app);
-  else if (view === 'admin') await renderAdmin(app);
+async function renderHome(){
+  pageShell(`<div id="home-sections">${skeletonBlock()}</div>`);
+  const wrap = document.getElementById('home-sections');
+  const visible = SECTIONS.filter(s=>s.visible).sort((a,b)=>a.sort_order-b.sort_order);
+  const order = visible.length ? visible.map(s=>s.key) : ['hero','about','services','projects','posts','cta'];
+
+  const [{data: services}, {data: projects}, {data: posts}] = await Promise.all([
+    sb.from('services').select('*').eq('visible', true).order('sort_order').limit(6),
+    sb.from('projects').select('*').eq('status','published').eq('featured', true).order('created_at', {ascending:false}).limit(6),
+    sb.from('posts').select('*').eq('status','published').order('published_at', {ascending:false}).limit(3),
+  ]);
+
+  const blocks = {
+    hero: homeHero(),
+    about: homeAboutTeaser(),
+    services: servicesBlock(services||[], true),
+    projects: projectsBlock(projects||[], 'Featured Projects', true),
+    posts: postsBlock(posts||[], true),
+    resources: '',
+    testimonials: '',
+    cta: ctaBlock(),
+  };
+  wrap.innerHTML = order.map(k => blocks[k] || '').join('');
+  bindContactWithMeButtons();
 }
 
-function updateHeaderNav() {
-  const slot = document.getElementById('nav-auth-slot');
-  if (!slot) return;
-
-  if (!currentUser) {
-    slot.innerHTML = `<button onclick="navigate('login')" class="px-3.5 py-1.5 bg-brandBlue hover:bg-blue-600 text-white text-xs font-bold rounded-lg transition">Sign In</button>`;
-  } else {
-    const isAdmin = checkIsAdmin(currentUser);
-    slot.innerHTML = `
-      ${isAdmin ? `<button onclick="navigate('admin')" class="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-lg transition shadow-md">Dashboard</button>` : ''}
-      <button onclick="handleSignOut()" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg transition">Sign Out</button>
-    `;
-  }
-}
-
-// ==========================================
-// 4. PUBLIC VIEWS (COURSES & TUTORIALS)
-// ==========================================
-function renderHome(container) {
-  container.innerHTML = `
-    <div class="py-12 space-y-8 fade-in text-center">
-      <span class="px-3 py-1 bg-blue-100 text-brandBlue text-xs font-bold rounded-full">Official Brand Hub</span>
-      <h1 class="text-3xl md:text-5xl font-black text-slate-900 leading-tight">Master Web Development, Graphic Design & Motion Graphics</h1>
-      <p class="text-xs md:text-sm text-slate-600 max-w-xl mx-auto leading-relaxed">Access tutorials, structured courses, and automation utilities curated directly by Blessed Studios.</p>
-      
-      <div class="flex justify-center gap-4 pt-4">
-        <button onclick="navigate('courses')" class="px-6 py-3 bg-brandBlue text-white font-bold text-xs rounded-xl shadow-lg hover:bg-blue-600 transition">Explore Courses</button>
-        <button onclick="navigate('tutorials')" class="px-6 py-3 bg-slate-900 text-white font-bold text-xs rounded-xl shadow-lg hover:bg-slate-800 transition">Watch Tutorials</button>
-      </div>
-    </div>
-  `;
-}
-
-async function renderCourses(container) {
-  container.innerHTML = `<div class="text-center py-12 text-xs font-bold text-slate-400">Loading published courses...</div>`;
-  
-  let courses = [], categories = [];
-  try {
-    const { data: cData } = await db.from('courses').select('*').eq('is_published', true).order('created_at', { ascending: false });
-    if (cData) courses = cData;
-
-    const { data: catData } = await db.from('categories').select('*');
-    if (catData) categories = catData;
-  } catch (err) {
-    console.warn("Courses fetch error:", err);
-  }
-
-  // Fetch real social data from DB
-  const { likesMap, commentsMap } = await fetchRealSocialData('course');
-  const visitorKey = getVisitorKey();
-
-  container.innerHTML = `
-    <div class="space-y-6 fade-in py-4">
-      <div class="border-b pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 class="text-2xl font-black text-slate-900">Featured Courses</h2>
-          <p class="text-xs text-slate-500">Explore YouTube Automation, Graphic Design, Web Dev and Motion Design.</p>
-        </div>
-      </div>
-
-      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        ${courses.length === 0 ? '<p class="text-xs text-slate-500 col-span-full py-8 text-center">No published courses available yet.</p>' : 
-          courses.map(c => renderCardItem(c, 'course', likesMap[c.id] || [], commentsMap[c.id] || [], visitorKey)).join('')
-        }
-      </div>
-    </div>
-  `;
-}
-
-async function renderTutorials(container) {
-  container.innerHTML = `<div class="text-center py-12 text-xs font-bold text-slate-400">Loading video tutorials...</div>`;
-
-  let tutorials = [];
-  try {
-    const { data: tData } = await db.from('tutorials').select('*').eq('is_published', true).order('created_at', { ascending: false });
-    if (tData) tutorials = tData;
-  } catch (err) {
-    console.warn("Tutorials fetch error:", err);
-  }
-
-  const { likesMap, commentsMap } = await fetchRealSocialData('tutorial');
-  const visitorKey = getVisitorKey();
-
-  container.innerHTML = `
-    <div class="space-y-6 fade-in py-4">
-      <div class="border-b pb-4">
-        <h2 class="text-2xl font-black text-slate-900">Video Tutorials</h2>
-        <p class="text-xs text-slate-500">Step-by-step walkthroughs and design breakdowns.</p>
-      </div>
-      <div class="grid md:grid-cols-2 gap-6">
-        ${tutorials.length === 0 ? '<p class="text-xs text-slate-500 col-span-full py-8 text-center">No video tutorials published yet.</p>' : 
-          tutorials.map(t => renderCardItem(t, 'tutorial', likesMap[t.id] || [], commentsMap[t.id] || [], visitorKey)).join('')
-        }
-      </div>
-    </div>
-  `;
-}
-
-// Fetch real likes & comments from Supabase
-async function fetchRealSocialData(type) {
-  let likesMap = {}, commentsMap = {};
-  try {
-    const { data: likes } = await db.from('likes').select('*').eq('content_type', type);
-    if (likes) {
-      likes.forEach(l => {
-        if (!likesMap[l.content_id]) likesMap[l.content_id] = [];
-        likesMap[l.content_id].push(l.user_key);
-      });
-    }
-
-    const { data: comments } = await db.from('comments').select('*').eq('content_type', type).order('created_at', { ascending: true });
-    if (comments) {
-      comments.forEach(c => {
-        if (!commentsMap[c.content_id]) commentsMap[c.content_id] = [];
-        commentsMap[c.content_id].push(c);
-      });
-    }
-  } catch (err) {
-    console.error("Social data fetch error:", err);
-  }
-  return { likesMap, commentsMap };
-}
-
-// Unified Public Card Component
-function renderCardItem(item, type, userLikes, comments, visitorKey) {
-  const isLiked = userLikes.includes(visitorKey);
-  const likeCount = userLikes.length;
-
-  let mediaDisplay = '';
-  if (type === 'tutorial' && item.video_url) {
-    mediaDisplay = renderVideoEmbed(item.video_url);
-  } else if (item.image_url) {
-    mediaDisplay = `<img src="${item.image_url}" class="w-full h-44 object-cover rounded-xl border mb-3 shadow-sm" alt="${item.title}" />`;
-  } else {
-    mediaDisplay = `<div class="w-full h-44 bg-gradient-to-br from-slate-900 to-brandBlue rounded-xl flex items-center justify-center text-white font-bold text-sm mb-3 shadow-sm px-4 text-center">
-      ${item.title}
-    </div>`;
-  }
-
+function homeHero(){
+  const photo = SETTINGS && SETTINGS.profile_photo_url;
   return `
-    <div class="bg-white p-5 rounded-2xl border shadow-sm flex flex-col justify-between space-y-4">
+  <section class="hero">
+    <div class="container hero-grid">
       <div>
-        ${mediaDisplay}
-        <div class="flex justify-between items-center mb-1">
-          <span class="px-2.5 py-0.5 bg-blue-100 text-brandBlue text-[10px] font-bold rounded-md">${item.category || 'General'}</span>
-          <span class="text-[10px] text-slate-400 font-semibold">${new Date(item.created_at || Date.now()).toLocaleDateString()}</span>
+        <div class="hero-eyebrow">Web Development • AI • Digital Solutions</div>
+        <h1>I Build Modern Digital Experiences.</h1>
+        <p>I create modern websites, digital solutions and AI-powered experiences for businesses, schools, churches and organizations.</p>
+        <div class="hero-actions">
+          <a href="#/projects" class="btn btn-primary">View My Work</a>
+          <a href="#/contact" class="btn btn-outline">Work With Me</a>
         </div>
-        <h3 class="font-black text-base text-slate-900 mt-1">${item.title}</h3>
-        <p class="text-xs text-slate-600 leading-relaxed mt-1">${item.description || ''}</p>
       </div>
+      <div class="hero-photo">
+        ${photo ? `<img src="${esc(photo)}" alt="Profile photo" />` : `<span class="ph">Add a profile photo in Admin → Site Settings</span>`}
+      </div>
+    </div>
+  </section>`;
+}
+function homeAboutTeaser(){
+  return `
+  <section class="section">
+    <div class="container">
+      <h2>Building with technology. Creating with purpose.</h2>
+      <p>B-Tech Hub designs and builds modern websites, digital tools and AI-powered experiences — the kind that businesses, schools, churches and organizations actually use every day.</p>
+      <a href="#/about">Learn More →</a>
+    </div>
+  </section>`;
+}
+function servicesBlock(services, isHome){
+  const title = isHome ? 'Services' : 'What I Offer';
+  if(!services.length) return isHome ? '' : `<section class="section"><div class="container"><div class="empty">No services published yet.</div></div></section>`;
+  return `
+  <section class="section${isHome ? ' section-alt' : ''}">
+    <div class="container">
+      <div class="section-head"><h2>${esc(title)}</h2></div>
+      <div class="grid grid-3">
+        ${services.map(s=>`
+          <a href="#/services/${esc(s.slug)}" class="card">
+            <div class="card-body">
+              <div class="service-icon">${serviceIcon(s.icon)}</div>
+              <h3>${esc(s.name)}</h3>
+              <p>${esc(s.short_description||'')}</p>
+            </div>
+          </a>`).join('')}
+      </div>
+    </div>
+  </section>`;
+}
+function serviceIcon(){
+  return `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17l6-6-6-6M12 19h8"/></svg>`;
+}
+function projectsBlock(projects, title, isHome){
+  if(!projects.length) return isHome ? '' : `<div class="empty">No projects published yet.</div>`;
+  return `
+  <section class="section">
+    <div class="container">
+      <div class="section-head"><h2>${esc(title)}</h2></div>
+      <div class="grid grid-3">
+        ${projects.map(p=>`
+          <a href="#/projects/${esc(p.slug)}" class="card">
+            <div class="card-img">${p.cover_image ? `<img src="${esc(p.cover_image)}" alt="${esc(p.name)}"/>` : ''}</div>
+            <div class="card-body">
+              <h3>${esc(p.name)}</h3>
+              <p>${esc(p.short_description||'')}</p>
+              <div class="tag-row">${(p.technologies||[]).slice(0,4).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+              <span>View Project →</span>
+            </div>
+          </a>`).join('')}
+      </div>
+    </div>
+  </section>`;
+}
+function postsBlock(posts, isHome){
+  if(!posts.length) return isHome ? '' : `<div class="empty">No posts published yet.</div>`;
+  return `
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-head"><h2>Latest Posts</h2></div>
+      <div class="grid grid-3">
+        ${posts.map(p=>`
+          <a href="#/posts/${esc(p.slug)}" class="card">
+            <div class="card-img">${p.cover_image ? `<img src="${esc(p.cover_image)}" alt="${esc(p.title)}"/>` : ''}</div>
+            <div class="card-body">
+              <h3>${esc(p.title)}</h3>
+              <div class="post-meta">
+                <span>❤️ ${p.likes_count||0}</span>
+                <span>${fmtDate(p.published_at||p.created_at)}</span>
+              </div>
+            </div>
+          </a>`).join('')}
+      </div>
+    </div>
+  </section>`;
+}
+function ctaBlock(){
+  return `
+  <section class="section">
+    <div class="container">
+      <div class="cta-band">
+        <h2>Have an idea? Let's build it.</h2>
+        <p>Tell me what you're trying to build — I'll get back to you with next steps.</p>
+        <a href="#/contact" class="btn btn-primary" style="background:#fff;color:var(--ink);">Start a Project →</a>
+      </div>
+    </div>
+  </section>`;
+}
+function skeletonBlock(){
+  return `<div class="container section"><div class="skeleton" style="height:220px;border-radius:10px;"></div></div>`;
+}
+function bindContactWithMeButtons(){}
 
-      <!-- PERSISTENT SOCIAL BAR -->
-      <div class="border-t pt-3 space-y-3">
-        <div class="flex items-center justify-between text-xs font-bold text-slate-600">
-          <button onclick="handlePersistentLike('${type}', '${item.id}')" class="flex items-center space-x-1.5 hover:text-red-500 transition ${isLiked ? 'text-red-500' : ''}">
-            <svg class="w-4 h-4" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.684a4.5 4.5 0 00-7.682-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-            <span>${likeCount}</span>
-          </button>
-
-          <button onclick="toggleCommentDrawer('${item.id}')" class="flex items-center space-x-1.5 hover:text-brandBlue transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-            <span>${comments.length} Comments</span>
-          </button>
-
-          <button onclick="handleShare('${item.title}')" class="flex items-center space-x-1.5 hover:text-amber-500 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 100-5.367 3 3 0 000 5.367zm0 8a3 3 0 100-5.367 3 3 0 000 5.367z"/></svg>
-            <span>Share</span>
-          </button>
+/* ---- About ---- */
+async function renderAbout(){
+  pageShell(skeletonBlock());
+  const { data: profile } = await sb.from('profiles').select('*').limit(1).maybeSingle();
+  const p = profile || {};
+  app.innerHTML = `
+  <section class="section">
+    <div class="container">
+      <h1>About B-Tech Hub</h1>
+      <p>B-Tech Hub is a technology brand focused on building modern websites, AI-powered tools, and digital solutions for businesses, schools, churches and organizations.</p>
+      <hr class="sep" />
+      <div class="hero-grid" style="align-items:start;">
+        <div>
+          <h2>${esc(p.full_name || 'Blessed Iboi')}</h2>
+          <p style="color:var(--blue); font-weight:600;">${esc(p.title || 'Founder • Web Developer • AI Creator • Designer')}</p>
+          <p>${p.bio ? esc(p.bio).replace(/\n/g,'<br/>') : 'Bio coming soon — add this from Admin → Site Settings / Profile.'}</p>
+          ${(p.skills && p.skills.length) ? `
+            <h3 style="margin-top:26px;">Skills</h3>
+            <div class="tag-row">${p.skills.map(s=>`<span class="tag">${esc(s)}</span>`).join('')}</div>
+          ` : ''}
         </div>
-
-        <!-- COMMENT DRAWER -->
-        <div id="drawer-${item.id}" class="hidden space-y-2 pt-2 bg-slate-50 p-3 rounded-xl border">
-          <div class="space-y-1.5 max-h-36 overflow-y-auto text-xs">
-            ${comments.length === 0 ? '<p class="text-[11px] text-slate-400 italic">No comments yet. Leave a thought!</p>' : 
-              comments.map(c => `
-                <div class="p-2 bg-white rounded border text-[11px]">
-                  <div class="flex justify-between text-slate-400 text-[9px] mb-0.5">
-                    <strong>${c.user_name}</strong>
-                    <span>${new Date(c.created_at).toLocaleDateString()}</span>
-                  </div>
-                  <p class="text-slate-800">${c.comment_text}</p>
-                </div>
-              `).join('')
-            }
-          </div>
-          <form onsubmit="handlePostComment(event, '${type}', '${item.id}')" class="flex gap-2 pt-1">
-            <input id="comment-input-${item.id}" type="text" placeholder="Write a comment..." required class="flex-grow p-2 border rounded-lg text-xs bg-white focus:outline-none" />
-            <button type="submit" class="px-3 py-1 bg-brandBlue text-white font-bold text-xs rounded-lg hover:bg-blue-600">Post</button>
-          </form>
+        <div class="hero-photo">
+          ${p.photo_url ? `<img src="${esc(p.photo_url)}" alt="${esc(p.full_name||'Profile photo')}"/>` : `<span class="ph">No photo added yet</span>`}
         </div>
       </div>
     </div>
-  `;
+  </section>`;
 }
 
-function renderVideoEmbed(url) {
-  if (!url) return '';
-  const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-  if (ytMatch && ytMatch[1]) {
-    return `<div class="aspect-video w-full rounded-xl overflow-hidden bg-slate-900 shadow-inner mb-3">
-      <iframe class="w-full h-full" src="https://www.youtube.com/embed/${ytMatch[1]}" frameborder="0" allowfullscreen></iframe>
-    </div>`;
+/* ---- Services ---- */
+async function renderServices(){
+  pageShell(skeletonBlock());
+  const { data } = await sb.from('services').select('*').eq('visible',true).order('sort_order');
+  app.innerHTML = `<div class="container section"><h1>Services</h1><p>Every service below is managed live from Admin.</p></div>` + servicesBlock(data||[], false);
+}
+async function renderServiceDetail(slug){
+  pageShell(skeletonBlock());
+  const { data: s } = await sb.from('services').select('*').eq('slug', slug).eq('visible', true).maybeSingle();
+  if(!s) return pageShell(`<div class="container section"><div class="empty">Service not found.</div></div>`);
+  app.innerHTML = `
+  <section class="section">
+    <div class="container">
+      <a href="#/services" class="back-link">← All Services</a>
+      <div class="service-icon">${serviceIcon()}</div>
+      <h1>${esc(s.name)}</h1>
+      <p>${esc(s.short_description||'')}</p>
+      ${s.description ? `<div>${esc(s.description).replace(/\n/g,'<br/>')}</div>` : ''}
+      ${(s.features && s.features.length) ? `
+        <h3 style="margin-top:24px;">What I Provide</h3>
+        <ul>${s.features.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>` : ''}
+      ${s.starting_price ? `<p><strong>Starting at:</strong> ${esc(s.starting_price)}</p>` : ''}
+      <a href="#/contact" class="btn btn-primary">Request This Service</a>
+    </div>
+  </section>`;
+}
+
+/* ---- Projects ---- */
+async function renderProjects(){
+  pageShell(skeletonBlock());
+  const { data } = await sb.from('projects').select('*').eq('status','published').order('created_at', {ascending:false});
+  const list = data || [];
+  app.innerHTML = `
+  <section class="section">
+    <div class="container">
+      <h1>Projects</h1>
+      <p>Selected work from B-Tech Hub.</p>
+      ${!list.length ? `<div class="empty">No projects published yet.</div>` : `
+        <div class="grid grid-3">
+          ${list.map(p=>`
+            <a href="#/projects/${esc(p.slug)}" class="card">
+              <div class="card-img">${p.cover_image ? `<img src="${esc(p.cover_image)}" alt="${esc(p.name)}"/>` : ''}</div>
+              <div class="card-body">
+                <h3>${esc(p.name)}</h3>
+                <p>${esc(p.short_description||'')}</p>
+                <div class="tag-row">${(p.technologies||[]).slice(0,4).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+                <span>View Project →</span>
+              </div>
+            </a>`).join('')}
+        </div>`}
+    </div>
+  </section>`;
+}
+async function renderProjectDetail(slug){
+  pageShell(skeletonBlock());
+  const { data: p } = await sb.from('projects').select('*').eq('slug', slug).eq('status','published').maybeSingle();
+  if(!p) return pageShell(`<div class="container section"><div class="empty">Project not found.</div></div>`);
+  const { data: comments } = await sb.from('comments').select('*').eq('project_id', p.id).eq('status','approved').order('created_at',{ascending:false});
+  app.innerHTML = `
+  <section class="section">
+    <div class="container">
+      <a href="#/projects" class="back-link">← All Projects</a>
+      ${p.cover_image ? `<div class="card-img" style="border-radius:10px;margin-bottom:20px;"><img src="${esc(p.cover_image)}" alt="${esc(p.name)}"/></div>` : ''}
+      <h1>${esc(p.name)}</h1>
+      <p>${esc(p.short_description||'')}</p>
+      <div class="tag-row">${(p.technologies||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+      <div>${p.description ? esc(p.description).replace(/\n/g,'<br/>') : ''}</div>
+      <div class="hero-actions">
+        ${p.live_url ? `<a class="btn btn-primary" href="${esc(p.live_url)}" target="_blank" rel="noopener">Live Website</a>`:''}
+        ${p.github_url ? `<a class="btn btn-outline" href="${esc(p.github_url)}" target="_blank" rel="noopener">GitHub Repository</a>`:''}
+      </div>
+      ${(p.gallery && p.gallery.length) ? `<div class="grid grid-3" style="margin-top:24px;">${p.gallery.map(g=>`<div class="card-img"><img src="${esc(g)}"/></div>`).join('')}</div>` : ''}
+      ${socialRow(null, p.id)}
+      ${commentsSection(comments||[], null, p.id)}
+    </div>
+  </section>`;
+  bindSocial(null, p.id);
+}
+
+/* ---- Posts ---- */
+async function renderPosts(){
+  pageShell(skeletonBlock());
+  const { data } = await sb.from('posts').select('*').eq('status','published').order('published_at',{ascending:false});
+  const list = data||[];
+  app.innerHTML = `<div class="container section"><h1>Posts</h1><p>Articles on AI, web development and building B-Tech Hub.</p>
+    ${!list.length ? '<div class="empty">No posts published yet.</div>' : `<div class="grid grid-3">${list.map(p=>`
+      <a href="#/posts/${esc(p.slug)}" class="card">
+        <div class="card-img">${p.cover_image?`<img src="${esc(p.cover_image)}"/>`:''}</div>
+        <div class="card-body">
+          <div class="tag-row">${p.category?`<span class="tag">${esc(p.category)}</span>`:''}</div>
+          <h3>${esc(p.title)}</h3>
+          <div class="post-meta"><span>❤️ ${p.likes_count||0}</span><span>${fmtDate(p.published_at||p.created_at)}</span></div>
+        </div>
+      </a>`).join('')}</div>`}
+  </div>`;
+}
+function videoEmbed(url){
+  if(!url) return '';
+  const yt = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([\w-]{6,})/);
+  const vm = url.match(/vimeo\.com\/(\d+)/);
+  if(yt) return `<div style="aspect-ratio:16/9;border-radius:10px;overflow:hidden;margin:20px 0;"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/${yt[1]}" title="video" frameborder="0" allowfullscreen></iframe></div>`;
+  if(vm) return `<div style="aspect-ratio:16/9;border-radius:10px;overflow:hidden;margin:20px 0;"><iframe width="100%" height="100%" src="https://player.vimeo.com/video/${vm[1]}" title="video" frameborder="0" allowfullscreen></iframe></div>`;
+  return `<video controls style="width:100%;border-radius:10px;margin:20px 0;" src="${esc(url)}"></video>`;
+}
+async function renderPostDetail(slug){
+  pageShell(skeletonBlock());
+  const { data: p } = await sb.from('posts').select('*').eq('slug', slug).eq('status','published').maybeSingle();
+  if(!p) return pageShell(`<div class="container section"><div class="empty">Post not found.</div></div>`);
+  const { data: comments } = await sb.from('comments').select('*').eq('post_id', p.id).eq('status','approved').order('created_at',{ascending:false});
+  app.innerHTML = `
+  <section class="section">
+    <div class="container" style="max-width:760px;">
+      <a href="#/posts" class="back-link">← All Posts</a>
+      <div class="tag-row">${p.category?`<span class="tag">${esc(p.category)}</span>`:''}</div>
+      <h1>${esc(p.title)}</h1>
+      <div class="post-meta"><span>${esc(p.author||'')}</span><span>${fmtDate(p.published_at||p.created_at)}</span></div>
+      ${p.cover_image ? `<div class="card-img" style="border-radius:10px;margin:18px 0;"><img src="${esc(p.cover_image)}"/></div>` : ''}
+      ${videoEmbed(p.video_url)}
+      <div>${p.content ? esc(p.content).replace(/\n/g,'<br/>') : ''}</div>
+      <div class="tag-row">${(p.tags||[]).map(t=>`<span class="tag">#${esc(t)}</span>`).join('')}</div>
+      ${socialRow(p.id, null, p)}
+      ${commentsSection(comments||[], p.id, null)}
+    </div>
+  </section>`;
+  bindSocial(p.id, null, p);
+}
+
+function socialRow(postId, projectId, post){
+  const likes = post ? (post.likes_count||0) : 0;
+  const liked = postId ? localStorage.getItem('liked_'+postId) === '1' : false;
+  return `
+  <div class="social-row" id="social-row">
+    ${postId ? `<button class="social-btn${liked?' liked':''}" id="like-btn" data-liked="${liked?1:0}">♡ <span id="like-count">${likes}</span></button>` : ''}
+    <button class="social-btn" id="comment-jump-btn">💬 Comment</button>
+    <button class="social-btn" id="share-btn">↗ Share</button>
+  </div>`;
+}
+function bindSocial(postId, projectId, post){
+  const shareBtn = document.getElementById('share-btn');
+  if(shareBtn){
+    shareBtn.addEventListener('click', async ()=>{
+      const shareData = { title: document.title, url: location.href };
+      if(navigator.share){ try{ await navigator.share(shareData);}catch(e){} }
+      else { await navigator.clipboard.writeText(location.href); shareBtn.textContent = '✓ Link copied'; setTimeout(()=>shareBtn.innerHTML='↗ Share', 1600); }
+    });
   }
-  return `<div class="aspect-video bg-slate-100 rounded-xl flex items-center justify-center text-xs font-bold text-slate-400 border mb-3">
-    <a href="${url}" target="_blank" class="text-brandBlue underline">Watch Video ↗</a>
+  const jump = document.getElementById('comment-jump-btn');
+  if(jump) jump.addEventListener('click', ()=> document.getElementById('comment-form')?.scrollIntoView({behavior:'smooth'}));
+
+  const likeBtn = document.getElementById('like-btn');
+  if(likeBtn && postId){
+    likeBtn.addEventListener('click', async ()=>{
+      if(likeBtn.dataset.liked === '1') return;
+      likeBtn.disabled = true;
+      const { data, error } = await sb.rpc('like_post', { p_post_id: postId, p_session_id: SESSION_ID });
+      if(!error){
+        document.getElementById('like-count').textContent = data;
+        likeBtn.classList.add('liked');
+        likeBtn.dataset.liked = '1';
+        localStorage.setItem('liked_'+postId, '1');
+      }
+      likeBtn.disabled = false;
+    });
+  }
+
+  const form = document.getElementById('comment-form');
+  if(form){
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const fd = new FormData(form);
+      const payload = { name: fd.get('name'), email: fd.get('email'), comment: fd.get('comment'), status:'pending' };
+      if(postId) payload.post_id = postId; else payload.project_id = projectId;
+      const btn = form.querySelector('button[type=submit]');
+      btn.disabled = true; btn.textContent = 'Posting…';
+      const { error } = await sb.from('comments').insert(payload);
+      const msg = document.getElementById('comment-msg');
+      if(error){ msg.className='form-error'; msg.textContent = 'Something went wrong — please try again.'; }
+      else { msg.className='form-success'; msg.textContent = 'Thanks! Your comment is awaiting approval.'; form.reset(); }
+      msg.classList.remove('hidden');
+      btn.disabled = false; btn.textContent = 'Post Comment';
+    });
+  }
+}
+function commentsSection(comments, postId, projectId){
+  return `
+  <div style="margin-top:36px;">
+    <h3>Comments (${comments.length})</h3>
+    ${comments.map(c=>`
+      <div class="comment">
+        <div class="comment-name">${esc(c.name)}</div>
+        <div class="comment-date">${fmtDate(c.created_at)}</div>
+        <p style="margin-top:6px;">${esc(c.comment)}</p>
+      </div>`).join('') || '<p class="small-muted">No comments yet — be the first.</p>'}
+    <form id="comment-form" style="margin-top:20px;">
+      <div class="form-2col">
+        <div class="field"><label>Name</label><input name="name" required /></div>
+        <div class="field"><label>Email</label><input type="email" name="email" required /></div>
+      </div>
+      <div class="field"><label>Comment</label><textarea name="comment" rows="3" required></textarea></div>
+      <div id="comment-msg" class="hidden" style="margin-bottom:12px;"></div>
+      <button type="submit" class="btn btn-primary">Post Comment</button>
+    </form>
   </div>`;
 }
 
-// ==========================================
-// 5. DATABASE PERSISTENT ACTIONS
-// ==========================================
-async function handlePersistentLike(contentType, contentId) {
-  const userKey = getVisitorKey();
-
-  try {
-    // Check if like exists in Supabase
-    const { data: existing } = await db.from('likes')
-      .select('id')
-      .eq('content_type', contentType)
-      .eq('content_id', contentId)
-      .eq('user_key', userKey)
-      .maybeSingle();
-
-    if (existing) {
-      await db.from('likes').delete().eq('id', existing.id);
-      showToast('Like removed', 'info');
-    } else {
-      await db.from('likes').insert([{ content_type: contentType, content_id: contentId, user_key: userKey }]);
-      showToast('Liked!', 'success');
-    }
-    await navigate(currentView);
-  } catch (err) {
-    showToast('Unable to update like', 'error');
-  }
+/* ---- Resources ---- */
+async function renderResources(){
+  pageShell(skeletonBlock());
+  const { data } = await sb.from('resources').select('*').eq('visible',true).order('created_at',{ascending:false});
+  const list = data||[];
+  app.innerHTML = `<div class="container section"><h1>Resources</h1><p>Free guides, templates and tools from B-Tech Hub.</p>
+    ${!list.length ? '<div class="empty">No resources published yet — check back soon.</div>' : `<div class="grid grid-3">${list.map(r=>`
+      <div class="card">
+        <div class="card-img">${r.cover_image?`<img src="${esc(r.cover_image)}"/>`:''}</div>
+        <div class="card-body">
+          <div class="tag-row"><span class="tag">${esc(r.type)}</span></div>
+          <h3>${esc(r.title)}</h3>
+          <p>${esc(r.description||'')}</p>
+          ${r.file_url ? `<a class="btn btn-outline btn-sm" href="${esc(r.file_url)}" target="_blank" rel="noopener">Download</a>` : ''}
+        </div>
+      </div>`).join('')}</div>`}
+  </div>`;
 }
 
-function toggleCommentDrawer(id) {
-  const drawer = document.getElementById(`drawer-${id}`);
-  if (drawer) drawer.classList.toggle('hidden');
-}
-
-async function handlePostComment(e, contentType, contentId) {
-  e.preventDefault();
-  const input = document.getElementById(`comment-input-${contentId}`);
-  if (!input || !input.value.trim()) return;
-
-  const commentText = input.value.trim();
-  const userName = currentUser ? currentUser.email.split('@')[0] : 'Guest Visitor';
-
-  showToast('Posting comment...', 'info');
-
-  const { error } = await db.from('comments').insert([{
-    content_type: contentType,
-    content_id: contentId,
-    user_name: userName,
-    comment_text: commentText
-  }]);
-
-  if (error) {
-    showToast(error.message, 'error');
-  } else {
-    showToast('Comment saved!', 'success');
-    await navigate(currentView);
-  }
-}
-
-async function handleShare(title) {
-  const shareData = { title: title, text: `Check out "${title}" on B-Tech Hub!`, url: window.location.href };
-  if (navigator.share) {
-    try { await navigator.share(shareData); } catch (err) {}
-  } else {
-    await navigator.clipboard.writeText(window.location.href);
-    showToast('URL copied to clipboard!', 'success');
-  }
-}
-
-// ==========================================
-// 6. FEATURE-RICH ADMIN CONTROL CENTER
-// ==========================================
-async function renderAdmin(container) {
-  if (!checkIsAdmin(currentUser)) {
-    container.innerHTML = `<div class="p-8 text-center text-xs font-bold text-red-600">Access Denied. Admin account required.</div>`;
-    return;
-  }
-
-  // Real Database Queries
-  let courses = [], tutorials = [], categories = [], comments = [], likesCount = 0;
-
-  try {
-    const { data: coData } = await db.from('courses').select('*').order('created_at', { ascending: false });
-    if (coData) courses = coData;
-
-    const { data: tData } = await db.from('tutorials').select('*').order('created_at', { ascending: false });
-    if (tData) tutorials = tData;
-
-    const { data: catData } = await db.from('categories').select('*').order('name', { ascending: true });
-    if (catData) categories = catData;
-
-    const { data: commData } = await db.from('comments').select('*').order('created_at', { ascending: false }).limit(20);
-    if (commData) comments = commData;
-
-    const { count } = await db.from('likes').select('*', { count: 'exact', head: true });
-    likesCount = count || 0;
-  } catch (err) {
-    console.warn("Admin query error:", err);
-  }
-
-  container.innerHTML = `
-    <div class="max-w-5xl mx-auto space-y-8 py-4 fade-in">
-      <div class="bg-slate-900 text-white p-6 rounded-2xl flex justify-between items-center shadow-xl">
-        <div>
-          <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Owner Portal</span>
-          <h1 class="text-2xl font-black">B-Tech Hub Dashboard</h1>
-          <p class="text-xs text-slate-400">Authorized: <span class="text-slate-200">${currentUser.email}</span></p>
+/* ---- Contact ---- */
+async function renderContact(){
+  pageShell(`
+  <section class="section">
+    <div class="container" style="max-width:640px;">
+      <h1>Work With Me</h1>
+      <p>Tell me about your project and I'll get back to you.</p>
+      <form id="contact-form">
+        <div class="form-2col">
+          <div class="field"><label>Name</label><input name="name" required /></div>
+          <div class="field"><label>Email</label><input type="email" name="email" required /></div>
         </div>
-        <button onclick="handleSignOut()" class="px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg transition">Sign Out</button>
-      </div>
-
-      <!-- Real Database Stats -->
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
-          <p class="text-[10px] font-bold uppercase text-slate-400">Total Courses</p>
-          <p class="text-2xl font-black text-slate-900">${courses.length}</p>
-        </div>
-        <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
-          <p class="text-[10px] font-bold uppercase text-slate-400">Video Tutorials</p>
-          <p class="text-2xl font-black text-slate-900">${tutorials.length}</p>
-        </div>
-        <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
-          <p class="text-[10px] font-bold uppercase text-red-500">Real Likes Stored</p>
-          <p class="text-2xl font-black text-red-500">${likesCount}</p>
-        </div>
-        <div class="bg-white p-4 rounded-xl border shadow-sm space-y-1">
-          <p class="text-[10px] font-bold uppercase text-brandBlue">Dynamic Topics</p>
-          <p class="text-2xl font-black text-brandBlue">${categories.length}</p>
-        </div>
-      </div>
-
-      <!-- Dynamic Topic / Category Manager -->
-      <div class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm">
-        <div class="border-b pb-2">
-          <h3 class="font-bold text-slate-900 text-sm uppercase">Manage Course Topics & Categories</h3>
-          <p class="text-xs text-slate-500">Add custom topics like Graphic Design, YouTube Automation, Motion Design, etc.</p>
-        </div>
-
-        <form onsubmit="handleCreateCategory(event)" class="flex flex-col sm:flex-row gap-2">
-          <input id="new-cat-name" type="text" placeholder="e.g. YouTube Automation" required class="flex-grow p-2.5 border rounded-lg text-xs" />
-          <select id="new-cat-type" class="p-2.5 border rounded-lg text-xs bg-white">
-            <option value="course">Course Topic</option>
-            <option value="tutorial">Tutorial Topic</option>
-          </select>
-          <button type="submit" class="px-5 py-2.5 bg-brandBlue text-white font-bold text-xs rounded-lg hover:bg-blue-600 transition">+ Add Topic</button>
-        </form>
-
-        <div class="flex flex-wrap gap-2 pt-2">
-          ${categories.map(cat => `
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border text-slate-800 text-xs font-bold rounded-lg">
-              ${cat.name}
-              <button onclick="handleDeleteCategory('${cat.id}')" class="text-slate-400 hover:text-red-600 text-xs font-bold">×</button>
-            </span>
-          `).join('')}
-        </div>
-      </div>
-
-      <!-- Publish Content Forms -->
-      <div class="grid md:grid-cols-2 gap-6">
-        <!-- New Course -->
-        <form onsubmit="handleCreateCourse(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
-          <h3 class="font-bold text-slate-900 text-sm uppercase">Publish Course</h3>
-          <input id="ac-title" type="text" placeholder="Course Title" required class="w-full p-2.5 border rounded-lg text-xs" />
-          
-          <select id="ac-cat" class="w-full p-2.5 border rounded-lg text-xs bg-white">
-            ${categories.length > 0 ? 
-              categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('') :
-              '<option value="Web Development">Web Development</option><option value="YouTube Automation">YouTube Automation</option>'
-            }
-          </select>
-
-          <textarea id="ac-desc" rows="3" placeholder="Course Description..." class="w-full p-2.5 border rounded-lg text-xs"></textarea>
-          <div>
-            <label class="text-[11px] font-bold text-slate-700 block mb-1">Thumbnail Image</label>
-            <input id="ac-thumb" type="file" accept="image/*" class="w-full text-xs p-2 border rounded-lg bg-slate-50" />
-          </div>
-          <div class="flex items-center space-x-2">
-            <input id="ac-publish" type="checkbox" checked class="w-4 h-4 text-brandBlue rounded" />
-            <label for="ac-publish" class="text-xs font-bold text-slate-700">Publish Immediately</label>
-          </div>
-          <button type="submit" class="w-full py-2.5 bg-brandBlue text-white font-bold text-xs rounded-lg hover:bg-blue-600 transition">Save Course</button>
-        </form>
-
-        <!-- New Tutorial -->
-        <form onsubmit="handleCreateTutorial(event)" class="bg-white p-6 rounded-2xl border space-y-3 shadow-sm">
-          <h3 class="font-bold text-slate-900 text-sm uppercase">Publish Video Tutorial</h3>
-          <input id="at-title" type="text" placeholder="Tutorial Title" required class="w-full p-2.5 border rounded-lg text-xs" />
-          
-          <select id="at-cat" class="w-full p-2.5 border rounded-lg text-xs bg-white">
-            ${categories.length > 0 ? 
-              categories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('') :
-              '<option value="Graphic Design">Graphic Design</option><option value="Motion Design">Motion Design</option>'
-            }
-          </select>
-
-          <input id="at-video" type="url" placeholder="YouTube URL" class="w-full p-2.5 border rounded-lg text-xs" />
-          <textarea id="at-desc" rows="2" placeholder="Tutorial Description..." class="w-full p-2.5 border rounded-lg text-xs"></textarea>
-          <div class="flex items-center space-x-2">
-            <input id="at-publish" type="checkbox" checked class="w-4 h-4 text-brandBlue rounded" />
-            <label for="at-publish" class="text-xs font-bold text-slate-700">Publish Immediately</label>
-          </div>
-          <button type="submit" class="w-full py-2.5 bg-slate-900 text-white font-bold text-xs rounded-lg hover:bg-slate-800 transition">Save Tutorial</button>
-        </form>
-      </div>
-
-      <!-- Content Tables -->
-      <div class="grid md:grid-cols-2 gap-6">
-        <div class="bg-white p-6 rounded-2xl border space-y-4">
-          <h3 class="font-bold text-slate-900 text-sm uppercase">Manage Courses (${courses.length})</h3>
-          <div class="space-y-2 max-h-72 overflow-y-auto">
-            ${courses.length === 0 ? '<p class="text-xs text-slate-400">No courses found.</p>' : 
-              courses.map(c => `
-                <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center text-xs">
-                  <div>
-                    <p class="font-bold text-slate-900">${c.title}</p>
-                    <span class="text-[10px] text-slate-500 font-semibold">${c.category || 'General'} ● ${c.is_published ? 'Live' : 'Draft'}</span>
-                  </div>
-                  <div class="flex items-center space-x-1">
-                    <button onclick="togglePublish('courses', '${c.id}', ${c.is_published})" class="px-2 py-1 bg-slate-200 hover:bg-slate-300 text-[10px] font-bold rounded">Toggle</button>
-                    <button onclick="deleteItem('courses', '${c.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 text-[10px] font-bold rounded">Delete</button>
-                  </div>
-                </div>
-              `).join('')
-            }
+        <div class="form-2col">
+          <div class="field"><label>Phone</label><input name="phone" /></div>
+          <div class="field"><label>Service</label>
+            <select name="service" id="contact-service"><option value="">Select a service</option></select>
           </div>
         </div>
-
-        <div class="bg-white p-6 rounded-2xl border space-y-4">
-          <h3 class="font-bold text-slate-900 text-sm uppercase">Manage Tutorials (${tutorials.length})</h3>
-          <div class="space-y-2 max-h-72 overflow-y-auto">
-            ${tutorials.length === 0 ? '<p class="text-xs text-slate-400">No tutorials found.</p>' : 
-              tutorials.map(t => `
-                <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center text-xs">
-                  <div>
-                    <p class="font-bold text-slate-900">${t.title}</p>
-                    <span class="text-[10px] text-slate-500 font-semibold">${t.category || 'General'} ● ${t.is_published ? 'Live' : 'Draft'}</span>
-                  </div>
-                  <div class="flex items-center space-x-1">
-                    <button onclick="togglePublish('tutorials', '${t.id}', ${t.is_published})" class="px-2 py-1 bg-slate-200 hover:bg-slate-300 text-[10px] font-bold rounded">Toggle</button>
-                    <button onclick="deleteItem('tutorials', '${t.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 text-[10px] font-bold rounded">Delete</button>
-                  </div>
-                </div>
-              `).join('')
-            }
-          </div>
+        <div class="form-2col">
+          <div class="field"><label>Budget</label><input name="budget" placeholder="e.g. $200 – $500" /></div>
+          <div class="field"><label>Timeline</label><input name="timeline" placeholder="e.g. Within 2 weeks" /></div>
         </div>
-      </div>
-
-      <!-- Comment Moderation -->
-      <div class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm">
-        <h3 class="font-bold text-slate-900 text-sm uppercase">Recent Comments Moderation</h3>
-        <div class="space-y-2 max-h-60 overflow-y-auto">
-          ${comments.length === 0 ? '<p class="text-xs text-slate-400">No user comments recorded yet.</p>' : 
-            comments.map(c => `
-              <div class="p-3 bg-slate-50 rounded-xl border flex justify-between items-center text-xs">
-                <div>
-                  <span class="font-bold text-slate-900">${c.user_name}:</span>
-                  <span class="text-slate-700 ml-1">${c.comment_text}</span>
-                </div>
-                <button onclick="handleDeleteComment('${c.id}')" class="px-2 py-1 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-[10px] rounded">Purge</button>
-              </div>
-            `).join('')
-          }
+        <div class="field"><label>Project Description</label><textarea name="project_description" rows="4" required></textarea></div>
+        <div class="field-check">
+          <input type="checkbox" id="agree-policy" required />
+          <label for="agree-policy" style="margin:0;font-weight:400;">I agree to the <a href="#/privacy">Privacy Policy</a> and <a href="#/terms">Terms of Service</a>.</label>
         </div>
-      </div>
-
-    </div>
-  `;
-}
-
-// ==========================================
-// 7. ADMIN MUTATIONS (TOPICS, CONTENT, MEDIA)
-// ==========================================
-async function handleCreateCategory(e) {
-  e.preventDefault();
-  const nameInput = document.getElementById('new-cat-name');
-  const typeInput = document.getElementById('new-cat-type');
-  if (!nameInput || !nameInput.value.trim()) return;
-
-  const name = nameInput.value.trim();
-  const type = typeInput.value;
-
-  showToast('Creating topic...', 'info');
-  const { error } = await db.from('categories').insert([{ name, type }]);
-
-  if (error) showToast(error.message, 'error');
-  else {
-    showToast(`Topic "${name}" added!`, 'success');
-    await navigate('admin');
-  }
-}
-
-async function handleDeleteCategory(id) {
-  if (!confirm('Remove this topic?')) return;
-  const { error } = await db.from('categories').delete().eq('id', id);
-  if (error) showToast(error.message, 'error');
-  else {
-    showToast('Topic removed', 'success');
-    await navigate('admin');
-  }
-}
-
-async function handleCreateCourse(e) {
-  e.preventDefault();
-  const title = document.getElementById('ac-title').value.trim();
-  const category = document.getElementById('ac-cat').value;
-  const description = document.getElementById('ac-desc').value.trim();
-  const is_published = document.getElementById('ac-publish').checked;
-  const thumbInput = document.getElementById('ac-thumb');
-
-  showToast('Saving course...', 'info');
-
-  let image_url = null;
-  if (thumbInput && thumbInput.files && thumbInput.files[0]) {
-    image_url = await uploadMediaFile(thumbInput);
-  }
-
-  const { error } = await db.from('courses').insert([{ title, category, description, is_published, image_url }]);
-
-  if (error) showToast(error.message, 'error');
-  else {
-    showToast('Course published successfully!', 'success');
-    e.target.reset();
-    await navigate('admin');
-  }
-}
-
-async function handleCreateTutorial(e) {
-  e.preventDefault();
-  const title = document.getElementById('at-title').value.trim();
-  const category = document.getElementById('at-cat').value;
-  const video_url = document.getElementById('at-video').value.trim();
-  const description = document.getElementById('at-desc').value.trim();
-  const is_published = document.getElementById('at-publish').checked;
-
-  showToast('Saving tutorial...', 'info');
-
-  const { error } = await db.from('tutorials').insert([{ title, category, video_url, description, is_published }]);
-
-  if (error) showToast(error.message, 'error');
-  else {
-    showToast('Tutorial saved successfully!', 'success');
-    e.target.reset();
-    await navigate('admin');
-  }
-}
-
-async function togglePublish(table, id, currentState) {
-  const { error } = await db.from(table).update({ is_published: !currentState }).eq('id', id);
-  if (error) showToast(error.message, 'error');
-  else {
-    showToast('Status updated!', 'success');
-    await navigate('admin');
-  }
-}
-
-async function deleteItem(table, id) {
-  if (!confirm('Are you sure you want to delete this item?')) return;
-  const { error } = await db.from(table).delete().eq('id', id);
-  if (error) showToast(error.message, 'error');
-  else {
-    showToast('Item deleted!', 'success');
-    await navigate('admin');
-  }
-}
-
-async function handleDeleteComment(id) {
-  const { error } = await db.from('comments').delete().eq('id', id);
-  if (error) showToast(error.message, 'error');
-  else {
-    showToast('Comment purged!', 'success');
-    await navigate('admin');
-  }
-}
-
-async function uploadMediaFile(inputElement) {
-  const file = inputElement.files[0];
-  if (!file) return null;
-
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
-
-  const { data, error } = await db.storage.from('thumbnails').upload(fileName, file);
-  if (error) {
-    showToast('Image upload failed: ' + error.message, 'error');
-    return null;
-  }
-
-  const { data: publicUrlData } = db.storage.from('thumbnails').getPublicUrl(fileName);
-  return publicUrlData.publicUrl;
-}
-
-// ==========================================
-// 8. AUTH & TOAST UTILITIES
-// ==========================================
-function renderLogin(container) {
-  container.innerHTML = `
-    <div class="max-w-md mx-auto space-y-6 py-8 fade-in">
-      <form id="form-login" onsubmit="handleEmailLogin(event)" class="bg-white p-6 rounded-2xl border space-y-4 shadow-sm">
-        <h2 class="text-xl font-black text-slate-900">Sign In</h2>
-        <div>
-          <label class="text-[11px] font-bold text-slate-700 block mb-1">Email</label>
-          <input id="l-email" type="email" required value="blessedtechhub5@gmail.com" class="w-full p-2.5 border rounded-lg text-xs" />
-        </div>
-        <div>
-          <label class="text-[11px] font-bold text-slate-700 block mb-1">Password</label>
-          <input id="l-pass" type="password" required class="w-full p-2.5 border rounded-lg text-xs" />
-        </div>
-        <button type="submit" class="w-full py-2.5 bg-brandBlue text-white font-bold text-xs rounded-xl shadow-md">Log In</button>
+        <div id="contact-msg" class="hidden" style="margin-bottom:14px;"></div>
+        <button type="submit" class="btn btn-primary btn-block">Send Request</button>
       </form>
     </div>
-  `;
+  </section>`);
+
+  const { data: services } = await sb.from('services').select('name').eq('visible',true).order('sort_order');
+  const sel = document.getElementById('contact-service');
+  (services||[]).forEach(s=>{ const o=document.createElement('option'); o.value=s.name; o.textContent=s.name; sel.appendChild(o); });
+
+  document.getElementById('contact-form').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const form = e.target;
+    const fd = new FormData(form);
+    const payload = {
+      name: fd.get('name'), email: fd.get('email'), phone: fd.get('phone'),
+      service: fd.get('service'), budget: fd.get('budget'), timeline: fd.get('timeline'),
+      project_description: fd.get('project_description'),
+      agreed_to_policy: document.getElementById('agree-policy').checked,
+    };
+    const btn = form.querySelector('button[type=submit]');
+    btn.disabled = true; btn.textContent = 'Sending…';
+    const { error } = await sb.from('messages').insert(payload);
+    const msg = document.getElementById('contact-msg');
+    if(error){ msg.className='form-error'; msg.textContent = 'Something went wrong — please try again or email directly.'; }
+    else { msg.className='form-success'; msg.textContent = "Thanks! Your request has been sent — I'll be in touch soon."; form.reset(); }
+    msg.classList.remove('hidden');
+    btn.disabled = false; btn.textContent = 'Send Request';
+  });
 }
 
-async function handleEmailLogin(e) {
-  e.preventDefault();
-  const email = document.getElementById('l-email').value.trim();
-  const password = document.getElementById('l-pass').value.trim();
+function renderPrivacy(){
+  pageShell(`<section class="section"><div class="container" style="max-width:720px;">
+    <h1>Privacy Policy</h1>
+    <p class="small-muted">Replace this with your finalized policy — edit directly in this file or move it into a CMS page if you'd like it admin-editable later.</p>
+    <p>B-Tech Hub collects the information you submit through the contact form (name, email, phone, project details) solely to respond to your inquiry. Comment submissions store your name, email and comment for public display once approved. We do not sell your information to third parties.</p>
+  </div></section>`);
+}
+function renderTerms(){
+  pageShell(`<section class="section"><div class="container" style="max-width:720px;">
+    <h1>Terms of Service</h1>
+    <p class="small-muted">Replace this with your finalized terms.</p>
+    <p>By using this website and submitting forms, you agree to provide accurate information and to B-Tech Hub's use of that information as described in the Privacy Policy.</p>
+  </div></section>`);
+}
+function render404(){
+  pageShell(`<section class="section"><div class="container center"><h1>Page not found</h1><a href="#/">← Back home</a></div></section>`);
+}
 
-  showToast('Signing in...', 'info');
+/* =========================================================
+   5. ADMIN AUTH
+   ========================================================= */
+let currentUser = null;
+let isAdminUser = false;
 
-  const { data, error } = await db.auth.signInWithPassword({ email, password });
-  if (error) {
-    showToast(error.message, 'error');
+async function checkAuth(){
+  const { data: { session } } = await sb.auth.getSession();
+  currentUser = session ? session.user : null;
+  if(currentUser){
+    const { data } = await sb.from('admins').select('user_id').eq('user_id', currentUser.id).maybeSingle();
+    isAdminUser = !!data;
   } else {
-    currentUser = data.user;
-    updateHeaderNav();
-    if (checkIsAdmin(currentUser)) await navigate('admin');
-    else await navigate('home');
+    isAdminUser = false;
   }
 }
 
-async function handleSignOut() {
-  await db.auth.signOut();
-  currentUser = null;
-  updateHeaderNav();
-  showToast('Signed out.', 'success');
-  await navigate('home');
+document.getElementById('login-btn').addEventListener('click', async ()=>{
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errBox = document.getElementById('login-error');
+  errBox.classList.add('hidden');
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if(error){ errBox.textContent = 'Incorrect email or password.'; errBox.classList.remove('hidden'); return; }
+  await checkAuth();
+  if(!isAdminUser){
+    errBox.textContent = 'This account is not authorized for the admin dashboard.';
+    errBox.classList.remove('hidden');
+    await sb.auth.signOut();
+    return;
+  }
+  location.hash = '#/admin/dashboard';
+});
+document.getElementById('logout-btn').addEventListener('click', async ()=>{
+  await sb.auth.signOut();
+  location.hash = '#/admin';
+});
+
+/* =========================================================
+   6. ADMIN ROUTER + VIEWS
+   ========================================================= */
+async function routeAdmin(path){
+  await checkAuth();
+  const loginView = document.getElementById('admin-login-view');
+  const dashView = document.getElementById('admin-dashboard-view');
+
+  if(!isAdminUser){
+    loginView.classList.remove('hidden');
+    dashView.classList.add('hidden');
+    return;
+  }
+  loginView.classList.add('hidden');
+  dashView.classList.remove('hidden');
+
+  const section = path.split('/')[2] || 'dashboard';
+  document.querySelectorAll('[data-admin-route]').forEach(a=>{
+    a.classList.toggle('active', a.dataset.adminRoute === section);
+  });
+  document.getElementById('admin-page-title').textContent = section.charAt(0).toUpperCase()+section.slice(1);
+
+  const content = document.getElementById('admin-content');
+  content.innerHTML = skeletonBlock();
+
+  if(section === 'dashboard') return adminDashboard(content);
+  if(section === 'posts') return adminPosts(content);
+  if(section === 'projects') return adminProjects(content);
+  if(section === 'services') return adminServices(content);
+  if(section === 'resources') return adminResources(content);
+  if(section === 'messages') return adminMessages(content);
+  if(section === 'comments') return adminComments(content);
+  if(section === 'homepage') return adminHomepage(content);
+  if(section === 'analytics') return adminAnalytics(content);
+  if(section === 'settings') return adminSettings(content);
+  content.innerHTML = '<div class="empty">Unknown admin section.</div>';
 }
 
-function showToast(message, type = 'info') {
-  const toast = document.getElementById('toast');
-  const toastMsg = document.getElementById('toast-msg');
-  if (!toast || !toastMsg) return;
-
-  toastMsg.textContent = message;
-  toast.className = 'fixed top-16 right-4 z-50 transition-all duration-300 max-w-sm px-4 py-3 rounded-xl shadow-2xl text-xs font-bold text-white ';
-  if (type === 'error') toast.classList.add('bg-red-600');
-  else if (type === 'success') toast.classList.add('bg-emerald-600');
-  else toast.classList.add('bg-brandBlue');
-
-  toast.classList.remove('opacity-0');
-  setTimeout(() => toast.classList.add('opacity-0'), 3000);
+/* ---- Dashboard ---- */
+async function adminDashboard(content){
+  const [{count: posts}, {count: projects}, {count: comments}, {count: messages}, {data: events}] = await Promise.all([
+    sb.from('posts').select('*', {count:'exact', head:true}),
+    sb.from('projects').select('*', {count:'exact', head:true}),
+    sb.from('comments').select('*', {count:'exact', head:true}),
+    sb.from('messages').select('*', {count:'exact', head:true}),
+    sb.from('analytics_events').select('session_id'),
+  ]);
+  const visitors = new Set((events||[]).map(e=>e.session_id)).size;
+  content.innerHTML = `
+    <div class="stat-grid">
+      <div class="stat-card"><div class="num">${visitors}</div><div class="lbl">Visitors</div></div>
+      <div class="stat-card"><div class="num">${(events||[]).length}</div><div class="lbl">Page Views</div></div>
+      <div class="stat-card"><div class="num">${posts||0}</div><div class="lbl">Posts</div></div>
+      <div class="stat-card"><div class="num">${projects||0}</div><div class="lbl">Projects</div></div>
+      <div class="stat-card"><div class="num">${messages||0}</div><div class="lbl">Messages</div></div>
+    </div>
+    <div class="admin-panel" style="margin-top:20px;">
+      <h3>Welcome back, Blessed</h3>
+      <p class="small-muted">Use the menu to manage posts, projects, services, resources, messages and comments. Nothing here is demo data — every number reflects your real database.</p>
+    </div>`;
 }
-  </script>
+
+/* ---- generic list/CRUD helpers ---- */
+function crudToolbar(label, addId){
+  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+    <h3 style="margin:0;">${esc(label)}</h3>
+    <button class="btn btn-primary btn-sm" id="${addId}">+ Add New</button>
+  </div>`;
+}
+
+/* ---- Posts ---- */
+async function adminPosts(content){
+  const { data } = await sb.from('posts').select('*').order('created_at',{ascending:false});
+  const rows = data||[];
+  content.innerHTML = `<div class="admin-panel">
+    ${crudToolbar('Posts','add-post-btn')}
+    <table class="admin-table"><thead><tr><th>Title</th><th>Status</th><th>Likes</th><th>Date</th><th>Actions</th></tr></thead>
+    <tbody>${rows.map(p=>`
+      <tr>
+        <td>${esc(p.title)}</td>
+        <td><span class="pill pill-${p.status}">${p.status}</span></td>
+        <td>${p.likes_count||0}</td>
+        <td>${fmtDate(p.created_at)}</td>
+        <td class="row-actions">
+          <button class="btn btn-outline btn-sm edit-post" data-id="${p.id}">Edit</button>
+          <button class="btn btn-danger btn-sm del-post" data-id="${p.id}">Delete</button>
+        </td>
+      </tr>`).join('') || `<tr><td colspan="5"><div class="empty">No posts yet.</div></td></tr>`}
+    </tbody></table>
+  </div>
+  <div id="post-form-panel"></div>`;
+
+  document.getElementById('add-post-btn').addEventListener('click', ()=> renderPostForm(null));
+  content.querySelectorAll('.edit-post').forEach(b=>b.addEventListener('click', ()=> renderPostForm(rows.find(r=>r.id===b.dataset.id))));
+  content.querySelectorAll('.del-post').forEach(b=>b.addEventListener('click', async ()=>{
+    if(!confirm('Delete this post permanently?')) return;
+    await sb.from('posts').delete().eq('id', b.dataset.id);
+    adminPosts(content);
+  }));
+}
+function renderPostForm(post){
+  const panel = document.getElementById('post-form-panel');
+  const p = post || {};
+  panel.innerHTML = `<div class="admin-panel">
+    <h3>${post ? 'Edit Post' : 'Create Post'}</h3>
+    <form id="post-form">
+      <div class="field"><label>Title</label><input name="title" required value="${esc(p.title||'')}" /></div>
+      <div class="field"><label>Slug</label><input name="slug" value="${esc(p.slug||'')}" placeholder="auto-generated if blank" /></div>
+      <div class="form-2col">
+        <div class="field"><label>Cover Image URL</label><input name="cover_image" value="${esc(p.cover_image||'')}" /></div>
+        <div class="field"><label>Video URL (YouTube/Vimeo/mp4)</label><input name="video_url" value="${esc(p.video_url||'')}" /></div>
+      </div>
+      <div class="form-2col">
+        <div class="field"><label>Category</label><input name="category" value="${esc(p.category||'')}" /></div>
+        <div class="field"><label>Tags (comma separated)</label><input name="tags" value="${esc((p.tags||[]).join(', '))}" /></div>
+      </div>
+      <div class="field"><label>Content</label><textarea name="content" rows="8" required>${esc(p.content||'')}</textarea></div>
+      <div class="form-2col">
+        <div class="field"><label>SEO Title</label><input name="seo_title" value="${esc(p.seo_title||'')}" /></div>
+        <div class="field"><label>SEO Description</label><input name="seo_description" value="${esc(p.seo_description||'')}" /></div>
+      </div>
+      <div class="form-2col">
+        <label class="toggle"><input type="checkbox" name="status" ${p.status==='published'?'checked':''}/> Published (unchecked = Draft)</label>
+        <label class="toggle"><input type="checkbox" name="featured" ${p.featured?'checked':''}/> Featured</label>
+      </div>
+      <div class="form-2col" style="margin-top:10px;">
+        <label class="toggle"><input type="checkbox" name="likes_enabled" ${p.likes_enabled!==false?'checked':''}/> Likes</label>
+        <label class="toggle"><input type="checkbox" name="comments_enabled" ${p.comments_enabled!==false?'checked':''}/> Comments</label>
+        <label class="toggle"><input type="checkbox" name="sharing_enabled" ${p.sharing_enabled!==false?'checked':''}/> Sharing</label>
+      </div>
+      <div style="margin-top:18px;display:flex;gap:10px;">
+        <button type="submit" class="btn btn-primary">Publish Post</button>
+        <button type="button" class="btn btn-outline" id="cancel-post-form">Cancel</button>
+      </div>
+    </form>
+  </div>`;
+  document.getElementById('cancel-post-form').addEventListener('click', ()=> panel.innerHTML='');
+  document.getElementById('post-form').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const status = fd.get('status') ? 'published' : 'draft';
+    const payload = {
+      title: fd.get('title'),
+      slug: fd.get('slug') ? slugify(fd.get('slug')) : slugify(fd.get('title')),
+      cover_image: fd.get('cover_image') || null,
+      video_url: fd.get('video_url') || null,
+      category: fd.get('category') || null,
+      tags: fd.get('tags') ? fd.get('tags').split(',').map(s=>s.trim()).filter(Boolean) : [],
+      content: fd.get('content'),
+      status,
+      featured: !!fd.get('featured'),
+      likes_enabled: !!fd.get('likes_enabled'),
+      comments_enabled: !!fd.get('comments_enabled'),
+      sharing_enabled: !!fd.get('sharing_enabled'),
+      published_at: status === 'published' ? (p.published_at || new Date().toISOString()) : null,
+      seo_title: fd.get('seo_title') || null,
+      seo_description: fd.get('seo_description') || null,
+    };
+    if(post){ await sb.from('posts').update(payload).eq('id', post.id); }
+    else { await sb.from('posts').insert(payload); }
+    panel.innerHTML = '';
+    adminPosts(document.getElementById('admin-content'));
+  });
+}
+
+/* ---- Projects ---- */
+async function adminProjects(content){
+  const { data } = await sb.from('projects').select('*').order('created_at',{ascending:false});
+  const rows = data||[];
+  content.innerHTML = `<div class="admin-panel">
+    ${crudToolbar('Projects','add-project-btn')}
+    <table class="admin-table"><thead><tr><th>Name</th><th>Status</th><th>Featured</th><th>Actions</th></tr></thead>
+    <tbody>${rows.map(p=>`
+      <tr><td>${esc(p.name)}</td><td><span class="pill pill-${p.status}">${p.status}</span></td><td>${p.featured?'Yes':'—'}</td>
+      <td class="row-actions">
+        <button class="btn btn-outline btn-sm edit-project" data-id="${p.id}">Edit</button>
+        <button class="btn btn-danger btn-sm del-project" data-id="${p.id}">Delete</button>
+      </td></tr>`).join('') || `<tr><td colspan="4"><div class="empty">No projects yet.</div></td></tr>`}
+    </tbody></table>
+  </div><div id="project-form-panel"></div>`;
+  document.getElementById('add-project-btn').addEventListener('click', ()=>renderProjectForm(null));
+  content.querySelectorAll('.edit-project').forEach(b=>b.addEventListener('click', ()=>renderProjectForm(rows.find(r=>r.id===b.dataset.id))));
+  content.querySelectorAll('.del-project').forEach(b=>b.addEventListener('click', async ()=>{
+    if(!confirm('Delete this project permanently?')) return;
+    await sb.from('projects').delete().eq('id', b.dataset.id);
+    adminProjects(content);
+  }));
+}
+function renderProjectForm(proj){
+  const panel = document.getElementById('project-form-panel');
+  const p = proj || {};
+  panel.innerHTML = `<div class="admin-panel">
+    <h3>${proj?'Edit Project':'Add Project'}</h3>
+    <form id="project-form">
+      <div class="field"><label>Project Name</label><input name="name" required value="${esc(p.name||'')}"/></div>
+      <div class="field"><label>Slug</label><input name="slug" value="${esc(p.slug||'')}" placeholder="auto-generated if blank"/></div>
+      <div class="field"><label>Short Description</label><input name="short_description" value="${esc(p.short_description||'')}"/></div>
+      <div class="field"><label>Full Description</label><textarea name="description" rows="5">${esc(p.description||'')}</textarea></div>
+      <div class="form-2col">
+        <div class="field"><label>Cover Image URL</label><input name="cover_image" value="${esc(p.cover_image||'')}"/></div>
+        <div class="field"><label>Gallery URLs (comma separated)</label><input name="gallery" value="${esc((p.gallery||[]).join(', '))}"/></div>
+      </div>
+      <div class="form-2col">
+        <div class="field"><label>Technologies (comma separated)</label><input name="technologies" value="${esc((p.technologies||[]).join(', '))}"/></div>
+        <div class="field"><label>Project Date</label><input type="date" name="project_date" value="${p.project_date||''}"/></div>
+      </div>
+      <div class="form-2col">
+        <div class="field"><label>Live URL</label><input name="live_url" value="${esc(p.live_url||'')}"/></div>
+        <div class="field"><label>GitHub URL</label><input name="github_url" value="${esc(p.github_url||'')}"/></div>
+      </div>
+      <div class="form-2col">
+        <label class="toggle"><input type="checkbox" name="status" ${p.status==='published'?'checked':''}/> Published</label>
+        <label class="toggle"><input type="checkbox" name="featured" ${p.featured?'checked':''}/> Featured</label>
+      </div>
+      <div style="margin-top:18px;display:flex;gap:10px;">
+        <button type="submit" class="btn btn-primary">Save Project</button>
+        <button type="button" class="btn btn-outline" id="cancel-project-form">Cancel</button>
+      </div>
+    </form>
+  </div>`;
+  document.getElementById('cancel-project-form').addEventListener('click', ()=>panel.innerHTML='');
+  document.getElementById('project-form').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const payload = {
+      name: fd.get('name'),
+      slug: fd.get('slug') ? slugify(fd.get('slug')) : slugify(fd.get('name')),
+      short_description: fd.get('short_description')||null,
+      description: fd.get('description')||null,
+      cover_image: fd.get('cover_image')||null,
+      gallery: fd.get('gallery') ? fd.get('gallery').split(',').map(s=>s.trim()).filter(Boolean) : [],
+      technologies: fd.get('technologies') ? fd.get('technologies').split(',').map(s=>s.trim()).filter(Boolean) : [],
+      project_date: fd.get('project_date')||null,
+      live_url: fd.get('live_url')||null,
+      github_url: fd.get('github_url')||null,
+      status: fd.get('status') ? 'published':'draft',
+      featured: !!fd.get('featured'),
+    };
+    if(proj){ await sb.from('projects').update(payload).eq('id', proj.id); }
+    else{ await sb.from('projects').insert(payload); }
+    panel.innerHTML='';
+    adminProjects(document.getElementById('admin-content'));
+  });
+}
+
+/* ---- Services ---- */
+async function adminServices(content){
+  const { data } = await sb.from('services').select('*').order('sort_order');
+  const rows = data||[];
+  content.innerHTML = `<div class="admin-panel">
+    ${crudToolbar('Services','add-service-btn')}
+    <table class="admin-table"><thead><tr><th>Name</th><th>Visible</th><th>Actions</th></tr></thead>
+    <tbody>${rows.map(s=>`
+      <tr><td>${esc(s.name)}</td><td>${s.visible?'On':'Off'}</td>
+      <td class="row-actions">
+        <button class="btn btn-outline btn-sm edit-service" data-id="${s.id}">Edit</button>
+        <button class="btn btn-danger btn-sm del-service" data-id="${s.id}">Delete</button>
+      </td></tr>`).join('') || `<tr><td colspan="3"><div class="empty">No services yet.</div></td></tr>`}
+    </tbody></table>
+  </div><div id="service-form-panel"></div>`;
+  document.getElementById('add-service-btn').addEventListener('click', ()=>renderServiceForm(null));
+  content.querySelectorAll('.edit-service').forEach(b=>b.addEventListener('click', ()=>renderServiceForm(rows.find(r=>r.id===b.dataset.id))));
+  content.querySelectorAll('.del-service').forEach(b=>b.addEventListener('click', async ()=>{
+    if(!confirm('Delete this service?')) return;
+    await sb.from('services').delete().eq('id', b.dataset.id);
+    adminServices(content);
+  }));
+}
+function renderServiceForm(svc){
+  const panel = document.getElementById('service-form-panel');
+  const s = svc || {};
+  panel.innerHTML = `<div class="admin-panel">
+    <h3>${svc?'Edit Service':'Add Service'}</h3>
+    <form id="service-form">
+      <div class="field"><label>Service Name</label><input name="name" required value="${esc(s.name||'')}"/></div>
+      <div class="field"><label>Slug</label><input name="slug" value="${esc(s.slug||'')}" placeholder="auto-generated if blank"/></div>
+      <div class="field"><label>Short Description</label><input name="short_description" value="${esc(s.short_description||'')}"/></div>
+      <div class="field"><label>Full Description</label><textarea name="description" rows="4">${esc(s.description||'')}</textarea></div>
+      <div class="form-2col">
+        <div class="field"><label>Starting Price</label><input name="starting_price" value="${esc(s.starting_price||'')}"/></div>
+        <div class="field"><label>Sort Order</label><input type="number" name="sort_order" value="${s.sort_order||0}"/></div>
+      </div>
+      <div class="field"><label>Features (comma separated)</label><input name="features" value="${esc((s.features||[]).join(', '))}"/></div>
+      <label class="toggle"><input type="checkbox" name="visible" ${s.visible!==false?'checked':''}/> Visible on site</label>
+      <div style="margin-top:18px;display:flex;gap:10px;">
+        <button type="submit" class="btn btn-primary">Save Service</button>
+        <button type="button" class="btn btn-outline" id="cancel-service-form">Cancel</button>
+      </div>
+    </form>
+  </div>`;
+  document.getElementById('cancel-service-form').addEventListener('click', ()=>panel.innerHTML='');
+  document.getElementById('service-form').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const payload = {
+      name: fd.get('name'),
+      slug: fd.get('slug') ? slugify(fd.get('slug')) : slugify(fd.get('name')),
+      short_description: fd.get('short_description')||null,
+      description: fd.get('description')||null,
+      starting_price: fd.get('starting_price')||null,
+      sort_order: parseInt(fd.get('sort_order')||'0',10),
+      features: fd.get('features') ? fd.get('features').split(',').map(s=>s.trim()).filter(Boolean) : [],
+      visible: !!fd.get('visible'),
+    };
+    if(svc){ await sb.from('services').update(payload).eq('id', svc.id); }
+    else{ await sb.from('services').insert(payload); }
+    panel.innerHTML='';
+    adminServices(document.getElementById('admin-content'));
+  });
+}
+
+/* ---- Resources ---- */
+async function adminResources(content){
+  const { data } = await sb.from('resources').select('*').order('created_at',{ascending:false});
+  const rows = data||[];
+  content.innerHTML = `<div class="admin-panel">
+    ${crudToolbar('Resources','add-resource-btn')}
+    <table class="admin-table"><thead><tr><th>Title</th><th>Type</th><th>Visible</th><th>Actions</th></tr></thead>
+    <tbody>${rows.map(r=>`
+      <tr><td>${esc(r.title)}</td><td>${esc(r.type)}</td><td>${r.visible?'On':'Off'}</td>
+      <td class="row-actions">
+        <button class="btn btn-outline btn-sm edit-resource" data-id="${r.id}">Edit</button>
+        <button class="btn btn-danger btn-sm del-resource" data-id="${r.id}">Delete</button>
+      </td></tr>`).join('') || `<tr><td colspan="4"><div class="empty">No resources yet.</div></td></tr>`}
+    </tbody></table>
+  </div><div id="resource-form-panel"></div>`;
+  document.getElementById('add-resource-btn').addEventListener('click', ()=>renderResourceForm(null));
+  content.querySelectorAll('.edit-resource').forEach(b=>b.addEventListener('click', ()=>renderResourceForm(rows.find(r=>r.id===b.dataset.id))));
+  content.querySelectorAll('.del-resource').forEach(b=>b.addEventListener('click', async ()=>{
+    if(!confirm('Delete this resource?')) return;
+    await sb.from('resources').delete().eq('id', b.dataset.id);
+    adminResources(content);
+  }));
+}
+function renderResourceForm(res){
+  const panel = document.getElementById('resource-form-panel');
+  const r = res || {};
+  panel.innerHTML = `<div class="admin-panel">
+    <h3>${res?'Edit Resource':'Add Resource'}</h3>
+    <form id="resource-form">
+      <div class="field"><label>Title</label><input name="title" required value="${esc(r.title||'')}"/></div>
+      <div class="field"><label>Slug</label><input name="slug" value="${esc(r.slug||'')}" placeholder="auto-generated if blank"/></div>
+      <div class="field"><label>Description</label><textarea name="description" rows="3">${esc(r.description||'')}</textarea></div>
+      <div class="form-2col">
+        <div class="field"><label>Type</label>
+          <select name="type">
+            ${['pdf','template','guide','course','ebook','video','link'].map(t=>`<option value="${t}" ${r.type===t?'selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field"><label>Category</label><input name="category" value="${esc(r.category||'')}"/></div>
+      </div>
+      <div class="form-2col">
+        <div class="field"><label>File / Link URL</label><input name="file_url" value="${esc(r.file_url||'')}"/></div>
+        <div class="field"><label>Cover Image URL</label><input name="cover_image" value="${esc(r.cover_image||'')}"/></div>
+      </div>
+      <label class="toggle"><input type="checkbox" name="visible" ${r.visible!==false?'checked':''}/> Visible on site</label>
+      <div style="margin-top:18px;display:flex;gap:10px;">
+        <button type="submit" class="btn btn-primary">Save Resource</button>
+        <button type="button" class="btn btn-outline" id="cancel-resource-form">Cancel</button>
+      </div>
+    </form>
+  </div>`;
+  document.getElementById('cancel-resource-form').addEventListener('click', ()=>panel.innerHTML='');
+  document.getElementById('resource-form').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const payload = {
+      title: fd.get('title'),
+      slug: fd.get('slug') ? slugify(fd.get('slug')) : slugify(fd.get('title')),
+      description: fd.get('description')||null,
+      type: fd.get('type'),
+      category: fd.get('category')||null,
+      file_url: fd.get('file_url')||null,
+      cover_image: fd.get('cover_image')||null,
+      visible: !!fd.get('visible'),
+    };
+    if(res){ await sb.from('resources').update(payload).eq('id', res.id); }
+    else{ await sb.from('resources').insert(payload); }
+    panel.innerHTML='';
+    adminResources(document.getElementById('admin-content'));
+  });
+}
+
+/* ---- Messages ---- */
+async function adminMessages(content){
+  const { data } = await sb.from('messages').select('*').order('created_at',{ascending:false});
+  const rows = data||[];
+  content.innerHTML = `<div class="admin-panel">
+    <h3>Messages</h3>
+    <table class="admin-table"><thead><tr><th>From</th><th>Service</th><th>Budget</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+    <tbody>${rows.map(m=>`
+      <tr>
+        <td><strong>${esc(m.name)}</strong><br/><span class="small-muted">${esc(m.email)}</span></td>
+        <td>${esc(m.service||'—')}</td>
+        <td>${esc(m.budget||'—')}</td>
+        <td><span class="pill pill-${m.status==='new'?'pending':(m.status==='replied'?'approved':'draft')}">${m.status}</span></td>
+        <td>${fmtDate(m.created_at)}</td>
+        <td class="row-actions">
+          <select class="msg-status" data-id="${m.id}">
+            ${['new','read','replied','archived'].map(s=>`<option value="${s}" ${m.status===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+          <button class="btn btn-outline btn-sm view-msg" data-id="${m.id}">View</button>
+        </td>
+      </tr>`).join('') || `<tr><td colspan="6"><div class="empty">No messages yet.</div></td></tr>`}
+    </tbody></table>
+  </div><div id="msg-detail-panel"></div>`;
+  content.querySelectorAll('.msg-status').forEach(sel=>sel.addEventListener('change', async ()=>{
+    await sb.from('messages').update({status: sel.value}).eq('id', sel.dataset.id);
+  }));
+  content.querySelectorAll('.view-msg').forEach(b=>b.addEventListener('click', ()=>{
+    const m = rows.find(r=>r.id===b.dataset.id);
+    document.getElementById('msg-detail-panel').innerHTML = `<div class="admin-panel">
+      <h3>${esc(m.name)}</h3>
+      <p class="small-muted">${esc(m.email)} ${m.phone?('· '+esc(m.phone)):''}</p>
+      <p><strong>Service:</strong> ${esc(m.service||'—')} &nbsp; <strong>Budget:</strong> ${esc(m.budget||'—')} &nbsp; <strong>Timeline:</strong> ${esc(m.timeline||'—')}</p>
+      <p>${esc(m.project_description).replace(/\n/g,'<br/>')}</p>
+      <p class="small-muted">Agreed to policy: ${m.agreed_to_policy?'Yes':'No'}</p>
+    </div>`;
+  }));
+}
+
+/* ---- Comments ---- */
+async function adminComments(content){
+  const { data } = await sb.from('comments').select('*').order('created_at',{ascending:false});
+  const rows = data||[];
+  const tabs = ['pending','approved','hidden'];
+  content.innerHTML = `<div class="admin-panel">
+    <h3>Comments</h3>
+    <div class="admin-mobile-nav" style="padding:0 0 16px;border:none;">
+      ${tabs.map(t=>`<a href="#" data-tab="${t}" class="tab-link ${t==='pending'?'active':''}">${t}</a>`).join('')}
+    </div>
+    <div id="comments-list"></div>
+  </div>`;
+  function renderTab(tab){
+    const filtered = rows.filter(c=>c.status===tab);
+    document.getElementById('comments-list').innerHTML = filtered.length ? `<table class="admin-table"><thead><tr><th>Name</th><th>Comment</th><th>On</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody>${filtered.map(c=>`
+        <tr>
+          <td>${esc(c.name)}<br/><span class="small-muted">${esc(c.email)}</span></td>
+          <td>${esc(c.comment)}</td>
+          <td>${c.post_id?'Post':'Project'}</td>
+          <td>${fmtDate(c.created_at)}</td>
+          <td class="row-actions">
+            ${tab!=='approved'?`<button class="btn btn-outline btn-sm approve-c" data-id="${c.id}">Approve</button>`:''}
+            ${tab!=='hidden'?`<button class="btn btn-outline btn-sm hide-c" data-id="${c.id}">Hide</button>`:''}
+            <button class="btn btn-danger btn-sm del-c" data-id="${c.id}">Delete</button>
+          </td>
+        </tr>`).join('')}</tbody></table>` : `<div class="empty">No ${tab} comments.</div>`;
+    document.querySelectorAll('.approve-c').forEach(b=>b.addEventListener('click', async ()=>{ await sb.from('comments').update({status:'approved'}).eq('id', b.dataset.id); adminComments(content); }));
+    document.querySelectorAll('.hide-c').forEach(b=>b.addEventListener('click', async ()=>{ await sb.from('comments').update({status:'hidden'}).eq('id', b.dataset.id); adminComments(content); }));
+    document.querySelectorAll('.del-c').forEach(b=>b.addEventListener('click', async ()=>{ if(confirm('Delete this comment?')){ await sb.from('comments').delete().eq('id', b.dataset.id); adminComments(content);} }));
+  }
+  content.querySelectorAll('.tab-link').forEach(t=>t.addEventListener('click', (e)=>{
+    e.preventDefault();
+    content.querySelectorAll('.tab-link').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    renderTab(t.dataset.tab);
+  }));
+  renderTab('pending');
+}
+
+/* ---- Homepage Control ---- */
+async function adminHomepage(content){
+  const { data } = await sb.from('homepage_sections').select('*').order('sort_order');
+  const rows = data||[];
+  content.innerHTML = `<div class="admin-panel">
+    <h3>Homepage Sections</h3>
+    <p class="small-muted">Toggle visibility and reorder the sections shown on your homepage.</p>
+    <table class="admin-table"><thead><tr><th>Section</th><th>Public</th><th>Order</th></tr></thead>
+    <tbody id="hs-body">${rows.map((s,i)=>`
+      <tr data-key="${s.key}">
+        <td>${esc(s.label)}</td>
+        <td><label class="toggle"><input type="checkbox" class="hs-visible" ${s.visible?'checked':''}/> ${s.visible?'On':'Off'}</label></td>
+        <td class="row-actions">
+          <button class="btn btn-outline btn-sm hs-up" ${i===0?'disabled':''}>↑</button>
+          <button class="btn btn-outline btn-sm hs-down" ${i===rows.length-1?'disabled':''}>↓</button>
+        </td>
+      </tr>`).join('')}</tbody></table>
+  </div>`;
+  content.querySelectorAll('.hs-visible').forEach(cb=>cb.addEventListener('change', async (e)=>{
+    const key = e.target.closest('tr').dataset.key;
+    await sb.from('homepage_sections').update({visible: e.target.checked}).eq('key', key);
+  }));
+  async function move(tr, dir){
+    const rowsNow = [...content.querySelectorAll('#hs-body tr')];
+    const idx = rowsNow.indexOf(tr);
+    const swapIdx = idx + dir;
+    if(swapIdx < 0 || swapIdx >= rowsNow.length) return;
+    const a = rows.find(r=>r.key===tr.dataset.key);
+    const b = rows.find(r=>r.key===rowsNow[swapIdx].dataset.key);
+    const tmp = a.sort_order; a.sort_order = b.sort_order; b.sort_order = tmp;
+    await sb.from('homepage_sections').update({sort_order:a.sort_order}).eq('key', a.key);
+    await sb.from('homepage_sections').update({sort_order:b.sort_order}).eq('key', b.key);
+    adminHomepage(content);
+  }
+  content.querySelectorAll('.hs-up').forEach(b=>b.addEventListener('click', ()=>move(b.closest('tr'), -1)));
+  content.querySelectorAll('.hs-down').forEach(b=>b.addEventListener('click', ()=>move(b.closest('tr'), 1)));
+}
+
+/* ---- Analytics ---- */
+async function adminAnalytics(content){
+  content.innerHTML = `<div class="admin-panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <h3 style="margin:0;">Analytics</h3>
+      <div class="row-actions">
+        <button class="btn btn-outline btn-sm range-btn" data-days="1">Today</button>
+        <button class="btn btn-outline btn-sm range-btn" data-days="7">7 Days</button>
+        <button class="btn btn-outline btn-sm range-btn" data-days="30">30 Days</button>
+        <button class="btn btn-outline btn-sm range-btn" data-days="0">All Time</button>
+      </div>
+    </div>
+    <div id="analytics-body" style="margin-top:16px;"></div>
+  </div>`;
+  async function load(days){
+    let query = sb.from('analytics_events').select('*');
+    if(days > 0){
+      const since = new Date(Date.now() - days*86400000).toISOString();
+      query = query.gte('created_at', since);
+    }
+    const { data } = await query;
+    const events = data || [];
+    const visitors = new Set(events.map(e=>e.session_id)).size;
+    const byPage = {};
+    events.forEach(e=>{ byPage[e.path] = (byPage[e.path]||0)+1; });
+    const topPages = Object.entries(byPage).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    document.getElementById('analytics-body').innerHTML = `
+      <div class="stat-grid" style="grid-template-columns:repeat(2,1fr);">
+        <div class="stat-card"><div class="num">${visitors}</div><div class="lbl">Visitors</div></div>
+        <div class="stat-card"><div class="num">${events.length}</div><div class="lbl">Page Views</div></div>
+      </div>
+      <h3 style="margin-top:22px;">Popular Pages</h3>
+      <table class="admin-table"><thead><tr><th>Page</th><th>Views</th></tr></thead>
+      <tbody>${topPages.map(([p,c])=>`<tr><td>${esc(p)}</td><td>${c}</td></tr>`).join('') || `<tr><td colspan="2"><div class="empty">No data yet.</div></td></tr>`}</tbody></table>`;
+  }
+  content.querySelectorAll('.range-btn').forEach(b=>b.addEventListener('click', ()=>load(parseInt(b.dataset.days,10))));
+  load(7);
+}
+
+/* ---- Site Settings ---- */
+async function adminSettings(content){
+  const { data: s } = await sb.from('site_settings').select('*').eq('id',1).single();
+  const { data: profileData } = await sb.from('profiles').select('*').limit(1).maybeSingle();
+  const p = profileData || {};
+  content.innerHTML = `
+  <div class="admin-panel">
+    <h3>Branding</h3>
+    <form id="settings-form">
+      <div class="form-2col">
+        <div class="field"><label>Site Name</label><input name="site_name" value="${esc(s.site_name||'')}"/></div>
+        <div class="field"><label>Tagline</label><input name="tagline" value="${esc(s.tagline||'')}"/></div>
+      </div>
+      <div class="form-2col">
+        <div class="field"><label>Logo URL</label><input name="logo_url" value="${esc(s.logo_url||'')}"/></div>
+        <div class="field"><label>Favicon URL</label><input name="favicon_url" value="${esc(s.favicon_url||'')}"/></div>
+      </div>
+      <div class="field"><label>Homepage Profile Photo URL</label><input name="profile_photo_url" value="${esc(s.profile_photo_url||'')}"/></div>
+      <hr class="sep"/>
+      <h3>Contact</h3>
+      <div class="form-2col">
+        <div class="field"><label>Email</label><input name="contact_email" value="${esc(s.contact_email||'')}"/></div>
+        <div class="field"><label>Secondary Email</label><input name="contact_email_secondary" value="${esc(s.contact_email_secondary||'')}"/></div>
+      </div>
+      <div class="form-2col">
+        <div class="field"><label>Phone</label><input name="contact_phone" value="${esc(s.contact_phone||'')}"/></div>
+        <div class="field"><label>WhatsApp Link</label><input name="contact_whatsapp" value="${esc(s.contact_whatsapp||'')}"/></div>
+      </div>
+      <div class="field"><label>Location</label><input name="location" value="${esc(s.location||'')}"/></div>
+      <hr class="sep"/>
+      <h3>Social</h3>
+      <div class="form-2col">
+        <div class="field"><label>Facebook</label><input name="social_facebook" value="${esc(s.social_facebook||'')}"/></div>
+        <div class="field"><label>Instagram</label><input name="social_instagram" value="${esc(s.social_instagram||'')}"/></div>
+      </div>
+      <div class="form-2col">
+        <div class="field"><label>TikTok</label><input name="social_tiktok" value="${esc(s.social_tiktok||'')}"/></div>
+        <div class="field"><label>YouTube</label><input name="social_youtube" value="${esc(s.social_youtube||'')}"/></div>
+      </div>
+      <div class="form-2col">
+        <div class="field"><label>GitHub</label><input name="social_github" value="${esc(s.social_github||'')}"/></div>
+        <div class="field"><label>LinkedIn</label><input name="social_linkedin" value="${esc(s.social_linkedin||'')}"/></div>
+      </div>
+      <hr class="sep"/>
+      <h3>SEO / Share</h3>
+      <div class="field"><label>SEO Title</label><input name="seo_title" value="${esc(s.seo_title||'')}"/></div>
+      <div class="field"><label>SEO Description</label><textarea name="seo_description" rows="2">${esc(s.seo_description||'')}</textarea></div>
+      <div class="field"><label>Default Share Image URL</label><input name="default_share_image" value="${esc(s.default_share_image||'')}"/></div>
+      <hr class="sep"/>
+      <h3>Engagement</h3>
+      <div class="form-2col">
+        <label class="toggle"><input type="checkbox" name="likes_enabled" ${s.likes_enabled!==false?'checked':''}/> Likes sitewide</label>
+        <label class="toggle"><input type="checkbox" name="comments_enabled" ${s.comments_enabled!==false?'checked':''}/> Comments sitewide</label>
+        <label class="toggle"><input type="checkbox" name="sharing_enabled" ${s.sharing_enabled!==false?'checked':''}/> Sharing sitewide</label>
+      </div>
+      <hr class="sep"/>
+      <h3>PWA</h3>
+      <div class="form-2col">
+        <div class="field"><label>App Name</label><input name="pwa_app_name" value="${esc(s.pwa_app_name||'')}"/></div>
+        <div class="field"><label>Short Name</label><input name="pwa_short_name" value="${esc(s.pwa_short_name||'')}"/></div>
+      </div>
+      <div class="field"><label>App Icon URL</label><input name="pwa_icon_url" value="${esc(s.pwa_icon_url||'')}"/></div>
+      <div class="form-2col">
+        <label class="toggle"><input type="checkbox" name="pwa_install_enabled" ${s.pwa_install_enabled!==false?'checked':''}/> Install App</label>
+        <label class="toggle"><input type="checkbox" name="pwa_offline_enabled" ${s.pwa_offline_enabled!==false?'checked':''}/> Offline Support</label>
+      </div>
+      <div style="margin-top:18px;"><button type="submit" class="btn btn-primary">Save Settings</button></div>
+      <div id="settings-msg" class="hidden" style="margin-top:12px;"></div>
+    </form>
+  </div>
+
+  <div class="admin-panel">
+    <h3>About / Profile</h3>
+    <form id="profile-form">
+      <div class="field"><label>Full Name</label><input name="full_name" value="${esc(p.full_name||'Blessed Iboi')}"/></div>
+      <div class="field"><label>Title</label><input name="title" value="${esc(p.title||'Founder • Web Developer • AI Creator • Designer')}"/></div>
+      <div class="field"><label>Bio</label><textarea name="bio" rows="5">${esc(p.bio||'')}</textarea></div>
+      <div class="field"><label>Photo URL</label><input name="photo_url" value="${esc(p.photo_url||'')}"/></div>
+      <div class="field"><label>Skills (comma separated)</label><input name="skills" value="${esc((p.skills||[]).join(', '))}"/></div>
+      <button type="submit" class="btn btn-primary">Save Profile</button>
+    </form>
+  </div>`;
+
+  document.getElementById('settings-form').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const payload = {};
+    ['site_name','tagline','logo_url','favicon_url','profile_photo_url','contact_email','contact_email_secondary',
+     'contact_phone','contact_whatsapp','location','social_facebook','social_instagram','social_tiktok','social_youtube',
+     'social_github','social_linkedin','seo_title','seo_description','default_share_image','pwa_app_name','pwa_short_name','pwa_icon_url']
+      .forEach(k=> payload[k] = fd.get(k) || null);
+    ['likes_enabled','comments_enabled','sharing_enabled','pwa_install_enabled','pwa_offline_enabled']
+      .forEach(k=> payload[k] = !!fd.get(k));
+    await sb.from('site_settings').update(payload).eq('id',1);
+    const msg = document.getElementById('settings-msg');
+    msg.className='form-success'; msg.textContent='Saved.'; msg.classList.remove('hidden');
+    await loadSettings();
+  });
+
+  document.getElementById('profile-form').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const payload = {
+      full_name: fd.get('full_name'), title: fd.get('title'), bio: fd.get('bio'),
+      photo_url: fd.get('photo_url')||null,
+      skills: fd.get('skills') ? fd.get('skills').split(',').map(s=>s.trim()).filter(Boolean) : [],
+    };
+    if(p.id){ await sb.from('profiles').update(payload).eq('id', p.id); }
+    else{ await sb.from('profiles').insert(payload); }
+    adminSettings(content);
+  });
+}
+
+/* =========================================================
+   7. BOOT + PWA
+   ========================================================= */
+(async function boot(){
+  await loadSettings();
+  await router();
+})();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
 </body>
 </html>
