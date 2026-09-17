@@ -1,24 +1,14 @@
 {
-  "name": "B-TECH HUB",
-  "short_name": "B-Tech Hub",
-  "description": "Tech • Learn • Build • Grow — Empowering people with technology skills and tools.",
+  "name": "B-Tech Hub",
+  "short_name": "BTechHub",
+  "description": "Web Development • AI • Digital Solutions",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0A1120",
-  "theme_color": "#0A1120",
-  "orientation": "portrait-primary",
+  "background_color": "#FFFFFF",
+  "theme_color": "#1856E0",
   "icons": [
-    {
-      "src": "logo.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "logo.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
   ]
 }
