@@ -329,8 +329,8 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:22px 0;}
     <div class="admin-login-box">
       <div class="brand" style="margin-bottom:22px;"><span class="brand-mark">B</span><span>B-TECH HUB Admin</span></div>
       <div class="field">
-        <label>Email</label>
-        <input type="email" id="login-email" autocomplete="username" placeholder="you@example.com" />
+        <label>Username</label>
+        <input type="text" id="login-email" autocomplete="username" placeholder="Username" autocapitalize="off" autocorrect="off" spellcheck="false" />
       </div>
       <div class="field">
         <label>Password</label>
@@ -1075,13 +1075,23 @@ async function checkAuth(){
   }
 }
 
+/* Supabase Auth only knows email+password — there's no native "username"
+   concept. To give you a plain username field, we translate it into a
+   fixed internal email under a domain nobody sends mail to. If you type
+   "Blessed2007" here, Supabase authenticates the account with the email
+   blessed2007@btechhub.local behind the scenes. */
+const ADMIN_LOGIN_DOMAIN = 'btechhub.local';
+function usernameToEmail(username){
+  return username.trim().toLowerCase().replace(/\s+/g,'') + '@' + ADMIN_LOGIN_DOMAIN;
+}
+
 document.getElementById('login-btn').addEventListener('click', async ()=>{
-  const email = document.getElementById('login-email').value.trim();
+  const username = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   const errBox = document.getElementById('login-error');
   errBox.classList.add('hidden');
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  if(error){ errBox.textContent = 'Incorrect email or password.'; errBox.classList.remove('hidden'); return; }
+  const { data, error } = await sb.auth.signInWithPassword({ email: usernameToEmail(username), password });
+  if(error){ errBox.textContent = 'Incorrect username or password.'; errBox.classList.remove('hidden'); return; }
   await checkAuth();
   if(!isAdminUser){
     errBox.textContent = 'This account is not authorized for the admin dashboard.';
