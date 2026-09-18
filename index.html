@@ -384,7 +384,7 @@ hr.sep{border:none; border-top:1px solid var(--line); margin:22px 0;}
 /* =========================================================
    0. CONFIG — paste your real Supabase project values here
    ========================================================= */
-const SUPABASE_URL = "https://argvofusfdrwengshbqw.supabase.co";       // e.g. https://xxxxx.supabase.co
+const SUPABASE_URL = "https://argvofusfdrwengshbqw.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZ3ZvZnVzZmRyd2VuZ3NoYnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNjkxOTIsImV4cCI6MjEwMzg0NTE5Mn0.lS8P1NhaWVhyW3XMHz5ErC-aIXq-wsMrV8I9RFxtXIE";
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -395,8 +395,8 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const DEFAULT_CONTACT = {
   contact_email: "blessedtechhub5@gmail.com",
   contact_email_secondary: "iboiblessed1@gmail.com",
-  contact_phone: "+231760863284",
-  contact_whatsapp: "https://wa.me/231777002416",
+  contact_phone: "+231777002416",
+  contact_whatsapp: "https://wa.me/231760863284",
   social_facebook: "https://facebook.com/blessedstudios1",
   location: "Liberia"
 };
@@ -429,10 +429,10 @@ function slugify(s){
    1. SETTINGS — load once, apply to header/footer/meta
    ========================================================= */
 async function loadSettings(){
-  const { data } = await sb.from('site_settings').select('*').eq('id',1).single();
+  const { data } = await sb.from('btech_site_settings').select('*').eq('id',1).single();
   SETTINGS = data || {};
   applySettingsToChrome();
-  const { data: sections } = await sb.from('homepage_sections').select('*').order('sort_order');
+  const { data: sections } = await sb.from('btech_homepage_sections').select('*').order('sort_order');
   SECTIONS = sections || [];
 }
 
@@ -476,7 +476,7 @@ function applySettingsToChrome(){
    ========================================================= */
 async function logPageview(path){
   try{
-    await sb.from('analytics_events').insert({ session_id: SESSION_ID, path, referrer: document.referrer || null });
+    await sb.from('btech_analytics_events').insert({ session_id: SESSION_ID, path, referrer: document.referrer || null });
   }catch(e){ /* fail silently — never block the UI on analytics */ }
 }
 
@@ -542,9 +542,9 @@ async function renderHome(){
   const order = visible.length ? visible.map(s=>s.key) : ['hero','about','services','projects','posts','cta'];
 
   const [{data: services}, {data: projects}, {data: posts}] = await Promise.all([
-    sb.from('services').select('*').eq('visible', true).order('sort_order').limit(6),
-    sb.from('projects').select('*').eq('status','published').eq('featured', true).order('created_at', {ascending:false}).limit(6),
-    sb.from('posts').select('*').eq('status','published').order('published_at', {ascending:false}).limit(3),
+    sb.from('btech_services').select('*').eq('visible', true).order('sort_order').limit(6),
+    sb.from('btech_projects').select('*').eq('status','published').eq('featured', true).order('created_at', {ascending:false}).limit(6),
+    sb.from('btech_posts').select('*').eq('status','published').order('published_at', {ascending:false}).limit(3),
   ]);
 
   const blocks = {
@@ -677,7 +677,7 @@ function bindContactWithMeButtons(){}
 /* ---- About ---- */
 async function renderAbout(){
   pageShell(skeletonBlock());
-  const { data: profile } = await sb.from('profiles').select('*').limit(1).maybeSingle();
+  const { data: profile } = await sb.from('btech_profiles').select('*').limit(1).maybeSingle();
   const p = profile || {};
   app.innerHTML = `
   <section class="section">
@@ -706,12 +706,12 @@ async function renderAbout(){
 /* ---- Services ---- */
 async function renderServices(){
   pageShell(skeletonBlock());
-  const { data } = await sb.from('services').select('*').eq('visible',true).order('sort_order');
+  const { data } = await sb.from('btech_services').select('*').eq('visible',true).order('sort_order');
   app.innerHTML = `<div class="container section"><h1>Services</h1><p>Every service below is managed live from Admin.</p></div>` + servicesBlock(data||[], false);
 }
 async function renderServiceDetail(slug){
   pageShell(skeletonBlock());
-  const { data: s } = await sb.from('services').select('*').eq('slug', slug).eq('visible', true).maybeSingle();
+  const { data: s } = await sb.from('btech_services').select('*').eq('slug', slug).eq('visible', true).maybeSingle();
   if(!s) return pageShell(`<div class="container section"><div class="empty">Service not found.</div></div>`);
   app.innerHTML = `
   <section class="section">
@@ -733,7 +733,7 @@ async function renderServiceDetail(slug){
 /* ---- Projects ---- */
 async function renderProjects(){
   pageShell(skeletonBlock());
-  const { data } = await sb.from('projects').select('*').eq('status','published').order('created_at', {ascending:false});
+  const { data } = await sb.from('btech_projects').select('*').eq('status','published').order('created_at', {ascending:false});
   const list = data || [];
   app.innerHTML = `
   <section class="section">
@@ -758,9 +758,9 @@ async function renderProjects(){
 }
 async function renderProjectDetail(slug){
   pageShell(skeletonBlock());
-  const { data: p } = await sb.from('projects').select('*').eq('slug', slug).eq('status','published').maybeSingle();
+  const { data: p } = await sb.from('btech_projects').select('*').eq('slug', slug).eq('status','published').maybeSingle();
   if(!p) return pageShell(`<div class="container section"><div class="empty">Project not found.</div></div>`);
-  const { data: comments } = await sb.from('comments').select('*').eq('project_id', p.id).eq('status','approved').order('created_at',{ascending:false});
+  const { data: comments } = await sb.from('btech_comments').select('*').eq('project_id', p.id).eq('status','approved').order('created_at',{ascending:false});
   app.innerHTML = `
   <section class="section">
     <div class="container">
@@ -785,7 +785,7 @@ async function renderProjectDetail(slug){
 /* ---- Posts ---- */
 async function renderPosts(){
   pageShell(skeletonBlock());
-  const { data } = await sb.from('posts').select('*').eq('status','published').order('published_at',{ascending:false});
+  const { data } = await sb.from('btech_posts').select('*').eq('status','published').order('published_at',{ascending:false});
   const list = data||[];
   app.innerHTML = `<div class="container section"><h1>Posts</h1><p>Articles on AI, web development and building B-Tech Hub.</p>
     ${!list.length ? '<div class="empty">No posts published yet.</div>' : `<div class="grid grid-3">${list.map(p=>`
@@ -809,9 +809,9 @@ function videoEmbed(url){
 }
 async function renderPostDetail(slug){
   pageShell(skeletonBlock());
-  const { data: p } = await sb.from('posts').select('*').eq('slug', slug).eq('status','published').maybeSingle();
+  const { data: p } = await sb.from('btech_posts').select('*').eq('slug', slug).eq('status','published').maybeSingle();
   if(!p) return pageShell(`<div class="container section"><div class="empty">Post not found.</div></div>`);
-  const { data: comments } = await sb.from('comments').select('*').eq('post_id', p.id).eq('status','approved').order('created_at',{ascending:false});
+  const { data: comments } = await sb.from('btech_comments').select('*').eq('post_id', p.id).eq('status','approved').order('created_at',{ascending:false});
   app.innerHTML = `
   <section class="section">
     <div class="container" style="max-width:760px;">
@@ -877,7 +877,7 @@ function bindSocial(postId, projectId, post){
       if(postId) payload.post_id = postId; else payload.project_id = projectId;
       const btn = form.querySelector('button[type=submit]');
       btn.disabled = true; btn.textContent = 'Posting…';
-      const { error } = await sb.from('comments').insert(payload);
+      const { error } = await sb.from('btech_comments').insert(payload);
       const msg = document.getElementById('comment-msg');
       if(error){ msg.className='form-error'; msg.textContent = 'Something went wrong — please try again.'; }
       else { msg.className='form-success'; msg.textContent = 'Thanks! Your comment is awaiting approval.'; form.reset(); }
@@ -911,7 +911,7 @@ function commentsSection(comments, postId, projectId){
 /* ---- Resources ---- */
 async function renderResources(){
   pageShell(skeletonBlock());
-  const { data } = await sb.from('resources').select('*').eq('visible',true).order('created_at',{ascending:false});
+  const { data } = await sb.from('btech_resources').select('*').eq('visible',true).order('created_at',{ascending:false});
   const list = data||[];
   app.innerHTML = `<div class="container section"><h1>Resources</h1><p>Free guides, templates and tools from B-Tech Hub.</p>
     ${!list.length ? '<div class="empty">No resources published yet — check back soon.</div>' : `<div class="grid grid-3">${list.map(r=>`
@@ -960,7 +960,7 @@ async function renderContact(){
     </div>
   </section>`);
 
-  const { data: services } = await sb.from('services').select('name').eq('visible',true).order('sort_order');
+  const { data: services } = await sb.from('btech_services').select('name').eq('visible',true).order('sort_order');
   const sel = document.getElementById('contact-service');
   (services||[]).forEach(s=>{ const o=document.createElement('option'); o.value=s.name; o.textContent=s.name; sel.appendChild(o); });
 
@@ -976,7 +976,7 @@ async function renderContact(){
     };
     const btn = form.querySelector('button[type=submit]');
     btn.disabled = true; btn.textContent = 'Sending…';
-    const { error } = await sb.from('messages').insert(payload);
+    const { error } = await sb.from('btech_messages').insert(payload);
     const msg = document.getElementById('contact-msg');
     if(error){ msg.className='form-error'; msg.textContent = 'Something went wrong — please try again or email directly.'; }
     else { msg.className='form-success'; msg.textContent = "Thanks! Your request has been sent — I'll be in touch soon."; form.reset(); }
@@ -1013,7 +1013,7 @@ async function checkAuth(){
   const { data: { session } } = await sb.auth.getSession();
   currentUser = session ? session.user : null;
   if(currentUser){
-    const { data } = await sb.from('admins').select('user_id').eq('user_id', currentUser.id).maybeSingle();
+    const { data } = await sb.from('btech_admins').select('user_id').eq('user_id', currentUser.id).maybeSingle();
     isAdminUser = !!data;
   } else {
     isAdminUser = false;
@@ -1082,11 +1082,11 @@ async function routeAdmin(path){
 /* ---- Dashboard ---- */
 async function adminDashboard(content){
   const [{count: posts}, {count: projects}, {count: comments}, {count: messages}, {data: events}] = await Promise.all([
-    sb.from('posts').select('*', {count:'exact', head:true}),
-    sb.from('projects').select('*', {count:'exact', head:true}),
-    sb.from('comments').select('*', {count:'exact', head:true}),
-    sb.from('messages').select('*', {count:'exact', head:true}),
-    sb.from('analytics_events').select('session_id'),
+    sb.from('btech_posts').select('*', {count:'exact', head:true}),
+    sb.from('btech_projects').select('*', {count:'exact', head:true}),
+    sb.from('btech_comments').select('*', {count:'exact', head:true}),
+    sb.from('btech_messages').select('*', {count:'exact', head:true}),
+    sb.from('btech_analytics_events').select('session_id'),
   ]);
   const visitors = new Set((events||[]).map(e=>e.session_id)).size;
   content.innerHTML = `
@@ -1113,7 +1113,7 @@ function crudToolbar(label, addId){
 
 /* ---- Posts ---- */
 async function adminPosts(content){
-  const { data } = await sb.from('posts').select('*').order('created_at',{ascending:false});
+  const { data } = await sb.from('btech_posts').select('*').order('created_at',{ascending:false});
   const rows = data||[];
   content.innerHTML = `<div class="admin-panel">
     ${crudToolbar('Posts','add-post-btn')}
@@ -1137,7 +1137,7 @@ async function adminPosts(content){
   content.querySelectorAll('.edit-post').forEach(b=>b.addEventListener('click', ()=> renderPostForm(rows.find(r=>r.id===b.dataset.id))));
   content.querySelectorAll('.del-post').forEach(b=>b.addEventListener('click', async ()=>{
     if(!confirm('Delete this post permanently?')) return;
-    await sb.from('posts').delete().eq('id', b.dataset.id);
+    await sb.from('btech_posts').delete().eq('id', b.dataset.id);
     adminPosts(content);
   }));
 }
@@ -1199,8 +1199,8 @@ function renderPostForm(post){
       seo_title: fd.get('seo_title') || null,
       seo_description: fd.get('seo_description') || null,
     };
-    if(post){ await sb.from('posts').update(payload).eq('id', post.id); }
-    else { await sb.from('posts').insert(payload); }
+    if(post){ await sb.from('btech_posts').update(payload).eq('id', post.id); }
+    else { await sb.from('btech_posts').insert(payload); }
     panel.innerHTML = '';
     adminPosts(document.getElementById('admin-content'));
   });
@@ -1208,7 +1208,7 @@ function renderPostForm(post){
 
 /* ---- Projects ---- */
 async function adminProjects(content){
-  const { data } = await sb.from('projects').select('*').order('created_at',{ascending:false});
+  const { data } = await sb.from('btech_projects').select('*').order('created_at',{ascending:false});
   const rows = data||[];
   content.innerHTML = `<div class="admin-panel">
     ${crudToolbar('Projects','add-project-btn')}
@@ -1225,7 +1225,7 @@ async function adminProjects(content){
   content.querySelectorAll('.edit-project').forEach(b=>b.addEventListener('click', ()=>renderProjectForm(rows.find(r=>r.id===b.dataset.id))));
   content.querySelectorAll('.del-project').forEach(b=>b.addEventListener('click', async ()=>{
     if(!confirm('Delete this project permanently?')) return;
-    await sb.from('projects').delete().eq('id', b.dataset.id);
+    await sb.from('btech_projects').delete().eq('id', b.dataset.id);
     adminProjects(content);
   }));
 }
@@ -1279,8 +1279,8 @@ function renderProjectForm(proj){
       status: fd.get('status') ? 'published':'draft',
       featured: !!fd.get('featured'),
     };
-    if(proj){ await sb.from('projects').update(payload).eq('id', proj.id); }
-    else{ await sb.from('projects').insert(payload); }
+    if(proj){ await sb.from('btech_projects').update(payload).eq('id', proj.id); }
+    else{ await sb.from('btech_projects').insert(payload); }
     panel.innerHTML='';
     adminProjects(document.getElementById('admin-content'));
   });
@@ -1288,7 +1288,7 @@ function renderProjectForm(proj){
 
 /* ---- Services ---- */
 async function adminServices(content){
-  const { data } = await sb.from('services').select('*').order('sort_order');
+  const { data } = await sb.from('btech_services').select('*').order('sort_order');
   const rows = data||[];
   content.innerHTML = `<div class="admin-panel">
     ${crudToolbar('Services','add-service-btn')}
@@ -1305,7 +1305,7 @@ async function adminServices(content){
   content.querySelectorAll('.edit-service').forEach(b=>b.addEventListener('click', ()=>renderServiceForm(rows.find(r=>r.id===b.dataset.id))));
   content.querySelectorAll('.del-service').forEach(b=>b.addEventListener('click', async ()=>{
     if(!confirm('Delete this service?')) return;
-    await sb.from('services').delete().eq('id', b.dataset.id);
+    await sb.from('btech_services').delete().eq('id', b.dataset.id);
     adminServices(content);
   }));
 }
@@ -1345,8 +1345,8 @@ function renderServiceForm(svc){
       features: fd.get('features') ? fd.get('features').split(',').map(s=>s.trim()).filter(Boolean) : [],
       visible: !!fd.get('visible'),
     };
-    if(svc){ await sb.from('services').update(payload).eq('id', svc.id); }
-    else{ await sb.from('services').insert(payload); }
+    if(svc){ await sb.from('btech_services').update(payload).eq('id', svc.id); }
+    else{ await sb.from('btech_services').insert(payload); }
     panel.innerHTML='';
     adminServices(document.getElementById('admin-content'));
   });
@@ -1354,7 +1354,7 @@ function renderServiceForm(svc){
 
 /* ---- Resources ---- */
 async function adminResources(content){
-  const { data } = await sb.from('resources').select('*').order('created_at',{ascending:false});
+  const { data } = await sb.from('btech_resources').select('*').order('created_at',{ascending:false});
   const rows = data||[];
   content.innerHTML = `<div class="admin-panel">
     ${crudToolbar('Resources','add-resource-btn')}
@@ -1371,7 +1371,7 @@ async function adminResources(content){
   content.querySelectorAll('.edit-resource').forEach(b=>b.addEventListener('click', ()=>renderResourceForm(rows.find(r=>r.id===b.dataset.id))));
   content.querySelectorAll('.del-resource').forEach(b=>b.addEventListener('click', async ()=>{
     if(!confirm('Delete this resource?')) return;
-    await sb.from('resources').delete().eq('id', b.dataset.id);
+    await sb.from('btech_resources').delete().eq('id', b.dataset.id);
     adminResources(content);
   }));
 }
@@ -1417,8 +1417,8 @@ function renderResourceForm(res){
       cover_image: fd.get('cover_image')||null,
       visible: !!fd.get('visible'),
     };
-    if(res){ await sb.from('resources').update(payload).eq('id', res.id); }
-    else{ await sb.from('resources').insert(payload); }
+    if(res){ await sb.from('btech_resources').update(payload).eq('id', res.id); }
+    else{ await sb.from('btech_resources').insert(payload); }
     panel.innerHTML='';
     adminResources(document.getElementById('admin-content'));
   });
@@ -1426,7 +1426,7 @@ function renderResourceForm(res){
 
 /* ---- Messages ---- */
 async function adminMessages(content){
-  const { data } = await sb.from('messages').select('*').order('created_at',{ascending:false});
+  const { data } = await sb.from('btech_messages').select('*').order('created_at',{ascending:false});
   const rows = data||[];
   content.innerHTML = `<div class="admin-panel">
     <h3>Messages</h3>
@@ -1448,7 +1448,7 @@ async function adminMessages(content){
     </tbody></table>
   </div><div id="msg-detail-panel"></div>`;
   content.querySelectorAll('.msg-status').forEach(sel=>sel.addEventListener('change', async ()=>{
-    await sb.from('messages').update({status: sel.value}).eq('id', sel.dataset.id);
+    await sb.from('btech_messages').update({status: sel.value}).eq('id', sel.dataset.id);
   }));
   content.querySelectorAll('.view-msg').forEach(b=>b.addEventListener('click', ()=>{
     const m = rows.find(r=>r.id===b.dataset.id);
@@ -1464,7 +1464,7 @@ async function adminMessages(content){
 
 /* ---- Comments ---- */
 async function adminComments(content){
-  const { data } = await sb.from('comments').select('*').order('created_at',{ascending:false});
+  const { data } = await sb.from('btech_comments').select('*').order('created_at',{ascending:false});
   const rows = data||[];
   const tabs = ['pending','approved','hidden'];
   content.innerHTML = `<div class="admin-panel">
@@ -1489,9 +1489,9 @@ async function adminComments(content){
             <button class="btn btn-danger btn-sm del-c" data-id="${c.id}">Delete</button>
           </td>
         </tr>`).join('')}</tbody></table>` : `<div class="empty">No ${tab} comments.</div>`;
-    document.querySelectorAll('.approve-c').forEach(b=>b.addEventListener('click', async ()=>{ await sb.from('comments').update({status:'approved'}).eq('id', b.dataset.id); adminComments(content); }));
-    document.querySelectorAll('.hide-c').forEach(b=>b.addEventListener('click', async ()=>{ await sb.from('comments').update({status:'hidden'}).eq('id', b.dataset.id); adminComments(content); }));
-    document.querySelectorAll('.del-c').forEach(b=>b.addEventListener('click', async ()=>{ if(confirm('Delete this comment?')){ await sb.from('comments').delete().eq('id', b.dataset.id); adminComments(content);} }));
+    document.querySelectorAll('.approve-c').forEach(b=>b.addEventListener('click', async ()=>{ await sb.from('btech_comments').update({status:'approved'}).eq('id', b.dataset.id); adminComments(content); }));
+    document.querySelectorAll('.hide-c').forEach(b=>b.addEventListener('click', async ()=>{ await sb.from('btech_comments').update({status:'hidden'}).eq('id', b.dataset.id); adminComments(content); }));
+    document.querySelectorAll('.del-c').forEach(b=>b.addEventListener('click', async ()=>{ if(confirm('Delete this comment?')){ await sb.from('btech_comments').delete().eq('id', b.dataset.id); adminComments(content);} }));
   }
   content.querySelectorAll('.tab-link').forEach(t=>t.addEventListener('click', (e)=>{
     e.preventDefault();
@@ -1504,7 +1504,7 @@ async function adminComments(content){
 
 /* ---- Homepage Control ---- */
 async function adminHomepage(content){
-  const { data } = await sb.from('homepage_sections').select('*').order('sort_order');
+  const { data } = await sb.from('btech_homepage_sections').select('*').order('sort_order');
   const rows = data||[];
   content.innerHTML = `<div class="admin-panel">
     <h3>Homepage Sections</h3>
@@ -1522,7 +1522,7 @@ async function adminHomepage(content){
   </div>`;
   content.querySelectorAll('.hs-visible').forEach(cb=>cb.addEventListener('change', async (e)=>{
     const key = e.target.closest('tr').dataset.key;
-    await sb.from('homepage_sections').update({visible: e.target.checked}).eq('key', key);
+    await sb.from('btech_homepage_sections').update({visible: e.target.checked}).eq('key', key);
   }));
   async function move(tr, dir){
     const rowsNow = [...content.querySelectorAll('#hs-body tr')];
@@ -1532,8 +1532,8 @@ async function adminHomepage(content){
     const a = rows.find(r=>r.key===tr.dataset.key);
     const b = rows.find(r=>r.key===rowsNow[swapIdx].dataset.key);
     const tmp = a.sort_order; a.sort_order = b.sort_order; b.sort_order = tmp;
-    await sb.from('homepage_sections').update({sort_order:a.sort_order}).eq('key', a.key);
-    await sb.from('homepage_sections').update({sort_order:b.sort_order}).eq('key', b.key);
+    await sb.from('btech_homepage_sections').update({sort_order:a.sort_order}).eq('key', a.key);
+    await sb.from('btech_homepage_sections').update({sort_order:b.sort_order}).eq('key', b.key);
     adminHomepage(content);
   }
   content.querySelectorAll('.hs-up').forEach(b=>b.addEventListener('click', ()=>move(b.closest('tr'), -1)));
@@ -1555,7 +1555,7 @@ async function adminAnalytics(content){
     <div id="analytics-body" style="margin-top:16px;"></div>
   </div>`;
   async function load(days){
-    let query = sb.from('analytics_events').select('*');
+    let query = sb.from('btech_analytics_events').select('*');
     if(days > 0){
       const since = new Date(Date.now() - days*86400000).toISOString();
       query = query.gte('created_at', since);
@@ -1581,8 +1581,8 @@ async function adminAnalytics(content){
 
 /* ---- Site Settings ---- */
 async function adminSettings(content){
-  const { data: s } = await sb.from('site_settings').select('*').eq('id',1).single();
-  const { data: profileData } = await sb.from('profiles').select('*').limit(1).maybeSingle();
+  const { data: s } = await sb.from('btech_site_settings').select('*').eq('id',1).single();
+  const { data: profileData } = await sb.from('btech_profiles').select('*').limit(1).maybeSingle();
   const p = profileData || {};
   content.innerHTML = `
   <div class="admin-panel">
@@ -1672,7 +1672,7 @@ async function adminSettings(content){
       .forEach(k=> payload[k] = fd.get(k) || null);
     ['likes_enabled','comments_enabled','sharing_enabled','pwa_install_enabled','pwa_offline_enabled']
       .forEach(k=> payload[k] = !!fd.get(k));
-    await sb.from('site_settings').update(payload).eq('id',1);
+    await sb.from('btech_site_settings').update(payload).eq('id',1);
     const msg = document.getElementById('settings-msg');
     msg.className='form-success'; msg.textContent='Saved.'; msg.classList.remove('hidden');
     await loadSettings();
@@ -1686,8 +1686,8 @@ async function adminSettings(content){
       photo_url: fd.get('photo_url')||null,
       skills: fd.get('skills') ? fd.get('skills').split(',').map(s=>s.trim()).filter(Boolean) : [],
     };
-    if(p.id){ await sb.from('profiles').update(payload).eq('id', p.id); }
-    else{ await sb.from('profiles').insert(payload); }
+    if(p.id){ await sb.from('btech_profiles').update(payload).eq('id', p.id); }
+    else{ await sb.from('btech_profiles').insert(payload); }
     adminSettings(content);
   });
 }
