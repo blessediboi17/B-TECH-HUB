@@ -2240,8 +2240,62 @@ async function adminSettings(content){
     </form>
   </div>
 
-  <div class="admin-panel">
+<div class="admin-panel">
     <h3>About / Profile</h3>
     <form id="profile-form">
       <div class="field"><label>Full Name</label><input name="full_name" value="${esc(p.full_name||'Blessed Iboi')}"/></div>
-      <
+      <div class="field"><label>Title</label><input name="title" value="${esc(p.title||'Founder • Web Developer • AI Creator • Designer')}"/></div>
+      <div class="field"><label>Bio</label><textarea name="bio" rows="5">${esc(p.bio||'')}</textarea></div>
+      ${imageUploadField('photo_url', 'Photo', p.photo_url, 'profile')}
+      <div class="field"><label>Skills (comma separated)</label><input name="skills" value="${esc((p.skills||[]).join(', '))}"/></div>
+      <button type="submit" class="btn btn-primary">Save Profile</button>
+    </form>
+  </div>`;
+  bindImageUploads(content);
+
+  document.getElementById('settings-form').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const payload = {};
+    ['site_name','tagline','logo_url','favicon_url','profile_photo_url','contact_email','contact_email_secondary',
+     'contact_phone','contact_whatsapp','location','mobile_money_number','mobile_money_provider','social_facebook','social_instagram','social_tiktok','social_youtube',
+     'social_github','social_linkedin','seo_title','seo_description','default_share_image','pwa_app_name','pwa_short_name','pwa_icon_url']
+      .forEach(k=> payload[k] = fd.get(k) || null);
+    ['likes_enabled','comments_enabled','sharing_enabled','pwa_install_enabled','pwa_offline_enabled']
+      .forEach(k=> payload[k] = !!fd.get(k));
+    await sb.from('btech_site_settings').update(payload).eq('id',1);
+    const msg = document.getElementById('settings-msg');
+    msg.className='form-success'; msg.textContent='Saved.'; msg.classList.remove('hidden');
+    await loadSettings();
+  });
+
+  document.getElementById('profile-form').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const payload = {
+      full_name: fd.get('full_name'), title: fd.get('title'), bio: fd.get('bio'),
+      photo_url: fd.get('photo_url')||null,
+      skills: fd.get('skills') ? fd.get('skills').split(',').map(s=>s.trim()).filter(Boolean) : [],
+    };
+    if(p.id){ await sb.from('btech_profiles').update(payload).eq('id', p.id); }
+    else{ await sb.from('btech_profiles').insert(payload); }
+    adminSettings(content);
+  });
+}
+
+/* =========================================================
+   7. BOOT + PWA
+   ========================================================= */
+(async function boot(){
+  await loadSettings();
+  await router();
+})();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
